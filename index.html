@@ -7,7 +7,7 @@
     <title>Shinrin AI - Clinical Decision Support</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
         body {
@@ -21,7 +21,24 @@
     </style>
 </head>
 
-<body class="antialiased min-h-screen pb-16">
+<body class="antialiased min-h-screen pb-20 relative">
+
+    <!-- Model Downloading Overlay -->
+    <div id="modelLoader" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-2xl max-w-md w-full mx-4 border border-stone-200 shadow-xl text-center space-y-6">
+            <div class="w-16 h-16 border-4 border-[#4A5D4E]/20 border-t-[#4A5D4E] rounded-full animate-spin mx-auto"></div>
+            <div>
+                <h3 class="text-xl font-medium text-stone-800">Downloading Clinical AI</h3>
+                <p class="text-xs text-stone-400 mt-2">Loading Transformers.js and DistilBERT model (40MB) directly in your browser. This only happens on the first run.</p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-stone-100 h-2 rounded-full overflow-hidden">
+                <div id="modelProgress" class="bg-[#4A5D4E] h-full w-0 transition-all duration-200"></div>
+            </div>
+            <div id="progressText" class="text-xs font-semibold text-stone-600">0% Loaded</div>
+        </div>
+    </div>
+
     <div class="max-w-6xl mx-auto px-6 pt-12">
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-stone-200 pb-8 mb-10">
@@ -29,9 +46,12 @@
                 <h1 class="text-4xl font-semibold tracking-wide text-stone-800">Shinrin AI</h1>
                 <p class="text-sm text-stone-500 mt-1 italic tracking-wider">Clinical Guidance & Structured Insights</p>
             </div>
-            <div class="mt-4 md:mt-0 flex items-center space-x-3 text-xs tracking-wider uppercase text-stone-400">
-                <span>Provider Node: Active</span>
-                <span class="inline-block w-2 h-2 rounded-full bg-[#4A5D4E] animate-pulse"></span>
+            <div class="mt-4 md:mt-0 flex flex-col items-end space-y-2">
+                <div class="flex items-center space-x-3 text-xs tracking-wider uppercase text-stone-400 font-semibold">
+                    <span>Browser-based AI status</span>
+                    <span id="aiHeaderStatus" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                </div>
+                <span id="aiHeaderLabel" class="text-[10px] text-stone-400 uppercase tracking-widest">Local Model: Idle</span>
             </div>
         </header>
 
@@ -44,10 +64,10 @@
                     <h2 class="text-xl font-medium text-stone-800 mb-4">Patient Profile</h2>
                     <div id="profileSwitcher" class="flex space-x-3 mb-6 overflow-x-auto pb-2"></div>
                     
-                    <div id="activeProfileCard" class="bg-[#FAF7F2] p-4 rounded-xl border border-stone-100 transition-all duration-300">
-                        <div class="flex justify-between items-center mb-2">
+                    <div id="activeProfileCard" class="bg-[#FAF7F2] p-5 rounded-xl border border-stone-100 transition-all duration-300">
+                        <div class="flex justify-between items-center mb-3">
                             <span id="patientName" class="font-semibold text-stone-800 text-base">Select Profile</span>
-                            <span id="patientDemographics" class="text-xs uppercase tracking-wider text-stone-400 font-medium"></span>
+                            <span id="patientDemographics" class="text-xs uppercase tracking-wider text-stone-400 font-bold bg-white px-2 py-0.5 rounded border border-stone-200"></span>
                         </div>
                         <p id="patientDescription" class="text-sm text-stone-600 leading-relaxed"></p>
                     </div>
@@ -69,7 +89,7 @@
 
                     <div class="flex space-x-3">
                         <button onclick="parseNote()"
-                            class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-sm px-6 py-2.5 rounded-xl transition duration-200 tracking-wide font-medium shadow-sm">
+                            class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-sm px-6 py-2.5 rounded-xl transition duration-200 tracking-wide font-medium shadow-sm hover:shadow-md">
                             Structure Note
                         </button>
                         <button onclick="resetNote()"
@@ -80,10 +100,16 @@
                 </div>
 
                 <!-- Parsed Highlight Note View -->
-                <div id="highlightsContainer" class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm hidden">
-                    <h2 class="text-xl font-medium text-stone-800 mb-4">Entity Extraction Highlights</h2>
+                <div id="highlightsContainer" class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm hidden transition-all duration-300">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-3 border-b border-stone-100">
+                        <h2 class="text-xl font-medium text-stone-800">Entity Extraction Highlights</h2>
+                        <!-- AI Urgency Badge -->
+                        <div id="aiUrgencyBadge" class="mt-2 md:mt-0"></div>
+                    </div>
+                    
                     <div id="highlightedText" class="p-4 rounded-xl border border-stone-100 bg-[#FAF7F2] text-sm leading-relaxed text-stone-700"></div>
-                    <div class="flex space-x-4 mt-4 text-xs font-medium">
+                    
+                    <div class="flex flex-wrap gap-4 mt-4 text-xs font-semibold text-stone-500">
                         <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#E8F5E9] border border-green-300 mr-2"></span>Medication</span>
                         <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#FFF9C4] border border-yellow-300 mr-2"></span>Symptom</span>
                         <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#FFEBEE] border border-red-300 mr-2"></span>Clinical Risk / Warning</span>
@@ -94,7 +120,7 @@
             <!-- Right Workspace: Guidelines & Diagnostics -->
             <div class="space-y-8">
                 <!-- Recommendations -->
-                <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm h-full">
+                <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
                     <h2 class="text-xl font-medium text-stone-800 mb-4">Decision Recommendations</h2>
                     
                     <div id="recommendationPanel" class="space-y-4">
@@ -108,7 +134,7 @@
         </div>
 
         <!-- Timeline Section -->
-        <section class="mt-8 bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+        <section class="mt-12 bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
             <h2 class="text-xl font-medium text-stone-800 mb-6">Longitudinal Timeline</h2>
             <div id="timelinePanel" class="overflow-x-auto pb-4">
                 <!-- Timeline items render here -->
@@ -116,7 +142,13 @@
         </section>
     </div>
 
-    <script>
+    <!-- Script Block using module type to import Transformers.js -->
+    <script type="module">
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+        
+        // Disable local model caching, fetch from HuggingFace CDN
+        env.allowLocalModels = false;
+
         // Profiles data
         const profiles = [
             {
@@ -224,12 +256,17 @@
         ];
 
         let activeProfile = profiles[0];
+        let classifier = null;
+
+        // Initialize UI Elements
+        const profileSwitcher = document.getElementById('profileSwitcher');
+        const recommendationPanel = document.getElementById('recommendationPanel');
+        const timelinePanel = document.getElementById('timelinePanel');
+        const noteInput = document.getElementById('noteInput');
 
         // Create profile switcher buttons
-        const switcherContainer = document.getElementById('profileSwitcher');
-        
         function renderSwitcher() {
-            switcherContainer.innerHTML = '';
+            profileSwitcher.innerHTML = '';
             profiles.forEach(profile => {
                 const btn = document.createElement('button');
                 btn.id = `btn-${profile.id}`;
@@ -243,7 +280,7 @@
 
                 btn.textContent = profile.name.split(':')[0]; // Show short name
                 btn.onclick = () => selectProfile(profile.id);
-                switcherContainer.appendChild(btn);
+                profileSwitcher.appendChild(btn);
             });
         }
 
@@ -257,13 +294,13 @@
             document.getElementById('patientDescription').textContent = activeProfile.description;
             
             // Populate note textarea
-            document.getElementById('noteInput').value = activeProfile.notes;
+            noteInput.value = activeProfile.notes;
             
             // Hide parsed text until 'Structure Note' is clicked
             document.getElementById('highlightsContainer').classList.add('hidden');
             
             // Reset diagnostic panel message
-            document.getElementById('recommendationPanel').innerHTML = `
+            recommendationPanel.innerHTML = `
                 <div class="text-center py-12 text-stone-400 text-sm">
                     <p>New profile loaded: ${activeProfile.name.split(':')[0]}</p>
                     <p class="text-xs mt-1">Click 'Structure Note' to generate recommendations.</p>
@@ -273,27 +310,74 @@
             renderTimeline();
         }
 
+        // Expose to window context for buttons
+        window.selectProfile = selectProfile;
+
         function resetNote() {
-            document.getElementById('noteInput').value = '';
+            noteInput.value = '';
             document.getElementById('highlightsContainer').classList.add('hidden');
-            document.getElementById('recommendationPanel').innerHTML = `
+            recommendationPanel.innerHTML = `
                 <div class="text-center py-12 text-stone-400 text-sm">
                     <p>Narrative cleared.</p>
                 </div>
             `;
         }
+        window.resetNote = resetNote;
 
-        // Highlight generator
-        function parseNote() {
+        // Custom model loading overlay
+        function showModelLoading(show) {
+            const loader = document.getElementById('modelLoader');
+            if (show) {
+                loader.classList.remove('hidden');
+            } else {
+                loader.classList.add('hidden');
+            }
+        }
+
+        // Initialize classifier pipeline
+        async function loadModel() {
+            if (classifier) return;
+            
+            showModelLoading(true);
+            document.getElementById('aiHeaderStatus').className = "inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse";
+            document.getElementById('aiHeaderLabel').textContent = "Local Model: Downloading...";
+
+            // Setup callback for tracking model download progress
+            const progressCallback = (info) => {
+                if (info.status === 'progress') {
+                    const pct = Math.round(info.progress);
+                    document.getElementById('modelProgress').style.width = `${pct}%`;
+                    document.getElementById('progressText').textContent = `${pct}% Loaded`;
+                }
+            };
+
+            try {
+                // Initialize text classification pipeline (loads ~40MB quantized DistilBERT)
+                classifier = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english', {
+                    progress_callback: progressCallback
+                });
+                
+                showModelLoading(false);
+                document.getElementById('aiHeaderStatus').className = "inline-block w-2.5 h-2.5 rounded-full bg-[#4A5D4E]";
+                document.getElementById('aiHeaderLabel').textContent = "Local Model: Ready (Cached)";
+            } catch (err) {
+                console.error("Failed to load model", err);
+                showModelLoading(false);
+                document.getElementById('aiHeaderStatus').className = "inline-block w-2.5 h-2.5 rounded-full bg-red-400";
+                document.getElementById('aiHeaderLabel').textContent = "Local Model: Load Failed";
+            }
+        }
+
+        // Highlight generator & Local AI inference
+        async function parseNote() {
             const container = document.getElementById('highlightsContainer');
             const highlightedTextEl = document.getElementById('highlightedText');
-            const noteText = document.getElementById('noteInput').value;
+            const noteText = noteInput.value;
 
             if (!noteText.trim()) return;
 
-            let markedText = noteText;
-            
             // Highlight clinical terms
+            let markedText = noteText;
             activeProfile.highlights.forEach(entity => {
                 const escapedTerm = entity.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                 const regex = new RegExp(`(${escapedTerm})`, 'gi');
@@ -314,40 +398,74 @@
             container.classList.remove('hidden');
 
             // Render recommendations
-            const recommendationPanel = document.getElementById('recommendationPanel');
             recommendationPanel.innerHTML = '';
-
             activeProfile.recommendations.forEach(rec => {
                 const card = document.createElement('div');
-                card.className = 'p-5 rounded-xl border border-stone-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200';
+                card.className = 'p-5 rounded-xl border border-stone-200 bg-white shadow-sm hover:shadow-md transition-all duration-300';
                 
-                let titleClass = "text-stone-800 font-semibold text-sm mb-1.5 flex items-center";
-                
-                // Add a small indicator dot for recommendations
                 const dot = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-[#D1A153] mr-2"></span>`;
 
                 const titleEl = document.createElement('h3');
-                titleEl.className = titleClass;
+                titleEl.className = "text-stone-800 font-semibold text-sm mb-1.5 flex items-center";
                 titleEl.innerHTML = dot + rec.title;
 
                 const descEl = document.createElement('p');
                 descEl.className = 'text-xs text-stone-600 leading-relaxed';
                 
-                // Render markdown links in description if any
+                // Render markdown links in description
                 let descHTML = rec.description;
                 const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-                descHTML = descHTML.replace(linkRegex, `<a href="$2" target="_blank" class="text-[#4A5D4E] underline hover:text-[#3D4F41] font-medium">$1</a>`);
+                descHTML = descHTML.replace(linkRegex, `<a href="$2" target="_blank" class="text-[#4A5D4E] underline hover:text-[#3D4F41] font-semibold">$1</a>`);
                 descEl.innerHTML = descHTML;
 
                 card.appendChild(titleEl);
                 card.appendChild(descEl);
                 recommendationPanel.appendChild(card);
             });
+
+            // Trigger browser-based AI model inference
+            const badgeContainer = document.getElementById('aiUrgencyBadge');
+            badgeContainer.innerHTML = `
+                <div class="flex items-center text-xs text-stone-400 font-medium bg-[#FAF7F2] border border-stone-100 rounded-full px-3 py-1 animate-pulse">
+                    <span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-2 animate-ping"></span>
+                    Running Local AI Classification...
+                </div>
+            `;
+
+            // Load and initialize model on first use
+            if (!classifier) {
+                await loadModel();
+            }
+
+            try {
+                // Run inference on clinical note
+                const result = await classifier(noteText);
+                const label = result[0].label; // "POSITIVE" or "NEGATIVE"
+                const score = result[0].score;
+
+                let urgencyLabel = "Routine / Stable";
+                let urgencyClass = "bg-[#E8F5E9] text-green-800 border-green-300";
+                
+                // Map negative sentiment to high clinical urgency / risk warning
+                if (label === "NEGATIVE") {
+                    urgencyLabel = "Urgent / Action Required";
+                    urgencyClass = "bg-[#FFEBEE] text-red-800 border-red-300 animate-pulse";
+                }
+
+                badgeContainer.innerHTML = `
+                    <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border ${urgencyClass}">
+                        ${urgencyLabel} (Confidence: ${(score * 100).toFixed(1)}%)
+                    </span>
+                `;
+            } catch (err) {
+                console.error("AI inference error", err);
+                badgeContainer.innerHTML = `<span class="text-xs text-red-400">AI Classification Error</span>`;
+            }
         }
+        window.parseNote = parseNote;
 
         // Render horizontal scrollable timeline
         function renderTimeline() {
-            const timelinePanel = document.getElementById('timelinePanel');
             timelinePanel.innerHTML = '';
 
             const wrapper = document.createElement('div');
@@ -359,23 +477,23 @@
 
                 const card = document.createElement('div');
                 
-                let colorBorder = "border-[#4A5D4E]";
-                let colorBg = "bg-stone-50";
+                let colorBorder = "border-stone-200";
+                let colorBg = "bg-stone-50/40";
                 if (entry.type === "medication") {
-                    colorBorder = "border-green-400";
-                    colorBg = "bg-green-50/30";
+                    colorBorder = "border-green-300";
+                    colorBg = "bg-[#E8F5E9]/10";
                 } else if (entry.type === "test") {
-                    colorBorder = "border-[#D1A153]";
-                    colorBg = "bg-yellow-50/30";
+                    colorBorder = "border-[#D1A153]/55";
+                    colorBg = "bg-[#FFF9C4]/10";
                 } else if (entry.type === "risk") {
-                    colorBorder = "border-red-400";
-                    colorBg = "bg-red-50/30";
+                    colorBorder = "border-red-300";
+                    colorBg = "bg-[#FFEBEE]/10";
                 }
 
-                card.className = `w-64 p-4 rounded-xl border ${colorBorder} ${colorBg} shadow-sm`;
+                card.className = `w-64 p-4 rounded-xl border ${colorBorder} ${colorBg} shadow-sm hover:shadow transition-all duration-300`;
 
                 const dateEl = document.createElement('div');
-                dateEl.className = 'text-[10px] uppercase tracking-wider text-stone-400 font-semibold mb-1';
+                dateEl.className = 'text-[9px] uppercase tracking-widest text-stone-400 font-bold mb-1';
                 dateEl.textContent = new Date(entry.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 
                 const eventEl = document.createElement('div');
@@ -386,10 +504,10 @@
                 card.appendChild(eventEl);
                 container.appendChild(card);
 
-                // Add arrow indicator between timeline steps, except for the last item
+                // Add arrow indicator between timeline steps
                 if (idx < activeProfile.timeline.length - 1) {
                     const arrow = document.createElement('div');
-                    arrow.className = 'text-stone-300 text-lg select-none';
+                    arrow.className = 'text-stone-300 text-sm font-light select-none';
                     arrow.innerHTML = '➔';
                     container.appendChild(arrow);
                 }
