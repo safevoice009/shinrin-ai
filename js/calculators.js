@@ -13,6 +13,37 @@ export function runChads() {
     const risks = [0.2, 1.3, 2.2, 3.2, 4.0, 6.7, 9.8, 9.6, 6.7, 15.2];
     const riskVal = risks[Math.min(score, risks.length - 1)];
     document.getElementById('chads-stroke-risk').textContent = `Annual Stroke Risk: ${riskVal}%`;
+
+    // Update risk UI
+    const badge = document.getElementById('chads-risk-badge');
+    const bar = document.getElementById('chads-risk-bar');
+    if (badge && bar) {
+        let label = "Low Risk";
+        let width = "10%";
+        let colorClasses = "bg-emerald-500";
+        let bgBadge = "bg-emerald-100/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400";
+        
+        if (score >= 3) {
+            label = "High Risk";
+            width = "90%";
+            colorClasses = "bg-rose-500";
+            bgBadge = "bg-rose-100/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400";
+        } else if (score === 2) {
+            label = "Moderate Risk";
+            width = "50%";
+            colorClasses = "bg-amber-500";
+            bgBadge = "bg-amber-100/50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400";
+        } else if (score === 1) {
+            label = "Mild Risk";
+            width = "25%";
+            colorClasses = "bg-yellow-500";
+            bgBadge = "bg-yellow-100/50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-400";
+        }
+        badge.textContent = label;
+        badge.className = `px-2 py-0.5 rounded font-extrabold ${bgBadge}`;
+        bar.className = `h-full ${colorClasses} transition-all duration-500 ease-out`;
+        bar.style.width = width;
+    }
 }
 
 export function runHasbled() {
@@ -28,13 +59,44 @@ export function runHasbled() {
     document.getElementById('hasbled-score').textContent = score;
     let risk = "Low Bleeding Risk (1.13%)";
     if (score >= 3) {
-        risk = "High Bleeding Risk (3.74%+ - regular review required)";
+        risk = "High Bleeding Risk (3.74%+)";
     } else if (score === 1) {
         risk = "Moderate Bleeding Risk (1.02%)";
     } else if (score === 2) {
         risk = "Moderate Bleeding Risk (1.88%)";
     }
     document.getElementById('hasbled-risk').textContent = `Bleeding Risk: ${risk}`;
+
+    // Update risk UI
+    const badge = document.getElementById('hasbled-risk-badge');
+    const bar = document.getElementById('hasbled-risk-bar');
+    if (badge && bar) {
+        let label = "Low Risk";
+        let width = "15%";
+        let colorClasses = "bg-emerald-500";
+        let bgBadge = "bg-emerald-100/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400";
+        
+        if (score >= 3) {
+            label = "High Risk";
+            width = "90%";
+            colorClasses = "bg-rose-500";
+            bgBadge = "bg-rose-100/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400";
+        } else if (score === 2) {
+            label = "Moderate Risk";
+            width = "50%";
+            colorClasses = "bg-amber-500";
+            bgBadge = "bg-amber-100/50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400";
+        } else if (score === 1) {
+            label = "Mild Risk";
+            width = "30%";
+            colorClasses = "bg-yellow-500";
+            bgBadge = "bg-yellow-100/50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-400";
+        }
+        badge.textContent = label;
+        badge.className = `px-2 py-0.5 rounded font-extrabold ${bgBadge}`;
+        bar.className = `h-full ${colorClasses} transition-all duration-500 ease-out`;
+        bar.style.width = width;
+    }
 }
 
 export function runWells() {
@@ -52,6 +114,32 @@ export function runWells() {
     if (score > 6.0) probability = "High (65%)";
     else if (score >= 2.0) probability = "Moderate (30%)";
     document.getElementById('wells-risk').textContent = `PE Probability: ${probability}`;
+
+    // Update risk UI
+    const badge = document.getElementById('wells-risk-badge');
+    const bar = document.getElementById('wells-risk-bar');
+    if (badge && bar) {
+        let label = "Low (10%)";
+        let width = "15%";
+        let colorClasses = "bg-emerald-500";
+        let bgBadge = "bg-emerald-100/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400";
+        
+        if (score > 6.0) {
+            label = "High (65%)";
+            width = "90%";
+            colorClasses = "bg-rose-500";
+            bgBadge = "bg-rose-100/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400";
+        } else if (score >= 2.0) {
+            label = "Moderate (30%)";
+            width = "50%";
+            colorClasses = "bg-amber-500";
+            bgBadge = "bg-amber-100/50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400";
+        }
+        badge.textContent = label;
+        badge.className = `px-2 py-0.5 rounded font-extrabold ${bgBadge}`;
+        bar.className = `h-full ${colorClasses} transition-all duration-500 ease-out`;
+        bar.style.width = width;
+    }
 }
 
 export function runMews() {
@@ -70,6 +158,32 @@ export function runMews() {
         risk = "Moderate Risk (Increase monitoring)";
     }
     document.getElementById('mews-risk').textContent = `Risk Assessment: ${risk}`;
+
+    // Update risk UI
+    const badge = document.getElementById('mews-risk-badge');
+    const bar = document.getElementById('mews-risk-bar');
+    if (badge && bar) {
+        let label = "Low Risk";
+        let width = "15%";
+        let colorClasses = "bg-emerald-500";
+        let bgBadge = "bg-emerald-100/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400";
+        
+        if (score >= 5) {
+            label = "Critical Risk";
+            width = "95%";
+            colorClasses = "bg-rose-500";
+            bgBadge = "bg-rose-100/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400";
+        } else if (score >= 3) {
+            label = "Moderate Risk";
+            width = "55%";
+            colorClasses = "bg-amber-500";
+            bgBadge = "bg-amber-100/50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400";
+        }
+        badge.textContent = label;
+        badge.className = `px-2 py-0.5 rounded font-extrabold ${bgBadge}`;
+        bar.className = `h-full ${colorClasses} transition-all duration-500 ease-out`;
+        bar.style.width = width;
+    }
 }
 
 export function runMeld() {
@@ -98,6 +212,42 @@ export function runMeld() {
 
     document.getElementById('meld-score').textContent = score;
     document.getElementById('meld-mortality-risk').textContent = `Mortality Risk: ${mortality}`;
+
+    // Update risk UI
+    const badge = document.getElementById('meld-risk-badge');
+    const bar = document.getElementById('meld-risk-bar');
+    if (badge && bar) {
+        let label = "Low (6.0%)";
+        let width = "15%";
+        let colorClasses = "bg-emerald-500";
+        let bgBadge = "bg-emerald-100/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400";
+        
+        if (score >= 40) {
+            label = "Critical (71.3%)";
+            width = "100%";
+            colorClasses = "bg-rose-500";
+            bgBadge = "bg-rose-100/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400";
+        } else if (score >= 30) {
+            label = "Severe (52.6%)";
+            width = "80%";
+            colorClasses = "bg-rose-500/80";
+            bgBadge = "bg-rose-100/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400";
+        } else if (score >= 20) {
+            label = "Mod-Severe (19.6%)";
+            width = "55%";
+            colorClasses = "bg-amber-500";
+            bgBadge = "bg-amber-100/50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400";
+        } else if (score >= 10) {
+            label = "Mild-Mod (6.0%)";
+            width = "35%";
+            colorClasses = "bg-yellow-500";
+            bgBadge = "bg-yellow-100/50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-400";
+        }
+        badge.textContent = label;
+        badge.className = `px-2 py-0.5 rounded font-extrabold ${bgBadge}`;
+        bar.className = `h-full ${colorClasses} transition-all duration-500 ease-out`;
+        bar.style.width = width;
+    }
 }
 
 export function runCurb65() {
@@ -117,6 +267,32 @@ export function runCurb65() {
 
     document.getElementById('curb-score').textContent = score;
     document.getElementById('curb-mortality-risk').textContent = `Assessment: ${mortality}`;
+
+    // Update risk UI
+    const badge = document.getElementById('curb-risk-badge');
+    const bar = document.getElementById('curb-risk-bar');
+    if (badge && bar) {
+        let label = "Low Risk (1.5%)";
+        let width = "20%";
+        let colorClasses = "bg-emerald-500";
+        let bgBadge = "bg-emerald-100/50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400";
+        
+        if (score >= 3) {
+            label = "Severe Risk (22%)";
+            width = "90%";
+            colorClasses = "bg-rose-500";
+            bgBadge = "bg-rose-100/50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400";
+        } else if (score === 2) {
+            label = "Moderate Risk (9.2%)";
+            width = "55%";
+            colorClasses = "bg-amber-500";
+            bgBadge = "bg-amber-100/50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400";
+        }
+        badge.textContent = label;
+        badge.className = `px-2 py-0.5 rounded font-extrabold ${bgBadge}`;
+        bar.className = `h-full ${colorClasses} transition-all duration-500 ease-out`;
+        bar.style.width = width;
+    }
 }
 
 export function insertScore(name, noteInput) {

@@ -8,14 +8,14 @@
 
 body {
     background-color: var(--ios-bg-light);
-    color: #1C1C1E;
+    color: #2C2C2A;
     transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .dark body {
     background-color: var(--ios-bg-dark);
-    color: #FFFFFF;
+    color: #FAF7F2;
 }
 
 /* Glassmorphism Panel Container */
@@ -164,3 +164,71 @@ body {
 .console-drawer-transition {
     transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease, border-color 0.4s ease;
 }
+
+/* Premium Button Pressed Scale Physics */
+button, select {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease !important;
+}
+button:active {
+    transform: scale(0.96) !important;
+}
+
+/* FHIR JSON Syntax Highlighting Tokens */
+.token-key {
+    color: #D1A153; /* Washi gold */
+    font-weight: 600;
+}
+.token-string {
+    color: #34C759; /* Apple green */
+}
+.token-number {
+    color: #0A84FF; /* Apple blue */
+}
+.token-boolean {
+    color: #FF453A; /* Apple red */
+}
+.token-null {
+    color: #8E8E93; /* Apple gray */
+}
+
+/* EHR Connection Sync Pathway Animations */
+@keyframes dashGlow {
+    to {
+        stroke-dashoffset: -40;
+    }
+}
+.sync-line-animated {
+    stroke-dasharray: 8, 4;
+    animation: dashGlow 1.2s linear infinite;
+}
+
+@keyframes nodePulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 4px rgba(74, 93, 78, 0.2));
+    }
+    50% {
+        transform: scale(1.06);
+        filter: drop-shadow(0 0 12px rgba(74, 93, 78, 0.6));
+    }
+}
+.sync-node-pulse {
+    transform-origin: center;
+    animation: nodePulse 2s infinite ease-in-out;
+}
+
+@keyframes nodePulseGold {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 4px rgba(209, 161, 83, 0.2));
+    }
+    50% {
+        transform: scale(1.06);
+        filter: drop-shadow(0 0 12px rgba(209, 161, 83, 0.6));
+    }
+}
+.sync-node-pulse-gold {
+    transform-origin: center;
+    animation: nodePulseGold 2s infinite ease-in-out;
+}
+

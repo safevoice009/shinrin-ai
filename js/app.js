@@ -545,12 +545,55 @@ function toggleHipaaAutolock() {
 }
 window.toggleHipaaAutolock = toggleHipaaAutolock;
 
+function showToast(message, type = 'success') {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'bg-stone-900/95 dark:bg-[#FAF7F2]/95 backdrop-blur text-[#FAF7F2] dark:text-[#1C1C1E] px-4 py-2.5 rounded-2xl shadow-xl border border-white/10 dark:border-black/5 text-xs font-semibold flex items-center gap-2 pointer-events-auto transform translate-y-8 opacity-0 transition-all duration-300 ease-out';
+    
+    let icon = '🔔';
+    if (type === 'success') {
+        icon = '✓';
+        toast.className += ' border-l-4 border-emerald-500';
+    } else if (type === 'info') {
+        icon = 'ℹ️';
+        toast.className += ' border-l-4 border-blue-500';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+        toast.className += ' border-l-4 border-amber-500';
+    }
+    
+    toast.innerHTML = `<span class="flex items-center justify-center w-5 h-5 rounded-full bg-stone-850 dark:bg-stone-200 text-[10px]">${icon}</span> <span>${message}</span>`;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.remove('translate-y-8', 'opacity-0');
+    }, 10);
+
+    setTimeout(() => {
+        toast.classList.add('translate-y-[-8px]', 'opacity-0');
+        setTimeout(() => {
+            toast.remove();
+            if (toastContainer.childNodes.length === 0) {
+                toastContainer.remove();
+            }
+        }, 300);
+    }, 3000);
+}
+window.showToast = showToast;
+
 function resetHipaaTimer() {
     if (hipaaTimer) clearTimeout(hipaaTimer);
     hipaaTimer = setTimeout(() => {
         resetNote();
         logTelemetry("HIPAA Session Auto-Cleared due to 15-minute inactivity.", "SYSTEM");
-        alert("Session cleared for HIPAA privacy compliance (inactivity lock).");
+        showToast("Session cleared for HIPAA privacy compliance (inactivity lock).", "warning");
     }, 15 * 60 * 1000);
 }
 
@@ -1284,7 +1327,7 @@ function copySoapNote() {
     const p = document.getElementById('soap-p').value;
     const fullSoap = `CLINICAL SOAP NOTE\n==================\n\nSUBJECTIVE (S):\n${s}\n\nOBJECTIVE (O):\n${o}\n\nASSESSMENT (A):\n${a}\n\nPLAN (P):\n${p}\n`;
     navigator.clipboard.writeText(fullSoap).then(() => {
-        alert("SOAP Note copied to clipboard!");
+        showToast("SOAP Note copied to clipboard!", "success");
     }).catch(err => {
         console.error("Clipboard copy failed", err);
     });
@@ -1294,7 +1337,7 @@ window.copySoapNote = copySoapNote;
 function copyLaymanSummary() {
     const text = document.getElementById('laymanText').innerText;
     navigator.clipboard.writeText(text).then(() => {
-        alert("Layman Summary copied to clipboard!");
+        showToast("Layman Summary copied to clipboard!", "success");
     }).catch(err => {
         console.error("Clipboard copy failed", err);
     });
@@ -1403,4 +1446,21 @@ if (window.innerWidth < 768) {
         switchMobileTab('ingest');
     }, 100);
 }
+
+function scrollToSection(id, btn) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const el = document.getElementById(id);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    document.querySelectorAll('.nav-pill-btn').forEach(b => {
+        b.classList.remove('bg-stone-200/80', 'dark:bg-stone-850/80', 'text-stone-900', 'dark:text-white');
+        b.classList.add('hover:text-stone-900', 'dark:hover:text-white', 'hover:bg-stone-100/50', 'dark:hover:bg-stone-800/50');
+    });
+    if (btn) {
+        btn.classList.remove('hover:text-stone-900', 'dark:hover:text-white', 'hover:bg-stone-100/50', 'dark:hover:bg-stone-800/50');
+        btn.classList.add('bg-stone-200/80', 'dark:bg-stone-850/80', 'text-stone-900', 'dark:text-white');
+    }
+}
+window.scrollToSection = scrollToSection;
 
