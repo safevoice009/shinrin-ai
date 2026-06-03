@@ -101,6 +101,30 @@ function selectRegistryTool(toolId) {
     const titleEl = document.getElementById('sandbox-tool-title');
     const descEl = document.getElementById('sandbox-tool-desc');
     const endpointEl = document.getElementById('sandbox-endpoint');
+    const ehrLabelEl = document.getElementById('sync-node-ehr-label');
+    const ehrNodeEl = document.getElementById('sync-node-ehr');
+    const gatewayNodeEl = document.getElementById('sync-node-gateway');
+    const line1El = document.getElementById('sync-line-1');
+    const line2El = document.getElementById('sync-line-2');
+    const glowPathEl = document.getElementById('sync-glow-path');
+    const statusEl = document.getElementById('sandbox-status');
+    
+    if (ehrLabelEl) ehrLabelEl.textContent = toolId === 'gnuhealth' ? 'GNU Health' : toolId.toUpperCase();
+    if (ehrNodeEl) {
+        ehrNodeEl.className = "w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-950 border-2 border-stone-250/20 dark:border-stone-800 flex items-center justify-center text-[10px] font-bold text-stone-400";
+        ehrNodeEl.classList.remove('sync-node-pulse');
+    }
+    if (gatewayNodeEl) {
+        gatewayNodeEl.className = "w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-950 border-2 border-stone-250/20 dark:border-stone-800 flex items-center justify-center text-[10px] font-bold text-stone-400";
+        gatewayNodeEl.classList.remove('sync-node-pulse-gold');
+    }
+    if (line1El) line1El.classList.add('opacity-0');
+    if (line2El) line2El.classList.add('opacity-0');
+    if (glowPathEl) glowPathEl.classList.add('hidden');
+    if (statusEl) {
+        statusEl.textContent = "Status: Idle";
+        statusEl.className = "text-[10px] text-stone-400 dark:text-stone-555 font-bold uppercase tracking-wider";
+    }
     
     if (!titleEl || !descEl || !endpointEl) return;
     
@@ -135,6 +159,14 @@ async function syncSandboxTool() {
     if (window.playPremiumHapticSound) window.playPremiumHapticSound();
     const btn = document.getElementById('sandbox-sync-btn');
     const statusEl = document.getElementById('sandbox-status');
+    
+    const nodeLocal = document.getElementById('sync-node-local');
+    const nodeGateway = document.getElementById('sync-node-gateway');
+    const nodeEhr = document.getElementById('sync-node-ehr');
+    const line1 = document.getElementById('sync-line-1');
+    const line2 = document.getElementById('sync-line-2');
+    const glowPath = document.getElementById('sync-glow-path');
+    
     if (!btn || !statusEl) return;
     
     btn.disabled = true;
@@ -144,13 +176,34 @@ async function syncSandboxTool() {
     
     logTelemetry(`Initiating Sync to ${activeRegistryTool.toUpperCase()} EHR Gateway...`, "FHIR");
     
+    // Start pathway animation step 1
+    if (line1) line1.classList.remove('opacity-0');
+    if (glowPath) glowPath.classList.remove('hidden');
+    if (nodeGateway) {
+        nodeGateway.className = "w-8 h-8 rounded-full bg-[#D1A153]/15 border-2 border-[#D1A153] flex items-center justify-center text-[10px] font-bold text-[#D1A153] sync-node-pulse-gold shadow-sm";
+    }
+    
+    // Step 2 delay
+    await new Promise(resolve => setTimeout(resolve, 700));
+    if (line2) line2.classList.remove('opacity-0');
+    if (nodeEhr) {
+        nodeEhr.className = "w-8 h-8 rounded-full bg-emerald-500/10 border-2 border-emerald-500/80 flex items-center justify-center text-[10px] font-bold text-emerald-500 sync-node-pulse shadow-sm";
+    }
+    
     // Simulate API request delay
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     btn.disabled = false;
     btn.textContent = "Dispatch to EHR";
     statusEl.textContent = "Status: Synced (201 Created)";
     statusEl.className = "text-[10px] text-green-500 font-bold uppercase tracking-wider";
+    
+    if (glowPath) glowPath.classList.add('hidden');
+    if (nodeEhr) {
+        // Steady success green node
+        nodeEhr.className = "w-8 h-8 rounded-full bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-bold text-white shadow-lg";
+    }
+    
     logTelemetry(`Data successfully committed to ${activeRegistryTool.toUpperCase()} registry. Server returned HTTP 201 Created.`, "SUCCESS");
 }
 window.syncSandboxTool = syncSandboxTool;
@@ -227,7 +280,31 @@ function updateClinicalInsights(profile, soap = null) {
 }
 window.updateClinicalInsights = updateClinicalInsights;
 
-// Developer Workspace (FHIR Bundle generation)
+// Developer Workspace (FHIR Bundle JSON Syntax Highlighter)
+function highlightJson(jsonObj) {
+    let jsonStr = typeof jsonObj === 'string' ? jsonObj : JSON.stringify(jsonObj, null, 2);
+    // Escape HTML to prevent injection
+    jsonStr = jsonStr.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    const regex = /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g;
+    return jsonStr.replace(regex, function (match) {
+        let cls = 'token-number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'token-key';
+                return `<span class="${cls}">${match.replace(/:$/, '')}</span>:`;
+            } else {
+                cls = 'token-string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'token-boolean';
+        } else if (/null/.test(match)) {
+            cls = 'token-null';
+        }
+        return `<span class="${cls}">${match}</span>`;
+    });
+}
+
 function updateFHIRBundle(profile, soap = null) {
     const fhirEl = document.getElementById('console-fhir-payload');
     if (!fhirEl) return;
@@ -311,7 +388,7 @@ function updateFHIRBundle(profile, soap = null) {
         });
     }
     
-    fhirEl.textContent = JSON.stringify(bundle, null, 2);
+    fhirEl.innerHTML = highlightJson(bundle);
     
     // Also update the registry connection sandbox payload
     const sandboxPayloadEl = document.getElementById('sandbox-payload');
@@ -334,7 +411,7 @@ function updateFHIRBundle(profile, soap = null) {
             },
             "valueString": soap ? `S: ${soap.subjective.substring(0,60).replace(/\n/g, ' ')}... O: ${soap.objective.substring(0,60).replace(/\n/g, ' ')}...` : "Waiting for narrative Note structure."
         };
-        sandboxPayloadEl.textContent = JSON.stringify(obsPayload, null, 2);
+        sandboxPayloadEl.innerHTML = highlightJson(obsPayload);
     }
 }
 window.updateFHIRBundle = updateFHIRBundle;
@@ -544,6 +621,38 @@ function setStepperStage(stageIndex) {
     }
 }
 window.setStepperStage = setStepperStage;
+
+function updatePipelineStep(stepIndex, status) {
+    const stepEl = document.getElementById(`pipeline-step-${stepIndex}`);
+    const iconEl = document.getElementById(`pipeline-icon-${stepIndex}`);
+    const progressEl = document.getElementById('pipelineProgress');
+    const statusTextEl = document.getElementById('pipelineStatusText');
+    const percentEl = document.getElementById('pipelineProgressPercent');
+
+    if (!stepEl || !iconEl || !progressEl || !statusTextEl || !percentEl) return;
+
+    stepEl.classList.remove('opacity-40', 'opacity-100');
+    
+    if (status === 'active') {
+        stepEl.classList.add('opacity-100');
+        iconEl.innerHTML = `<span class="inline-block animate-spin">⚙️</span>`;
+        iconEl.className = "text-sm font-bold text-[#D1A153] w-5 h-5 flex items-center justify-center rounded-full bg-[#D1A153]/10";
+        statusTextEl.innerText = stepEl.querySelector('h4').innerText + "...";
+    } else if (status === 'done') {
+        stepEl.classList.add('opacity-100');
+        iconEl.innerHTML = `✓`;
+        iconEl.className = "text-xs font-bold text-white w-5 h-5 flex items-center justify-center rounded-full bg-[#34C759]";
+    } else {
+        stepEl.classList.add('opacity-40');
+        iconEl.innerHTML = `⌛`;
+        iconEl.className = "text-sm font-bold text-stone-500 w-5 h-5 flex items-center justify-center rounded-full bg-stone-100 dark:bg-stone-850";
+    }
+
+    const progressPercent = Math.round(((stepIndex + (status === 'done' ? 1 : 0.5)) / 5) * 100);
+    progressEl.style.width = `${progressPercent}%`;
+    percentEl.innerText = `${progressPercent}%`;
+}
+window.updatePipelineStep = updatePipelineStep;
 
 // Create profile switcher buttons
 function renderSwitcher() {
@@ -823,13 +932,25 @@ async function parseNote() {
 
     if (!noteText.trim()) return;
 
+    // Show Pipeline Loader modal and initialize states
+    const pipelineLoader = document.getElementById('pipelineLoader');
+    if (pipelineLoader) {
+        pipelineLoader.classList.remove('hidden');
+        for (let i = 0; i <= 4; i++) {
+            updatePipelineStep(i, 'idle');
+        }
+    }
+
     // Step 0: Ingest Raw Notes
     setStepperStage(0);
+    updatePipelineStep(0, 'active');
     logTelemetry("Starting clinical note ingestion pipeline...", "SYSTEM");
     logTelemetry(`Ingested raw narrative: "${noteText.substring(0, 60)}..."`, "INFO");
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 600));
 
     // Step 1: Map Medical Abbreviations
+    updatePipelineStep(0, 'done');
+    updatePipelineStep(1, 'active');
     setStepperStage(1);
     logTelemetry("Executing clinical abbreviation mapper...", "INFO");
     
@@ -888,9 +1009,11 @@ async function parseNote() {
     container.classList.remove('hidden');
     
     logTelemetry(`Mapped ${countAbbr} clinical abbreviation patterns.`, "SUCCESS");
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 600));
 
     // Step 2: WASM AI Sentiment Classification / Model Hub Selection
+    updatePipelineStep(1, 'done');
+    updatePipelineStep(2, 'active');
     setStepperStage(2);
     const aiStartTime = performance.now();
     const badgeContainer = document.getElementById('aiUrgencyBadge');
@@ -998,9 +1121,11 @@ async function parseNote() {
     if (gaugeLabelEl) gaugeLabelEl.textContent = shortUrgencyLabel;
     if (gaugePercentEl) gaugePercentEl.textContent = `${percent}%`;
 
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 600));
 
     // Step 3: Format SOAP and Layman Clinical Structures
+    updatePipelineStep(2, 'done');
+    updatePipelineStep(3, 'active');
     setStepperStage(3);
     logTelemetry("Formatting objective & subjective SOAP fields...", "INFO");
 
@@ -1059,13 +1184,21 @@ async function parseNote() {
     updateFHIRBundle(activeProfile, soap);
 
     logTelemetry("SOAP clinical structures generated and mapped to edit forms.", "SUCCESS");
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise(resolve => setTimeout(resolve, 600));
 
     // Step 4: EHR FHIR compliance preflight & export
+    updatePipelineStep(3, 'done');
+    updatePipelineStep(4, 'active');
     setStepperStage(4);
     logTelemetry("Preflight check for HL7 FHIR compliance...", "INFO");
     logTelemetry(`Exporting clinical resources to target EHR (HAPI BaseR4)...`, "FHIR");
     logTelemetry("FHIR bundle successfully serialized and de-identified.", "SUCCESS");
+
+    updatePipelineStep(4, 'done');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    if (pipelineLoader) {
+        pipelineLoader.classList.add('hidden');
+    }
 }
 window.parseNote = parseNote;
 
