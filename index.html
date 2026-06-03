@@ -87,7 +87,7 @@
             <!-- Left Workspace: Note Parser -->
             <div class="lg:col-span-2 space-y-8">
                 <!-- Patient Profile Selector & Context -->
-                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-ingest tilt-card-3d">
                     <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-4">Select Patient Profile</h2>
                     <div id="profileSwitcher" class="flex space-x-3.5 mb-6 overflow-x-auto pb-2"></div>
                     
@@ -119,7 +119,7 @@
                 </div>
 
                 <!-- Pipeline Ingestion Stepper -->
-                <div class="glass-panel rounded-[24px] p-5 shadow-sm border border-white/20 dark:border-stone-850/40">
+                <div class="glass-panel rounded-[24px] p-5 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-ingest tilt-card-3d">
                     <div class="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-stone-450 dark:text-stone-500 mb-4 border-b border-stone-250/20 dark:border-stone-800/40 pb-2">
                         <span>Pipeline Ingestion Stepper</span>
                         <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-[#D1A153] mr-1.5 animate-ping"></span>Real-time Telemetry</span>
@@ -159,7 +159,7 @@
                 </div>
 
                 <!-- Input Clinical Note -->
-                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-ingest tilt-card-3d">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Clinical Narrative Note</h2>
                         <span class="text-[10px] text-stone-400 dark:text-stone-500 font-medium">Auto-saved locally</span>
@@ -184,7 +184,7 @@
                     </div>
                 </div>
 
-                <div id="highlightsContainer" class="glass-panel rounded-[24px] p-6 shadow-sm hidden border border-white/20 dark:border-stone-850/40 transition-all duration-300">
+                <div id="highlightsContainer" class="glass-panel rounded-[24px] p-6 shadow-sm hidden border border-white/20 dark:border-stone-850/40 transition-all duration-300 mob-section-hub tilt-card-3d">
                     <!-- Top Bar -->
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-stone-250/20 dark:border-stone-800/50 gap-4">
                         <div class="flex p-1 bg-stone-200/50 dark:bg-stone-950 rounded-xl space-x-1 w-full md:w-auto overflow-x-auto">
@@ -199,6 +199,9 @@
                             </button>
                             <button onclick="switchAnalysisTab('fhir')" id="tab-fhir" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
                                 EHR Integration (FHIR)
+                            </button>
+                            <button onclick="switchAnalysisTab('api-hub')" id="tab-api-hub" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
+                                Clinical API Hub
                             </button>
                         </div>
                         <div id="aiUrgencyBadge" class="mt-2 md:mt-0"></div>
@@ -361,13 +364,94 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Content Panel: Clinical API Hub -->
+                    <div id="panel-api-hub" class="hidden space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            
+                            <!-- Column 1: openFDA Adverse Events Query Tool -->
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">openFDA Adverse Event Query Tool</h3>
+                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Query live FDA records to list common side effects and adverse event reports for any drug.</p>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="flex flex-col space-y-1">
+                                        <label for="fda-drug-name" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Drug Generic / Brand Name</label>
+                                        <div class="flex gap-2">
+                                            <input type="text" id="fda-drug-name" value="lisinopril" class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="e.g. ibuprofen, lisinopril, aspirin">
+                                            <button id="fda-query-btn" onclick="queryFdaAdverseEvents()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition duration-200 font-medium shadow-sm whitespace-nowrap">
+                                                Query FDA
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Adverse Events Results -->
+                                <div class="space-y-1.5">
+                                    <label class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 flex justify-between">
+                                        <span>Top Reported Adverse Reactions</span>
+                                        <span id="fda-status" class="text-stone-400 dark:text-stone-550 font-semibold normal-case">Status: Idle</span>
+                                    </label>
+                                    <div id="fda-results" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-400 text-xs font-mono leading-relaxed overflow-y-auto max-h-56">
+                                        <div class="text-stone-500 italic">Enter a drug name and click 'Query FDA' to view live adverse events.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Column 2: HIPAA Preflight Checklist -->
+                            <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">HIPAA Preflight Safeguards Check</h3>
+                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Ensure this local dashboard instance satisfies all required HIPAA administrative, physical, and technical safeguards.</p>
+                                </div>
+                                
+                                <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+                                    <!-- Safeguard 1 -->
+                                    <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
+                                        <div class="flex-1 pr-4">
+                                            <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Technical Safeguard: In-Browser WASM</div>
+                                            <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Zero network inference. Text classification is run 100% locally in browser memory.</div>
+                                        </div>
+                                        <div class="relative">
+                                            <input type="checkbox" checked disabled class="sr-only peer">
+                                            <div class="w-9 h-5 bg-[#34C759] rounded-full relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:translate-x-4"></div>
+                                        </div>
+                                    </label>
+                                    <!-- Safeguard 2 -->
+                                    <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
+                                        <div class="flex-1 pr-4">
+                                            <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Technical Safeguard: FHIR De-identification</div>
+                                            <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Patient identification information is automatically stripped before sending queries to public sandbox endpoints.</div>
+                                        </div>
+                                        <div class="relative">
+                                            <input type="checkbox" checked disabled class="sr-only peer">
+                                            <div class="w-9 h-5 bg-[#34C759] rounded-full relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:translate-x-4"></div>
+                                        </div>
+                                    </label>
+                                    <!-- Safeguard 3 -->
+                                    <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
+                                        <div class="flex-1 pr-4">
+                                            <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Administrative Safeguard: Session Auto-Lock</div>
+                                            <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Enable auto-clear of clinical notes after 15 minutes of inactivity to prevent unauthorized screen exposure.</div>
+                                        </div>
+                                        <div class="relative">
+                                            <input type="checkbox" id="hipaa-autolock" onchange="toggleHipaaAutolock()" class="sr-only peer">
+                                            <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Right Workspace: Guidelines & Diagnostics -->
             <div class="space-y-8">
                 <!-- Recommendations -->
-                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-hub tilt-card-3d">
                     <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-4">Decision Recommendations</h2>
                     
                     <div id="recommendationPanel" class="space-y-4">
@@ -379,7 +463,7 @@
                 </div>
 
                 <!-- Integrated Clinical Risk Calculators -->
-                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs tilt-card-3d">
                     <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-1.5">Clinical Score Calculators</h2>
                     <p class="text-[11px] text-stone-400 dark:text-stone-500 mb-4">Calculate scores to insert directly into clinical SOAP objective assessments.</p>
                     
@@ -687,7 +771,7 @@
         </div>
 
         <!-- Timeline Section -->
-        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs">
             <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-6">Longitudinal Timeline</h2>
             <div id="timelinePanel" class="overflow-x-auto pb-4">
                 <!-- Timeline items render here -->
@@ -695,7 +779,7 @@
         </section>
 
         <!-- Diagnostics Panel -->
-        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs">
             <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50">
                 <div>
                     <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Shinrin Self-Diagnostics</h2>
@@ -715,7 +799,7 @@
     </div>
 
     <!-- Developer Telemetry Console Drawer -->
-    <div id="consoleContainer" class="fixed bottom-0 left-0 right-0 z-50 bg-stone-900 text-stone-300 border-t border-stone-800 shadow-[0_-8px_32px_rgba(0,0,0,0.24)] h-12 console-drawer-transition flex flex-col overflow-hidden">
+    <div id="consoleContainer" class="hidden md:flex fixed bottom-0 left-0 right-0 z-50 bg-stone-900 text-stone-300 border-t border-stone-800 shadow-[0_-8px_32px_rgba(0,0,0,0.24)] h-12 console-drawer-transition flex flex-col overflow-hidden">
         <!-- Drawer Header (Clickable to Toggle) -->
         <div onclick="toggleConsole()" class="flex items-center justify-between px-4 py-3 bg-stone-950 border-b border-stone-850 cursor-pointer select-none">
             <!-- macOS Traffic Lights -->
@@ -741,6 +825,19 @@
             <div class="text-[#D1A153] font-bold">[SYSTEM] Shinrin Core Telemetry Engine initialized...</div>
             <div class="text-stone-500">[INFO] Waiting for patient profile ingestion or clinician action.</div>
         </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Dock (Fixed) -->
+    <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200/60 dark:border-stone-800/40 md:hidden flex justify-around py-2 px-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <button onclick="switchMobileTab('ingest')" id="tab-mob-ingest" class="flex flex-col items-center gap-0.5 text-stone-900 dark:text-white font-extrabold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl bg-stone-100 dark:bg-stone-800">
+            <span>📥</span><span>Ingest</span>
+        </button>
+        <button onclick="switchMobileTab('hub')" id="tab-mob-hub" class="flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-550 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl">
+            <span>🩺</span><span>Clinical Hub</span>
+        </button>
+        <button onclick="switchMobileTab('calcs')" id="tab-mob-calcs" class="flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-555 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl">
+            <span>🧮</span><span>Calculators</span>
+        </button>
     </div>
 
     <!-- Orchestration module script -->

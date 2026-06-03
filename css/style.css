@@ -116,3 +116,47 @@ body {
 .dark ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.12);
 }
+
+/* 3D Interactive Card Tilt */
+.tilt-card-3d {
+    transform-style: preserve-3d;
+    transform: perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    will-change: transform;
+}
+
+.tilt-card-3d > * {
+    transform: translateZ(10px);
+}
+
+/* Premium Apple Website Card Hover */
+.glass-panel {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+.glass-panel:hover {
+    border-color: rgba(209, 161, 83, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(28, 25, 23, 0.06);
+}
+
+.dark .glass-panel:hover {
+    border-color: rgba(209, 161, 83, 0.2);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile responsive navigation & panels */
+@media (max-width: 767px) {
+    .mobile-panel-slide {
+        transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-panel-slide.hidden {
+        display: none !important;
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    .mobile-panel-slide:not(.hidden) {
+        display: block !important;
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

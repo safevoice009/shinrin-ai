@@ -34,6 +34,136 @@ function toggleConsole() {
 }
 window.toggleConsole = toggleConsole;
 
+// Web Audio Premium Haptic Feedback Sound
+function playPremiumHapticSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(140, audioCtx.currentTime); // 140Hz warm tone
+        
+        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06); // 60ms decay
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.06);
+        
+        if (navigator.vibrate) {
+            navigator.vibrate(12); // Short vibration pulse
+        }
+    } catch (e) {
+        // Safe fallback
+    }
+}
+window.playPremiumHapticSound = playPremiumHapticSound;
+
+// Dynamic haptic binder
+function bindHapticClickListeners() {
+    const elements = document.querySelectorAll('button, input[type="checkbox"], select, nav button, [onclick]');
+    elements.forEach(el => {
+        if (!el.dataset.hapticBound) {
+            el.addEventListener('click', () => {
+                playPremiumHapticSound();
+            });
+            el.dataset.hapticBound = 'true';
+        }
+    });
+}
+window.bindHapticClickListeners = bindHapticClickListeners;
+
+// Interactive 3D Card Tilt Effect
+function initCard3DTilt() {
+    const cards = document.querySelectorAll('.tilt-card-3d');
+    cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xc = rect.width / 2;
+            const yc = rect.height / 2;
+            const angleX = (yc - y) / 16;
+            const angleY = (x - xc) / 16;
+            card.style.transform = `perspective(800px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale3d(1.015, 1.015, 1.015)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        });
+    });
+}
+window.initCard3DTilt = initCard3DTilt;
+
+// Mobile Responsive Tab Switcher
+function switchMobileTab(tabName) {
+    playPremiumHapticSound();
+    const tabs = ['ingest', 'hub', 'calcs'];
+    
+    // Toggle navigation button styles
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tab-mob-${t}`);
+        if (!btn) return;
+        if (t === tabName) {
+            btn.className = 'flex flex-col items-center gap-0.5 text-stone-900 dark:text-white font-extrabold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl bg-stone-100 dark:bg-stone-800';
+        } else {
+            btn.className = 'flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-550 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl';
+        }
+    });
+    
+    // Show/hide screen layouts
+    tabs.forEach(t => {
+        const sections = document.querySelectorAll(`.mob-section-${t}`);
+        sections.forEach(sec => {
+            if (t === tabName) {
+                if (sec.id === 'highlightsContainer') {
+                    if (window.isNoteParsed) {
+                        sec.classList.remove('hidden');
+                    }
+                } else {
+                    sec.classList.remove('hidden');
+                }
+            } else {
+                sec.classList.add('hidden');
+            }
+        });
+    });
+}
+window.switchMobileTab = switchMobileTab;
+
+// HIPAA session auto-lock countdown timer
+let hipaaTimer = null;
+function toggleHipaaAutolock() {
+    playPremiumHapticSound();
+    const isChecked = document.getElementById('hipaa-autolock').checked;
+    
+    if (isChecked) {
+        logTelemetry("HIPAA Auto-Lock Enabled (15 min countdown start on inactivity).", "INFO");
+        resetHipaaTimer();
+        document.addEventListener('mousemove', resetHipaaTimer);
+        document.addEventListener('keypress', resetHipaaTimer);
+    } else {
+        logTelemetry("HIPAA Auto-Lock Disabled by Clinician.", "INFO");
+        if (hipaaTimer) clearTimeout(hipaaTimer);
+        document.removeEventListener('mousemove', resetHipaaTimer);
+        document.removeEventListener('keypress', resetHipaaTimer);
+    }
+}
+window.toggleHipaaAutolock = toggleHipaaAutolock;
+
+function resetHipaaTimer() {
+    if (hipaaTimer) clearTimeout(hipaaTimer);
+    hipaaTimer = setTimeout(() => {
+        resetNote();
+        logTelemetry("HIPAA Session Auto-Cleared due to 15-minute inactivity.", "SYSTEM");
+        alert("Session cleared for HIPAA privacy compliance (inactivity lock).");
+    }, 15 * 60 * 1000);
+}
+
+
 function logTelemetry(message, type = 'INFO') {
     const logsEl = document.getElementById('consoleLogs');
     if (!logsEl) return;
@@ -119,6 +249,7 @@ function renderSwitcher() {
         btn.onclick = () => selectProfile(profile.id);
         profileSwitcher.appendChild(btn);
     });
+    bindHapticClickListeners();
 }
 
 function selectProfile(profileId) {
@@ -616,11 +747,13 @@ function renderTimeline() {
 // Active Analysis Tab Switcher
 let activeAnalysisTab = 'highlights';
 function switchAnalysisTab(tab) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
     activeAnalysisTab = tab;
-    const tabs = ['highlights', 'soap', 'layman', 'fhir'];
+    const tabs = ['highlights', 'soap', 'layman', 'fhir', 'api-hub'];
     tabs.forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
         const panel = document.getElementById(`panel-${t}`);
+        if (!btn || !panel) return;
         if (t === tab) {
             btn.className = 'flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5';
             panel.classList.remove('hidden');
@@ -723,3 +856,36 @@ function switchCalc(calcType) {
 // Init App state
 initTheme();
 selectProfile('profileA');
+bindHapticClickListeners();
+initCard3DTilt();
+
+// Handle responsive viewport transitions
+window.addEventListener('resize', () => {
+    if (window.innerWidth < 768) {
+        switchMobileTab('ingest');
+    } else {
+        // Desktop recovery
+        ['ingest', 'hub', 'calcs'].forEach(t => {
+            const sections = document.querySelectorAll(`.mob-section-${t}`);
+            sections.forEach(sec => {
+                if (sec.id === 'highlightsContainer') {
+                    if (window.isNoteParsed) {
+                        sec.classList.remove('hidden');
+                    } else {
+                        sec.classList.add('hidden');
+                    }
+                } else {
+                    sec.classList.remove('hidden');
+                }
+            });
+        });
+    }
+});
+
+// Mobile startup trigger
+if (window.innerWidth < 768) {
+    setTimeout(() => {
+        switchMobileTab('ingest');
+    }, 100);
+}
+
