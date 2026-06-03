@@ -391,17 +391,26 @@ function initCard3DTilt() {
             const y = e.clientY - rect.top;
             const xc = rect.width / 2;
             const yc = rect.height / 2;
-            const angleX = (yc - y) / 16;
-            const angleY = (x - xc) / 16;
-            card.style.transform = `perspective(800px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale3d(1.015, 1.015, 1.015)`;
+            
+            // Subtly divide by 150 for a gentle micro-tilt
+            const angleX = (yc - y) / 150;
+            const angleY = (x - xc) / 150;
+            
+            // Cap the rotation at a maximum of 1.0 degree to maintain readability
+            const clampedX = Math.max(-1.0, Math.min(1.0, angleX));
+            const clampedY = Math.max(-1.0, Math.min(1.0, angleY));
+            
+            // Ultra-subtle lift and rotation
+            card.style.transform = `perspective(1000px) rotateX(${clampedX}deg) rotateY(${clampedY}deg) translateY(-2px) scale3d(1.003, 1.003, 1.003)`;
         });
         
         card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0) scale3d(1, 1, 1)';
         });
     });
 }
 window.initCard3DTilt = initCard3DTilt;
+
 
 // Mobile Responsive Tab Switcher
 function switchMobileTab(tabName) {

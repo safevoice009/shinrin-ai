@@ -120,13 +120,13 @@ body {
 /* 3D Interactive Card Tilt */
 .tilt-card-3d {
     transform-style: preserve-3d;
-    transform: perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
     will-change: transform;
 }
 
 .tilt-card-3d > * {
-    transform: translateZ(10px);
+    transform: translateZ(5px);
 }
 
 /* Premium Apple Website Card Hover */
