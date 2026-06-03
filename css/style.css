@@ -1,0 +1,49 @@
+/* Shinrin AI Design System & Styling Rules */
+body {
+    background-color: #FAF7F2;
+    color: #2C2C2A;
+    transition: background-color 0.3s, color 0.3s;
+}
+.dark body {
+    background-color: #121210;
+    color: #FAF7F2;
+}
+
+/* Custom Tooltip Styling for Abbreviation Explanations */
+.abbr-tooltip {
+    border-bottom: 1.5px dashed #D1A153;
+    position: relative;
+    cursor: help;
+    padding-bottom: 1px;
+}
+.abbr-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #2C2C2A;
+    color: #FAF7F2;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: normal;
+    width: 220px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 50;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    text-align: center;
+    line-height: 1.4;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 500;
+}
+.dark .abbr-tooltip::after {
+    background-color: #FAF7F2;
+    color: #2C2C2A;
+}
+.abbr-tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
