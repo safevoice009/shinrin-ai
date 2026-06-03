@@ -60,6 +60,17 @@ function selectProfile(profileId) {
         </div>
     `;
     
+    // Reset Gauge
+    const gaugeValueEl = document.getElementById('urgencyGaugeValue');
+    const gaugeLabelEl = document.getElementById('urgencyGaugeLabel');
+    const gaugePercentEl = document.getElementById('urgencyGaugePercent');
+    if (gaugeValueEl) {
+        gaugeValueEl.style.strokeDashoffset = '213.63';
+        gaugeValueEl.setAttribute('stroke', '#D1A153');
+    }
+    if (gaugeLabelEl) gaugeLabelEl.textContent = 'Idle';
+    if (gaugePercentEl) gaugePercentEl.textContent = '0%';
+    
     renderTimeline();
 }
 window.selectProfile = selectProfile;
@@ -72,6 +83,16 @@ function resetNote() {
             <p>Narrative cleared.</p>
         </div>
     `;
+    // Reset Gauge
+    const gaugeValueEl = document.getElementById('urgencyGaugeValue');
+    const gaugeLabelEl = document.getElementById('urgencyGaugeLabel');
+    const gaugePercentEl = document.getElementById('urgencyGaugePercent');
+    if (gaugeValueEl) {
+        gaugeValueEl.style.strokeDashoffset = '213.63';
+        gaugeValueEl.setAttribute('stroke', '#D1A153');
+    }
+    if (gaugeLabelEl) gaugeLabelEl.textContent = 'Idle';
+    if (gaugePercentEl) gaugePercentEl.textContent = '0%';
 }
 window.resetNote = resetNote;
 
@@ -358,6 +379,32 @@ async function parseNote() {
             </span>
         `;
 
+        // Update Circular iOS Vital Gauge
+        const gaugeValueEl = document.getElementById('urgencyGaugeValue');
+        const gaugeLabelEl = document.getElementById('urgencyGaugeLabel');
+        const gaugePercentEl = document.getElementById('urgencyGaugePercent');
+
+        let percent = 0;
+        let strokeColor = "#D1A153";
+        let shortUrgencyLabel = "Idle";
+
+        if (label === "NEGATIVE") {
+            percent = Math.round((1 - score) * 100);
+            strokeColor = "#FF3B30"; // Apple Red
+            shortUrgencyLabel = "Urgent";
+        } else {
+            percent = Math.round(score * 100);
+            strokeColor = "#34C759"; // Apple Green
+            shortUrgencyLabel = "Stable";
+        }
+
+        if (gaugeValueEl) {
+            gaugeValueEl.style.strokeDashoffset = `${213.63 - (percent / 100) * 213.63}`;
+            gaugeValueEl.setAttribute('stroke', strokeColor);
+        }
+        if (gaugeLabelEl) gaugeLabelEl.textContent = shortUrgencyLabel;
+        if (gaugePercentEl) gaugePercentEl.textContent = `${percent}%`;
+
         // Update the Assessment field in the SOAP note to include the AI output
         const assessmentField = document.getElementById('soap-a');
         if (assessmentField) {
@@ -436,10 +483,10 @@ function switchAnalysisTab(tab) {
         const btn = document.getElementById(`tab-${t}`);
         const panel = document.getElementById(`panel-${t}`);
         if (t === tab) {
-            btn.className = 'px-4 py-2 border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300 text-sm font-semibold transition-all duration-200';
+            btn.className = 'flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5';
             panel.classList.remove('hidden');
         } else {
-            btn.className = 'px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200';
+            btn.className = 'flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400';
             panel.classList.add('hidden');
         }
     });
@@ -526,10 +573,10 @@ function switchCalc(calcType) {
         const btn = document.getElementById(`btn-calc-${c}`);
         if (c === calcType) {
             form.classList.remove('hidden');
-            btn.className = 'flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300';
+            btn.className = 'flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5';
         } else {
             form.classList.add('hidden');
-            btn.className = 'flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400';
+            btn.className = 'flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400';
         }
     });
 }

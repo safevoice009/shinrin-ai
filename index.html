@@ -25,42 +25,47 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="antialiased min-h-screen pb-20 relative bg-[#FAF7F2] dark:bg-[#121210] text-[#2C2C2A] dark:text-[#FAF7F2]">
+<body class="antialiased min-h-screen pb-20 relative text-[#1C1C1E] dark:text-[#E5E5EA]">
 
     <!-- Model Downloading Overlay -->
-    <div id="modelLoader" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity duration-300">
-        <div class="bg-white dark:bg-stone-900 p-8 rounded-2xl max-w-md w-full mx-4 border border-stone-200 dark:border-stone-800 shadow-xl text-center space-y-6">
-            <div class="w-16 h-16 border-4 border-[#4A5D4E]/20 border-t-[#4A5D4E] rounded-full animate-spin mx-auto"></div>
+    <div id="modelLoader" class="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-50 flex items-center justify-center hidden transition-opacity duration-350">
+        <div class="bg-white/95 dark:bg-stone-900/95 p-8 rounded-[28px] max-w-md w-full mx-4 border border-white/20 dark:border-stone-800/40 shadow-2xl text-center space-y-6">
+            <div class="w-12 h-12 border-3 border-[#4A5D4E]/20 border-t-[#4A5D4E] rounded-full animate-spin mx-auto"></div>
             <div>
-                <h3 class="text-xl font-medium text-stone-800 dark:text-stone-100">Downloading Clinical AI</h3>
-                <p class="text-xs text-stone-400 dark:text-stone-555 mt-2">Loading Transformers.js and DistilBERT model (40MB) directly in your browser. This only happens on the first run.</p>
+                <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100">Downloading Clinical AI</h3>
+                <p class="text-xs text-stone-400 dark:text-stone-500 mt-2 leading-relaxed">Loading Transformers.js and DistilBERT model (40MB) directly in your browser. Fully private, zero data leaves this device.</p>
             </div>
             <!-- Progress Bar -->
-            <div class="w-full bg-stone-100 dark:bg-stone-800 h-2 rounded-full overflow-hidden">
-                <div id="modelProgress" class="bg-[#4A5D4E] h-full w-0 transition-all duration-200"></div>
+            <div class="w-full bg-stone-100 dark:bg-stone-800 h-1.5 rounded-full overflow-hidden">
+                <div id="modelProgress" class="bg-[#4A5D4E] h-full w-0 transition-all duration-300"></div>
             </div>
-            <div id="progressText" class="text-xs font-semibold text-stone-600 dark:text-stone-400">0% Loaded</div>
+            <div id="progressText" class="text-xs font-bold text-stone-600 dark:text-stone-400">0% Loaded</div>
         </div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-6 pt-12">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 pt-10">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-stone-200 dark:border-stone-800 pb-8 mb-10">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-8 border-b border-stone-200/50 dark:border-stone-850/50">
             <div>
-                <h1 class="text-4xl font-semibold tracking-wide text-stone-800 dark:text-stone-100">Shinrin AI</h1>
-                <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 italic tracking-wider">Clinical Guidance & Structured Insights</p>
+                <div class="flex items-center space-x-2.5">
+                    <span class="text-2xl">🌲</span>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">Shinrin AI</h1>
+                </div>
+                <p class="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mt-1">Clinical Intelligence & Structured EHR</p>
             </div>
-            <div class="mt-4 md:mt-0 flex flex-col md:flex-row items-start md:items-center md:space-x-6 space-y-4 md:space-y-0">
+            <div class="mt-4 md:mt-0 flex flex-wrap items-center gap-4">
+                <!-- System Status Pills -->
+                <div class="flex items-center space-x-2 bg-stone-200/60 dark:bg-stone-900/65 px-3 py-1.5 rounded-full border border-black/5 dark:border-white/5 text-[10px] font-bold text-stone-500 dark:text-stone-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
+                    <span>HIPAA Compliant</span>
+                </div>
                 <!-- Theme Switcher -->
-                <button onclick="toggleDarkMode()" id="themeBtn" class="flex items-center space-x-2 border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-2 rounded-xl text-xs font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-850 transition duration-200 shadow-sm">
+                <button onclick="toggleDarkMode()" id="themeBtn" class="flex items-center space-x-2 border border-black/10 dark:border-white/10 bg-white/80 dark:bg-stone-900/80 px-3.5 py-1.5 rounded-full text-xs font-bold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-850 transition duration-200 shadow-sm backdrop-blur-sm">
                     <span id="themeBtnIcon">🌙</span> <span id="themeBtnText">Dark Mode</span>
                 </button>
-                <div class="flex flex-col items-start md:items-end space-y-2">
-                    <div class="flex items-center space-x-3 text-xs tracking-wider uppercase text-stone-400 dark:text-stone-550 font-semibold">
-                        <span>Browser-based AI status</span>
-                        <span id="aiHeaderStatus" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-                    </div>
-                    <span id="aiHeaderLabel" class="text-[10px] text-stone-400 dark:text-stone-550 uppercase tracking-widest">Local Model: Idle</span>
+                <div class="flex items-center space-x-3 bg-white/80 dark:bg-stone-900/80 border border-black/10 dark:border-white/10 px-4 py-1.5 rounded-full shadow-sm text-[10px] font-bold text-stone-600 dark:text-stone-400">
+                    <span id="aiHeaderStatus" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span id="aiHeaderLabel">Local AI: Offline</span>
                 </div>
             </div>
         </header>
@@ -70,64 +75,81 @@
             <!-- Left Workspace: Note Parser -->
             <div class="lg:col-span-2 space-y-8">
                 <!-- Patient Profile Selector & Context -->
-                <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
-                    <h2 class="text-xl font-medium text-stone-800 dark:text-stone-100 mb-4">Patient Profile</h2>
-                    <div id="profileSwitcher" class="flex space-x-3 mb-6 overflow-x-auto pb-2"></div>
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-4">Select Patient Profile</h2>
+                    <div id="profileSwitcher" class="flex space-x-3.5 mb-6 overflow-x-auto pb-2"></div>
                     
-                    <div id="activeProfileCard" class="bg-[#FAF7F2] dark:bg-stone-950/40 p-5 rounded-xl border border-stone-100 dark:border-stone-800/60 transition-all duration-300">
-                        <div class="flex justify-between items-center mb-3">
-                            <span id="patientName" class="font-semibold text-stone-800 dark:text-stone-200 text-base">Select Profile</span>
-                            <span id="patientDemographics" class="text-xs uppercase tracking-wider text-stone-400 dark:text-stone-555 font-bold bg-white dark:bg-stone-900 px-2 py-0.5 rounded border border-stone-200 dark:border-stone-800"></span>
+                    <div id="activeProfileCard" class="bg-white/40 dark:bg-stone-900/40 p-6 rounded-2xl border border-white/20 dark:border-stone-850/50 flex flex-col md:flex-row justify-between items-center gap-6 transition-all duration-300">
+                        <div class="space-y-3 flex-1">
+                            <div class="flex items-center space-x-3">
+                                <span id="patientName" class="font-bold text-stone-900 dark:text-stone-100 text-lg">Select Profile</span>
+                                <span id="patientDemographics" class="text-[10px] uppercase tracking-wider text-[#4A5D4E] dark:text-[#FAF7F2] font-extrabold bg-[#4A5D4E]/10 dark:bg-stone-800/80 px-2.5 py-1 rounded-full border border-[#4A5D4E]/20"></span>
+                            </div>
+                            <p id="patientDescription" class="text-xs text-stone-500 dark:text-stone-400 leading-relaxed"></p>
                         </div>
-                        <p id="patientDescription" class="text-sm text-stone-600 dark:text-stone-300 leading-relaxed"></p>
+                        
+                        <!-- iOS Health Ring Widget -->
+                        <div class="flex flex-col items-center justify-center p-2 bg-white/50 dark:bg-stone-950/40 rounded-2xl border border-white/30 dark:border-stone-900/60 shadow-sm w-32 h-32 flex-none">
+                            <div class="relative flex items-center justify-center w-20 h-20">
+                                <svg class="w-full h-full transform -rotate-90">
+                                    <circle cx="40" cy="40" r="34" stroke-width="5" stroke="currentColor" class="text-stone-200 dark:text-stone-850" fill="transparent" />
+                                    <circle id="urgencyGaugeValue" cx="40" cy="40" r="34" stroke-width="5" stroke="#D1A153" fill="transparent"
+                                        stroke-dasharray="213.63" stroke-dashoffset="213.63" class="transition-all duration-700 ease-out" stroke-linecap="round" />
+                                </svg>
+                                <div class="absolute flex flex-col items-center justify-center text-center">
+                                    <span id="urgencyGaugeLabel" class="text-[8px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">Idle</span>
+                                    <span id="urgencyGaugePercent" class="text-xs font-black text-stone-850 dark:text-stone-150">0%</span>
+                                </div>
+                            </div>
+                            <span class="text-[9px] font-bold text-stone-400 dark:text-stone-500 mt-1.5 uppercase tracking-wider">AI Vital Index</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Input Clinical Note -->
-                <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-medium text-stone-800 dark:text-stone-100">Clinical Narrative Note</h2>
-                        <span class="text-xs text-stone-400 dark:text-stone-555 italic">Type note or select a profile default</span>
+                        <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Clinical Narrative Note</h2>
+                        <span class="text-[10px] text-stone-400 dark:text-stone-500 font-medium">Auto-saved locally</span>
                     </div>
 
                     <div class="relative mb-6">
                         <textarea id="noteInput"
-                            class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-800 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E] text-stone-700 dark:text-stone-200 bg-[#FAF7F2] dark:bg-stone-950/40 text-sm leading-relaxed"
+                            class="w-full px-4 py-3 rounded-2xl border border-stone-200 dark:border-stone-800 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]/80 text-stone-850 dark:text-stone-150 bg-white/40 dark:bg-stone-950/40 text-sm leading-relaxed"
                             rows="7"
                             placeholder="Type or paste unstructured clinical note here..."></textarea>
                     </div>
 
                     <div class="flex space-x-3">
                         <button onclick="parseNote()"
-                            class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-sm px-6 py-2.5 rounded-xl transition duration-200 tracking-wide font-medium shadow-sm hover:shadow-md">
+                            class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-6 py-2.5 rounded-xl transition duration-200 tracking-wide font-bold shadow-sm hover:shadow">
                             Structure Note
                         </button>
                         <button onclick="resetNote()"
-                            class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 text-sm px-5 py-2.5 rounded-xl transition duration-200">
+                            class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold">
                             Clear
                         </button>
                     </div>
                 </div>
 
-                <!-- Parsed Analysis Hub: Tabs for Highlights, SOAP, and Layman -->
-                <div id="highlightsContainer" class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm hidden transition-all duration-300">
+                <div id="highlightsContainer" class="glass-panel rounded-[24px] p-6 shadow-sm hidden border border-white/20 dark:border-stone-850/40 transition-all duration-300">
                     <!-- Top Bar -->
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-3 border-b border-stone-100 dark:border-stone-800/80">
-                        <div class="flex space-x-1 border-b border-stone-100 dark:border-stone-800 w-full md:w-auto overflow-x-auto">
-                            <button onclick="switchAnalysisTab('highlights')" id="tab-highlights" class="px-4 py-2 border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-stone-250/20 dark:border-stone-800/50 gap-4">
+                        <div class="flex p-1 bg-stone-200/50 dark:bg-stone-950 rounded-xl space-x-1 w-full md:w-auto overflow-x-auto">
+                            <button onclick="switchAnalysisTab('highlights')" id="tab-highlights" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5">
                                 Highlights
                             </button>
-                            <button onclick="switchAnalysisTab('soap')" id="tab-soap" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
+                            <button onclick="switchAnalysisTab('soap')" id="tab-soap" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400">
                                 SOAP Note
                             </button>
-                            <button onclick="switchAnalysisTab('layman')" id="tab-layman" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
+                            <button onclick="switchAnalysisTab('layman')" id="tab-layman" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
                                 Patient Layman Summary
                             </button>
-                            <button onclick="switchAnalysisTab('fhir')" id="tab-fhir" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
+                            <button onclick="switchAnalysisTab('fhir')" id="tab-fhir" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
                                 EHR Integration (FHIR)
                             </button>
                         </div>
-                        <div id="aiUrgencyBadge" class="mt-4 md:mt-0"></div>
+                        <div id="aiUrgencyBadge" class="mt-2 md:mt-0"></div>
                     </div>
                     
                     <!-- Content Panel: Highlights -->
@@ -293,8 +315,8 @@
             <!-- Right Workspace: Guidelines & Diagnostics -->
             <div class="space-y-8">
                 <!-- Recommendations -->
-                <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
-                    <h2 class="text-xl font-medium text-stone-800 dark:text-stone-100 mb-4">Decision Recommendations</h2>
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-4">Decision Recommendations</h2>
                     
                     <div id="recommendationPanel" class="space-y-4">
                         <div class="text-center py-12 text-stone-400 dark:text-stone-555 text-sm">
@@ -305,154 +327,242 @@
                 </div>
 
                 <!-- Integrated Clinical Risk Calculators -->
-                <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
-                    <h2 class="text-xl font-medium text-stone-800 dark:text-stone-100 mb-2">Clinical Score Calculators</h2>
-                    <p class="text-xs text-stone-400 dark:text-stone-550 mb-4">Calculate scores to insert directly into clinical SOAP objective assessments.</p>
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-1.5">Clinical Score Calculators</h2>
+                    <p class="text-[11px] text-stone-400 dark:text-stone-500 mb-4">Calculate scores to insert directly into clinical SOAP objective assessments.</p>
                     
                     <!-- Calculator Tab Selector -->
-                    <div class="flex space-x-1 border-b border-stone-100 dark:border-stone-800 mb-4 overflow-x-auto">
-                        <button onclick="switchCalc('chads')" id="btn-calc-chads" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300 whitespace-nowrap">
-                            CHA₂DS₂-VASc
+                    <div class="flex p-1 bg-stone-200/50 dark:bg-stone-950 rounded-xl space-x-1 mb-4 overflow-x-auto">
+                        <button onclick="switchCalc('chads')" id="btn-calc-chads" class="flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5">
+                            CHA₂DS₂
                         </button>
-                        <button onclick="switchCalc('hasbled')" id="btn-calc-hasbled" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400 whitespace-nowrap">
+                        <button onclick="switchCalc('hasbled')" id="btn-calc-hasbled" class="flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400">
                             HAS-BLED
                         </button>
-                        <button onclick="switchCalc('wells')" id="btn-calc-wells" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 whitespace-nowrap">
-                            Wells' (PE)
+                        <button onclick="switchCalc('wells')" id="btn-calc-wells" class="flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
+                            Wells'
                         </button>
-                        <button onclick="switchCalc('mews')" id="btn-calc-mews" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 whitespace-nowrap">
+                        <button onclick="switchCalc('mews')" id="btn-calc-mews" class="flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
                             MEWS
                         </button>
                     </div>
 
                     <!-- CHA2DS2-VASc Form -->
-                    <div id="calc-chads" class="space-y-3 text-xs text-stone-600 dark:text-stone-300">
+                    <div id="calc-chads" class="space-y-2.5 text-xs text-stone-600 dark:text-stone-300">
                         <div class="space-y-2">
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-c" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Congestive Heart Failure / LV dysfunction (+1)</span>
+                            <!-- Toggle 1 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Congestive Heart Failure / LV dysfunction (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-c" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-h" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Hypertension history (+1)</span>
+                            <!-- Toggle 2 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Hypertension history (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-h" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-a75" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Age ≥ 75 (+2)</span>
+                            <!-- Toggle 3 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Age ≥ 75 (+2)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-a75" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-d" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Diabetes mellitus (+1)</span>
+                            <!-- Toggle 4 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Diabetes mellitus (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-d" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-s" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Stroke / TIA / thromboembolism history (+2)</span>
+                            <!-- Toggle 5 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Stroke / TIA / thromboembolism (+2)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-s" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-v" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Vascular disease (prior MI, PAD, aortic plaque) (+1)</span>
+                            <!-- Toggle 6 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Vascular disease (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-v" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-a65" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Age 65–74 (+1)</span>
+                            <!-- Toggle 7 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Age 65–74 (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-a65" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="chads-f" onchange="runChads()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Female sex (+1)</span>
+                            <!-- Toggle 8 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Female sex (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="chads-f" onchange="runChads()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
                         </div>
-                        <div class="p-3 rounded-xl bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-800/80 flex justify-between items-center mt-4">
+                        <div class="p-3 rounded-xl bg-white/40 dark:bg-stone-950/40 border border-white/20 dark:border-stone-850/50 flex justify-between items-center mt-4">
                             <div>
-                                <div class="font-bold text-stone-700 dark:text-stone-200">Score: <span id="chads-score">0</span></div>
-                                <div class="text-[10px] text-stone-400 dark:text-stone-550" id="chads-stroke-risk">Annual Stroke Risk: 0.2%</div>
+                                <div class="font-bold text-stone-850 dark:text-stone-200">Score: <span id="chads-score">0</span></div>
+                                <div class="text-[10px] text-stone-400 dark:text-stone-500" id="chads-stroke-risk">Annual Stroke Risk: 0.2%</div>
                             </div>
-                            <button onclick="insertScore('CHA₂DS₂-VASc')" class="bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-[10px] px-2.5 py-1.5 rounded-lg transition duration-200 font-semibold border border-stone-300 dark:border-stone-700 shadow-sm">
+                            <button onclick="insertScore('CHA₂DS₂-VASc')" class="bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-750 text-stone-800 dark:text-stone-200 text-[10px] px-3 py-1.5 rounded-lg transition duration-200 font-bold border border-black/10 dark:border-white/10 shadow-sm">
                                 + Insert
                             </button>
                         </div>
                     </div>
 
                     <!-- HAS-BLED Form -->
-                    <div id="calc-hasbled" class="hidden space-y-3 text-xs text-stone-600 dark:text-stone-300">
+                    <div id="calc-hasbled" class="hidden space-y-2.5 text-xs text-stone-600 dark:text-stone-300">
                         <div class="space-y-2">
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="hasbled-h" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Hypertension (SBP > 160 mmHg) (+1)</span>
+                            <!-- Toggle 1 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Hypertension (SBP > 160 mmHg) (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="hasbled-h" onchange="runHasbled()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="hasbled-a" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Abnormal renal/liver function (+1)</span>
+                            <!-- Toggle 2 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Abnormal renal/liver function (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="hasbled-a" onchange="runHasbled()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="hasbled-s" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Stroke history (+1)</span>
+                            <!-- Toggle 3 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Stroke history (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="hasbled-s" onchange="runHasbled()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="hasbled-b" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Bleeding history/predisposition (+1)</span>
+                            <!-- Toggle 4 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Bleeding history/predisposition (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="hasbled-b" onchange="runHasbled()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="hasbled-l" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Labile INRs (+1)</span>
+                            <!-- Toggle 5 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Labile INRs (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="hasbled-l" onchange="runHasbled()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="hasbled-e" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Elderly (Age > 65) (+1)</span>
+                            <!-- Toggle 6 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Elderly (Age > 65) (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="hasbled-e" onchange="runHasbled()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="hasbled-d" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Drugs/alcohol excess (+1)</span>
+                            <!-- Toggle 7 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Drugs/alcohol excess (+1)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="hasbled-d" onchange="runHasbled()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
                         </div>
-                        <div class="p-3 rounded-xl bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-800/80 flex justify-between items-center mt-4">
+                        <div class="p-3 rounded-xl bg-white/40 dark:bg-stone-950/40 border border-white/20 dark:border-stone-850/50 flex justify-between items-center mt-4">
                             <div>
-                                <div class="font-bold text-stone-700 dark:text-stone-200">Score: <span id="hasbled-score">0</span></div>
-                                <div class="text-[10px] text-stone-400 dark:text-stone-550" id="hasbled-risk">Bleeding Risk: Low Bleeding Risk (1.13%)</div>
+                                <div class="font-bold text-stone-850 dark:text-stone-200">Score: <span id="hasbled-score">0</span></div>
+                                <div class="text-[10px] text-stone-400 dark:text-stone-500" id="hasbled-risk">Bleeding Risk: Low Bleeding Risk (1.13%)</div>
                             </div>
-                            <button onclick="insertScore('HAS-BLED')" class="bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-[10px] px-2.5 py-1.5 rounded-lg transition duration-200 font-semibold border border-stone-300 dark:border-stone-700 shadow-sm">
+                            <button onclick="insertScore('HAS-BLED')" class="bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-750 text-stone-800 dark:text-stone-200 text-[10px] px-3 py-1.5 rounded-lg transition duration-200 font-bold border border-black/10 dark:border-white/10 shadow-sm">
                                 + Insert
                             </button>
                         </div>
                     </div>
 
                     <!-- Wells' Criteria Form -->
-                    <div id="calc-wells" class="hidden space-y-3 text-xs text-stone-600 dark:text-stone-300">
+                    <div id="calc-wells" class="hidden space-y-2.5 text-xs text-stone-600 dark:text-stone-300">
                         <div class="space-y-2">
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="wells-dvt" onchange="runWells()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Clinical signs/symptoms of DVT (+3.0)</span>
+                            <!-- Toggle 1 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Clinical signs/symptoms of DVT (+3.0)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="wells-dvt" onchange="runWells()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="wells-pe" onchange="runWells()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>PE is primary diagnosis or equally likely (+3.0)</span>
+                            <!-- Toggle 2 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">PE is primary diagnosis or equally likely (+3.0)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="wells-pe" onchange="runWells()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="wells-hr" onchange="runWells()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Heart rate > 100 bpm (+1.5)</span>
+                            <!-- Toggle 3 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Heart rate > 100 bpm (+1.5)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="wells-hr" onchange="runWells()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="wells-immob" onchange="runWells()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Immobilization ≥ 3 days or surgery in 4 wks (+1.5)</span>
+                            <!-- Toggle 4 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Immobilization ≥ 3 days / surgery in 4 wks (+1.5)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="wells-immob" onchange="runWells()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="wells-prev" onchange="runWells()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Prior DVT or PE (+1.5)</span>
+                            <!-- Toggle 5 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Prior DVT or PE (+1.5)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="wells-prev" onchange="runWells()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="wells-hemo" onchange="runWells()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Hemoptysis (+1.0)</span>
+                            <!-- Toggle 6 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Hemoptysis (+1.0)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="wells-hemo" onchange="runWells()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
-                            <label class="flex items-start space-x-2 cursor-pointer">
-                                <input type="checkbox" id="wells-malig" onchange="runWells()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
-                                <span>Malignancy (active treatment/palliative) (+1.0)</span>
+                            <!-- Toggle 7 -->
+                            <label class="flex items-center justify-between cursor-pointer space-x-3 w-full py-1">
+                                <span class="text-xs text-stone-600 dark:text-stone-300">Malignancy (+1.0)</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="wells-malig" onchange="runWells()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </div>
                             </label>
                         </div>
-                        <div class="p-3 rounded-xl bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-800/80 flex justify-between items-center mt-4">
+                        <div class="p-3 rounded-xl bg-white/40 dark:bg-stone-950/40 border border-white/20 dark:border-stone-850/50 flex justify-between items-center mt-4">
                             <div>
-                                <div class="font-bold text-stone-700 dark:text-stone-200">Score: <span id="wells-score">0.0</span></div>
-                                <div class="text-[10px] text-stone-400 dark:text-stone-550" id="wells-risk">PE Probability: Low (10%)</div>
+                                <div class="font-bold text-stone-850 dark:text-stone-200">Score: <span id="wells-score">0.0</span></div>
+                                <div class="text-[10px] text-stone-400 dark:text-stone-500" id="wells-risk">PE Probability: Low (10%)</div>
                             </div>
-                            <button onclick="insertScore('Wells')" class="bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-[10px] px-2.5 py-1.5 rounded-lg transition duration-200 font-semibold border border-stone-300 dark:border-stone-700 shadow-sm">
+                            <button onclick="insertScore('Wells')" class="bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-750 text-stone-800 dark:text-stone-200 text-[10px] px-3 py-1.5 rounded-lg transition duration-200 font-bold border border-black/10 dark:border-white/10 shadow-sm">
                                 + Insert
                             </button>
                         </div>
@@ -462,8 +572,8 @@
                     <div id="calc-mews" class="hidden space-y-3 text-xs text-stone-600 dark:text-stone-300 animate-fadeIn">
                         <div class="space-y-3">
                             <div class="flex flex-col space-y-1">
-                                <label for="mews-sbp" class="font-semibold text-stone-500 dark:text-stone-400">Systolic Blood Pressure</label>
-                                <select id="mews-sbp" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                <label for="mews-sbp" class="text-[10px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Systolic Blood Pressure</label>
+                                <select id="mews-sbp" onchange="runMews()" class="p-2 rounded-lg border border-stone-250/20 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
                                     <option value="3">≤ 70 mmHg (+3)</option>
                                     <option value="2">71–80 mmHg (+2)</option>
                                     <option value="1">81–100 mmHg (+1)</option>
@@ -472,8 +582,8 @@
                                 </select>
                             </div>
                             <div class="flex flex-col space-y-1">
-                                <label for="mews-hr" class="font-semibold text-stone-500 dark:text-stone-400">Heart Rate</label>
-                                <select id="mews-hr" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                <label for="mews-hr" class="text-[10px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Heart Rate</label>
+                                <select id="mews-hr" onchange="runMews()" class="p-2 rounded-lg border border-stone-250/20 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
                                     <option value="2">≤ 40 bpm (+2)</option>
                                     <option value="1">41–50 bpm (+1)</option>
                                     <option value="0" selected>51–100 bpm (0)</option>
@@ -483,8 +593,8 @@
                                 </select>
                             </div>
                             <div class="flex flex-col space-y-1">
-                                <label for="mews-rr" class="font-semibold text-stone-500 dark:text-stone-400">Respiratory Rate</label>
-                                <select id="mews-rr" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                <label for="mews-rr" class="text-[10px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Respiratory Rate</label>
+                                <select id="mews-rr" onchange="runMews()" class="p-2 rounded-lg border border-stone-250/20 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
                                     <option value="2">≤ 8 rpm (+2)</option>
                                     <option value="0" selected>9–14 rpm (0)</option>
                                     <option value="1">15–20 rpm (+1)</option>
@@ -493,16 +603,16 @@
                                 </select>
                             </div>
                             <div class="flex flex-col space-y-1">
-                                <label for="mews-temp" class="font-semibold text-stone-500 dark:text-stone-400">Temperature</label>
-                                <select id="mews-temp" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                <label for="mews-temp" class="text-[10px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Temperature</label>
+                                <select id="mews-temp" onchange="runMews()" class="p-2 rounded-lg border border-stone-250/20 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
                                     <option value="2">≤ 35.0 °C / 95 °F (+2)</option>
                                     <option value="0" selected>35.1–38.4 °C / 95.2–101.1 °F (0)</option>
                                     <option value="2">≥ 38.5 °C / 101.3 °F (+2)</option>
                                 </select>
                             </div>
                             <div class="flex flex-col space-y-1">
-                                <label for="mews-avpu" class="font-semibold text-stone-500 dark:text-stone-400">Neurological (AVPU)</label>
-                                <select id="mews-avpu" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                <label for="mews-avpu" class="text-[10px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Neurological (AVPU)</label>
+                                <select id="mews-avpu" onchange="runMews()" class="p-2 rounded-lg border border-stone-250/20 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
                                     <option value="0" selected>Alert (A) (0)</option>
                                     <option value="1">Voice (V) (+1)</option>
                                     <option value="2">Pain (P) (+2)</option>
@@ -510,12 +620,12 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="p-3 rounded-xl bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-800/80 flex justify-between items-center mt-4">
+                        <div class="p-3 rounded-xl bg-white/40 dark:bg-stone-950/40 border border-white/20 dark:border-stone-850/50 flex justify-between items-center mt-4">
                             <div>
-                                <div class="font-bold text-stone-700 dark:text-stone-200">Score: <span id="mews-score">0</span></div>
-                                <div class="text-[10px] text-stone-400 dark:text-stone-550" id="mews-risk">Risk Assessment: Low Risk (routine checks)</div>
+                                <div class="font-bold text-stone-850 dark:text-stone-200">Score: <span id="mews-score">0</span></div>
+                                <div class="text-[10px] text-stone-400 dark:text-stone-500" id="mews-risk">Risk Assessment: Low Risk (routine checks)</div>
                             </div>
-                            <button onclick="insertScore('MEWS')" class="bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-[10px] px-2.5 py-1.5 rounded-lg transition duration-200 font-semibold border border-stone-300 dark:border-stone-700 shadow-sm">
+                            <button onclick="insertScore('MEWS')" class="bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-750 text-stone-850 dark:text-stone-200 text-[10px] px-3 py-1.5 rounded-lg transition duration-200 font-bold border border-black/10 dark:border-white/10 shadow-sm">
                                 + Insert
                             </button>
                         </div>
@@ -525,27 +635,27 @@
         </div>
 
         <!-- Timeline Section -->
-        <section class="mt-12 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
-            <h2 class="text-xl font-medium text-stone-800 dark:text-stone-100 mb-6">Longitudinal Timeline</h2>
+        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+            <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-6">Longitudinal Timeline</h2>
             <div id="timelinePanel" class="overflow-x-auto pb-4">
                 <!-- Timeline items render here -->
             </div>
         </section>
 
         <!-- Diagnostics Panel -->
-        <section class="mt-12 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
-            <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-100 dark:border-stone-800/80">
+        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50">
                 <div>
-                    <h2 class="text-xl font-medium text-stone-800 dark:text-stone-100">Shinrin Self-Diagnostics</h2>
-                    <p class="text-xs text-stone-400 dark:text-stone-555">Live in-browser test assertions & latency benchmarks</p>
+                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Shinrin Self-Diagnostics</h2>
+                    <p class="text-xs text-stone-400 dark:text-stone-500">Live in-browser test assertions & latency benchmarks</p>
                 </div>
-                <button onclick="runDiagnostics()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2.5 rounded-xl transition duration-200 font-semibold shadow-sm">
+                <button onclick="runDiagnostics()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2.5 rounded-xl transition duration-200 font-bold shadow-sm">
                     Run Self-Test Suite
                 </button>
             </div>
             
             <div id="diagnosticsList" class="space-y-3">
-                <div class="text-center py-6 text-stone-400 dark:text-stone-555 text-xs">
+                <div class="text-center py-6 text-stone-400 dark:text-stone-500 text-xs">
                     Click 'Run Self-Test Suite' to execute local code assertions and benchmark the local AI model.
                 </div>
             </div>
