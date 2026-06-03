@@ -74,9 +74,13 @@ export async function runDiagnostics(classifier, activeProfile, noteInput, selec
         }
     ];
 
+    if (window.logTelemetry) {
+        window.logTelemetry("Starting local diagnostic self-test suite...", "SYSTEM");
+    }
+
     for (const test of tests) {
         const item = document.createElement('div');
-        item.className = 'flex justify-between items-center p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs animate-pulse';
+        item.className = 'flex justify-between items-center p-3 rounded-xl border border-stone-200 dark:border-stone-885 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs animate-pulse';
         item.innerHTML = `
             <span class="text-stone-700 dark:text-stone-300 font-medium">${test.name}</span>
             <span class="text-stone-400 dark:text-stone-555">Running...</span>
@@ -114,6 +118,9 @@ export async function runDiagnostics(classifier, activeProfile, noteInput, selec
                     <span class="text-green-700 dark:text-green-400 font-semibold bg-green-100/50 dark:bg-green-900/30 px-2 py-0.5 rounded">${message}</span>
                 </div>
             `;
+            if (window.logTelemetry) {
+                window.logTelemetry(`[PASS] ${test.name} (${timeLabel})`, "SUCCESS");
+            }
         } else {
             item.className = 'flex justify-between items-center p-3 rounded-xl border border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/10 text-xs';
             item.innerHTML = `
@@ -126,6 +133,13 @@ export async function runDiagnostics(classifier, activeProfile, noteInput, selec
                     <span class="text-red-700 dark:text-red-400 font-semibold bg-red-100/50 dark:bg-red-900/30 px-2 py-0.5 rounded">${message}</span>
                 </div>
             `;
+            if (window.logTelemetry) {
+                window.logTelemetry(`[FAIL] ${test.name} (${timeLabel}): ${message}`, "ERROR");
+            }
         }
+    }
+    
+    if (window.logTelemetry) {
+        window.logTelemetry("Diagnostic test suite complete.", "SYSTEM");
     }
 }

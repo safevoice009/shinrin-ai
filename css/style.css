@@ -1,7 +1,7 @@
 /* Shinrin AI Design System - iOS & Sino-Japanese Clinical Tech Aesthetic */
 
 :root {
-    --ios-bg-light: #F2F2F7;
+    --ios-bg-light: #FAF7F2;
     --ios-bg-dark: #000000;
     --washi-gold: #D1A153;
 }
@@ -24,7 +24,7 @@ body {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.03);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -42,6 +42,18 @@ body {
 
 .animate-fadeIn {
     animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(209, 161, 83, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(209, 161, 83, 0.6); }
+}
+.animate-pulseGlow {
+    animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.console-drawer-transition {
+    transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Custom Tooltip Styling for Abbreviation Explanations */
@@ -98,9 +110,9 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.12);
     border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
 }

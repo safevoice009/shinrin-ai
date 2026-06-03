@@ -25,7 +25,19 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="antialiased min-h-screen pb-20 relative text-[#1C1C1E] dark:text-[#E5E5EA]">
+<body class="antialiased min-h-screen pb-20 relative text-[#1C1C1E] dark:text-[#E5E5EA] pt-16">
+
+    <!-- Floating Pill Navigation Bar -->
+    <div class="fixed top-4 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none max-w-full">
+        <nav class="bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/60 dark:border-stone-800/40 px-4 py-2 rounded-full shadow-[0_12px_40px_rgba(28,25,23,0.06)] flex gap-2 items-center text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 overflow-x-auto max-w-full scrollbar-none whitespace-nowrap pointer-events-auto">
+            <button onclick="document.getElementById('activeProfileCard').scrollIntoView({behavior: 'smooth'})" class="hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Patient Profile</button>
+            <button onclick="document.getElementById('noteInput').scrollIntoView({behavior: 'smooth'})" class="hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Note Ingestion</button>
+            <button onclick="document.getElementById('highlightsContainer').scrollIntoView({behavior: 'smooth'})" class="hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Clinical Hub</button>
+            <button onclick="document.getElementById('calc-chads').scrollIntoView({behavior: 'smooth'})" class="hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Calculators</button>
+            <button onclick="document.getElementById('timelinePanel').scrollIntoView({behavior: 'smooth'})" class="hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Timeline</button>
+            <button onclick="document.getElementById('diagnosticsList').scrollIntoView({behavior: 'smooth'})" class="hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Self-Diagnostics</button>
+        </nav>
+    </div>
 
     <!-- Model Downloading Overlay -->
     <div id="modelLoader" class="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-50 flex items-center justify-center hidden transition-opacity duration-350">
@@ -102,6 +114,46 @@
                                 </div>
                             </div>
                             <span class="text-[9px] font-bold text-stone-400 dark:text-stone-500 mt-1.5 uppercase tracking-wider">AI Vital Index</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipeline Ingestion Stepper -->
+                <div class="glass-panel rounded-[24px] p-5 shadow-sm border border-white/20 dark:border-stone-850/40">
+                    <div class="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-stone-450 dark:text-stone-500 mb-4 border-b border-stone-250/20 dark:border-stone-800/40 pb-2">
+                        <span>Pipeline Ingestion Stepper</span>
+                        <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-[#D1A153] mr-1.5 animate-ping"></span>Real-time Telemetry</span>
+                    </div>
+                    <div class="flex justify-between items-center max-w-lg mx-auto relative px-4 py-2">
+                        <!-- Connection line -->
+                        <div class="absolute top-[23px] left-[10%] right-[10%] h-[2px] bg-stone-200 dark:bg-stone-800 -z-0">
+                            <div id="stepperLine" class="h-full bg-[#D1A153] transition-all duration-700 w-0"></div>
+                        </div>
+                        
+                        <!-- Step 1 -->
+                        <div id="step-0" class="flex flex-col items-center z-10 relative">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-[#D1A153] bg-white dark:bg-stone-900 text-[#D1A153] text-xs font-black shadow-sm transition-all duration-300">1</div>
+                            <span class="text-[8px] font-extrabold uppercase tracking-wider text-[#D1A153] mt-2">Ingest</span>
+                        </div>
+                        <!-- Step 2 -->
+                        <div id="step-1" class="flex flex-col items-center z-10 relative">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-400 text-xs font-bold shadow-sm transition-all duration-300">2</div>
+                            <span class="text-[8px] font-bold uppercase tracking-wider text-stone-400 mt-2">Abbrs</span>
+                        </div>
+                        <!-- Step 3 -->
+                        <div id="step-2" class="flex flex-col items-center z-10 relative">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-400 text-xs font-bold shadow-sm transition-all duration-300">3</div>
+                            <span class="text-[8px] font-bold uppercase tracking-wider text-stone-400 mt-2">WASM AI</span>
+                        </div>
+                        <!-- Step 4 -->
+                        <div id="step-3" class="flex flex-col items-center z-10 relative">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-400 text-xs font-bold shadow-sm transition-all duration-300">4</div>
+                            <span class="text-[8px] font-bold uppercase tracking-wider text-stone-400 mt-2">SOAP</span>
+                        </div>
+                        <!-- Step 5 -->
+                        <div id="step-4" class="flex flex-col items-center z-10 relative">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-400 text-xs font-bold shadow-sm transition-all duration-300">5</div>
+                            <span class="text-[8px] font-bold uppercase tracking-wider text-stone-400 mt-2">EHR FHIR</span>
                         </div>
                     </div>
                 </div>
@@ -660,6 +712,35 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- Developer Telemetry Console Drawer -->
+    <div id="consoleContainer" class="fixed bottom-0 left-0 right-0 z-50 bg-stone-900 text-stone-300 border-t border-stone-800 shadow-[0_-8px_32px_rgba(0,0,0,0.24)] h-12 console-drawer-transition flex flex-col overflow-hidden">
+        <!-- Drawer Header (Clickable to Toggle) -->
+        <div onclick="toggleConsole()" class="flex items-center justify-between px-4 py-3 bg-stone-950 border-b border-stone-850 cursor-pointer select-none">
+            <!-- macOS Traffic Lights -->
+            <div class="flex items-center space-x-2 w-1/4">
+                <span class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]"></span>
+                <span class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]"></span>
+                <span class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]"></span>
+            </div>
+            <!-- Header Title -->
+            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400 flex items-center space-x-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#D1A153] animate-pulse"></span>
+                <span>Telemetry Command Center</span>
+            </div>
+            <!-- Chevron Toggle Control -->
+            <div class="flex justify-end w-1/4 text-stone-400">
+                <svg id="consoleChevron" class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7" />
+                </svg>
+            </div>
+        </div>
+        <!-- Console Viewport -->
+        <div id="consoleLogs" class="flex-1 p-4 font-mono text-[11px] leading-relaxed overflow-y-auto space-y-1.5 bg-stone-950/95 scrollbar-thin">
+            <div class="text-[#D1A153] font-bold">[SYSTEM] Shinrin Core Telemetry Engine initialized...</div>
+            <div class="text-stone-500">[INFO] Waiting for patient profile ingestion or clinician action.</div>
+        </div>
     </div>
 
     <!-- Orchestration module script -->

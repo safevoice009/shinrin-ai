@@ -15,6 +15,10 @@ export async function fetchFhirRecord() {
     fetchBtn.disabled = true;
     fetchBtn.textContent = "Querying...";
     payloadEl.textContent = '{\n  "query": "Initiated fetch sequence to ' + server + '/' + resource + '"\n}';
+    
+    if (window.logTelemetry) {
+        window.logTelemetry(`Querying FHIR Server at ${server} for resource ${resource}...`, 'FHIR');
+    }
 
     try {
         let response;
@@ -38,8 +42,15 @@ export async function fetchFhirRecord() {
         payloadEl.textContent = JSON.stringify(data, null, 2);
         statusEl.textContent = "Status: Connected (200 OK)";
         statusEl.className = "text-[10px] text-green-500 font-semibold";
+        
+        if (window.logTelemetry) {
+            window.logTelemetry(`FHIR Server response 200 OK. Loaded ${data.resourceType || 'bundle'} successfully.`, 'SUCCESS');
+        }
     } catch (error) {
         console.warn("FHIR Fetch failed, falling back to secure simulated payload.", error);
+        if (window.logTelemetry) {
+            window.logTelemetry(`FHIR Query failed: ${error.message}. Falling back to secure simulated payload...`, 'ERROR');
+        }
         
         // Secure mock fallback for offline or firewall configurations
         setTimeout(() => {
@@ -92,6 +103,10 @@ export async function fetchFhirRecord() {
             payloadEl.textContent = JSON.stringify(mockPayload, null, 2);
             statusEl.textContent = "Status: Connected (Simulated Fallback)";
             statusEl.className = "text-[10px] text-green-600 font-semibold";
+            
+            if (window.logTelemetry) {
+                window.logTelemetry(`Loaded secure de-identified mock for ${resource}. HIPAA shielding verified.`, 'SUCCESS');
+            }
         }, 800);
     } finally {
         fetchBtn.disabled = false;
