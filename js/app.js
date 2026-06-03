@@ -1,8 +1,9 @@
 import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 import { abbreviations } from './abbreviations.js';
 import { profiles } from './profiles.js';
-import { runChads, runWells, insertScore } from './calculators.js';
+import { runChads, runHasbled, runWells, runMews, insertScore } from './calculators.js';
 import { runDiagnostics } from './diagnostics.js';
+import { fetchFhirRecord } from './fhir.js';
 
 // Disable local model caching, fetch from HuggingFace CDN
 env.allowLocalModels = false;
@@ -267,7 +268,7 @@ async function parseNote() {
         } else if (entity.type === "symptom") {
             highlightClass = "bg-[#FFF9C4] dark:bg-yellow-950/45 border-b border-yellow-400 text-yellow-800 dark:text-yellow-350 font-medium px-1 rounded";
         } else if (entity.type === "risk") {
-            highlightClass = "bg-[#FFEBEE] dark:bg-red-950/45 border-b border-red-400 text-red-800 dark:text-red-350 font-medium px-1 rounded";
+            highlightClass = "bg-[#FFEBEE] dark:bg-red-950/45 border-b border-red-400 text-red-800 dark:text-red-300 font-medium px-1 rounded";
         }
         
         markedText = markedText.replace(regex, `<span class="${highlightClass}">$1</span>`);
@@ -348,7 +349,7 @@ async function parseNote() {
         // Map negative sentiment to high clinical urgency / risk warning
         if (label === "NEGATIVE") {
             urgencyLabel = "Urgent / Action Required";
-            urgencyClass = "bg-[#FFEBEE] dark:bg-red-950/20 text-red-800 dark:text-red-450 border-red-300 dark:border-red-900 animate-pulse";
+            urgencyClass = "bg-[#FFEBEE] dark:bg-red-950/20 text-red-800 dark:text-red-400 border-red-300 dark:border-red-900 animate-pulse";
         }
 
         badgeContainer.innerHTML = `
@@ -430,7 +431,7 @@ function renderTimeline() {
 let activeAnalysisTab = 'highlights';
 function switchAnalysisTab(tab) {
     activeAnalysisTab = tab;
-    const tabs = ['highlights', 'soap', 'layman'];
+    const tabs = ['highlights', 'soap', 'layman', 'fhir'];
     tabs.forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
         const panel = document.getElementById(`panel-${t}`);
@@ -503,28 +504,34 @@ function initTheme() {
 
 // Calculators routing
 window.runChads = runChads;
+window.runHasbled = runHasbled;
 window.runWells = runWells;
+window.runMews = runMews;
 window.switchCalc = (type) => switchCalc(type);
 window.insertScore = (name) => insertScore(name, noteInput);
 
 // Diagnostics Routing
 window.runDiagnostics = () => runDiagnostics(classifier, activeProfile, noteInput, selectProfile, generateSOAP);
 
+// FHIR routing
+window.fetchFhirRecord = fetchFhirRecord;
+
 // Switcher helper
 let activeCalc = 'chads';
 function switchCalc(calcType) {
     activeCalc = calcType;
-    if (calcType === 'chads') {
-        document.getElementById('calc-chads').classList.remove('hidden');
-        document.getElementById('calc-wells').classList.add('hidden');
-        document.getElementById('btn-calc-chads').className = 'flex-1 pb-2 text-center text-xs font-semibold border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300';
-        document.getElementById('btn-calc-wells').className = 'flex-1 pb-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400';
-    } else {
-        document.getElementById('calc-chads').classList.add('hidden');
-        document.getElementById('calc-wells').classList.remove('hidden');
-        document.getElementById('btn-calc-chads').className = 'flex-1 pb-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400';
-        document.getElementById('btn-calc-wells').className = 'flex-1 pb-2 text-center text-xs font-semibold border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300';
-    }
+    const calcs = ['chads', 'hasbled', 'wells', 'mews'];
+    calcs.forEach(c => {
+        const form = document.getElementById(`calc-${c}`);
+        const btn = document.getElementById(`btn-calc-${c}`);
+        if (c === calcType) {
+            form.classList.remove('hidden');
+            btn.className = 'flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300';
+        } else {
+            form.classList.add('hidden');
+            btn.className = 'flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400';
+        }
+    });
 }
 
 // Init App state

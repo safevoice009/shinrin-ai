@@ -113,15 +113,18 @@
                 <div id="highlightsContainer" class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm hidden transition-all duration-300">
                     <!-- Top Bar -->
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-3 border-b border-stone-100 dark:border-stone-800/80">
-                        <div class="flex space-x-1 border-b border-stone-100 dark:border-stone-800 w-full md:w-auto">
-                            <button onclick="switchAnalysisTab('highlights')" id="tab-highlights" class="px-4 py-2 border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300 text-sm font-semibold transition-all duration-200">
+                        <div class="flex space-x-1 border-b border-stone-100 dark:border-stone-800 w-full md:w-auto overflow-x-auto">
+                            <button onclick="switchAnalysisTab('highlights')" id="tab-highlights" class="px-4 py-2 border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
                                 Highlights
                             </button>
-                            <button onclick="switchAnalysisTab('soap')" id="tab-soap" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200">
+                            <button onclick="switchAnalysisTab('soap')" id="tab-soap" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
                                 SOAP Note
                             </button>
-                            <button onclick="switchAnalysisTab('layman')" id="tab-layman" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200">
+                            <button onclick="switchAnalysisTab('layman')" id="tab-layman" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
                                 Patient Layman Summary
+                            </button>
+                            <button onclick="switchAnalysisTab('fhir')" id="tab-fhir" class="px-4 py-2 border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 text-sm font-semibold transition-all duration-200 whitespace-nowrap">
+                                EHR Integration (FHIR)
                             </button>
                         </div>
                         <div id="aiUrgencyBadge" class="mt-4 md:mt-0"></div>
@@ -173,6 +176,117 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Content Panel: EHR Integration (FHIR) & HIPAA Compliance APIs -->
+                    <div id="panel-fhir" class="hidden space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            
+                            <!-- Column 1: Live FHIR / openFDA Sandbox -->
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">FHIR & Health API Sandbox</h3>
+                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Query public sandbox data. Real-time patient de-identification keeps HIPAA compliance.</p>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="flex flex-col space-y-1">
+                                        <label for="fhir-server" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Target Sandbox Server</label>
+                                        <select id="fhir-server" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                            <option value="https://hapi.fhir.org/baseR4">HAPI FHIR public sandbox (R4)</option>
+                                            <option value="https://server.fire.ly">Firely public sandbox (R4)</option>
+                                            <option value="https://api.fda.gov/drug">openFDA Adverse Drug Events API</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col space-y-1">
+                                        <label for="fhir-resource-id" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Resource ID / API Query</label>
+                                        <input type="text" id="fhir-resource-id" value="Patient/2823029" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="e.g. Patient/12345">
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between pt-1">
+                                    <button id="fhir-fetch-btn" onclick="fetchFhirRecord()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2.5 rounded-xl transition duration-200 font-medium shadow-sm">
+                                        Fetch FHIR Resource
+                                    </button>
+                                    <span id="fhir-status" class="text-[10px] text-stone-400 dark:text-stone-555 font-semibold">Status: Idle</span>
+                                </div>
+                                
+                                <!-- Response JSON viewer -->
+                                <div class="space-y-1.5">
+                                    <label class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 flex justify-between">
+                                        <span>Server Response Payload</span>
+                                        <span class="text-green-600 dark:text-green-400 font-normal normal-case">HIPAA Shield Active</span>
+                                    </label>
+                                    <pre id="fhir-payload" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-400 text-[10px] font-mono leading-relaxed overflow-auto max-h-56 select-all">
+{
+  "status": "Inactive. Click 'Fetch FHIR Resource' to query."
+}
+                                    </pre>
+                                </div>
+                            </div>
+                            
+                            <!-- Column 2: Freely Available Healthcare APIs & HIPAA Info -->
+                            <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">Open-Access Compliance APIs & Sandboxes</h3>
+                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Free developer resources for HIPAA validation, FHIR standards, and health dataset querying.</p>
+                                </div>
+                                
+                                <div class="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                                    <!-- API Item 1 -->
+                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">HAPI FHIR R4 / R5 Sandbox</span>
+                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-[#E8F5E9] dark:bg-green-950/40 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">FHIR R4</span>
+                                        </div>
+                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">The standard open-source test sandbox implementing HL7 FHIR specs. Ideal for EHR/EMR client connectivity tests.</p>
+                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-550 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                            <span class="truncate">https://hapi.fhir.org/baseR4</span>
+                                            <button onclick="navigator.clipboard.writeText('https://hapi.fhir.org/baseR4'); alert('Endpoint copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- API Item 2 -->
+                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">openFDA Drug Events API</span>
+                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 rounded border border-blue-200 dark:border-blue-900">Drug Recall</span>
+                                        </div>
+                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">Provides queries into public FDA adverse event records, labeling warnings, and device recalls. HIPAA compliant due to complete de-identification.</p>
+                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                            <span class="truncate">https://api.fda.gov/drug/event.json</span>
+                                            <button onclick="navigator.clipboard.writeText('https://api.fda.gov/drug/event.json'); alert('Endpoint copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- API Item 3 -->
+                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">SMART Health IT Launcher</span>
+                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 rounded border border-amber-200 dark:border-amber-900">OAuth / App Sandbox</span>
+                                        </div>
+                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">Configure custom simulated EHR systems to test client applications using OAuth2 launch procedures and simulated patient charts.</p>
+                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                            <span class="truncate">https://launcher.smarthealthit.org</span>
+                                            <button onclick="navigator.clipboard.writeText('https://launcher.smarthealthit.org'); alert('Link copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- API Item 4 -->
+                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">Medplum Headless EHR API</span>
+                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 rounded border border-purple-200 dark:border-purple-900">Open Source HIPAA</span>
+                                        </div>
+                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">A self-hostable HIPAA-compliant backend platform built on FHIR standards. Offers client libraries for TypeScript/React.</p>
+                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                            <span class="truncate">https://github.com/medplum/medplum</span>
+                                            <button onclick="navigator.clipboard.writeText('https://github.com/medplum/medplum'); alert('Link copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -196,12 +310,18 @@
                     <p class="text-xs text-stone-400 dark:text-stone-550 mb-4">Calculate scores to insert directly into clinical SOAP objective assessments.</p>
                     
                     <!-- Calculator Tab Selector -->
-                    <div class="flex space-x-1 border-b border-stone-100 dark:border-stone-800 mb-4">
-                        <button onclick="switchCalc('chads')" id="btn-calc-chads" class="flex-1 pb-2 text-center text-xs font-semibold border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300">
+                    <div class="flex space-x-1 border-b border-stone-100 dark:border-stone-800 mb-4 overflow-x-auto">
+                        <button onclick="switchCalc('chads')" id="btn-calc-chads" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-[#4A5D4E] text-[#4A5D4E] dark:text-stone-300 whitespace-nowrap">
                             CHA₂DS₂-VASc
                         </button>
-                        <button onclick="switchCalc('wells')" id="btn-calc-wells" class="flex-1 pb-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400">
+                        <button onclick="switchCalc('hasbled')" id="btn-calc-hasbled" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400 whitespace-nowrap">
+                            HAS-BLED
+                        </button>
+                        <button onclick="switchCalc('wells')" id="btn-calc-wells" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 whitespace-nowrap">
                             Wells' (PE)
+                        </button>
+                        <button onclick="switchCalc('mews')" id="btn-calc-mews" class="flex-none pb-2 px-2 text-center text-xs font-semibold border-b-2 border-transparent text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400 whitespace-nowrap">
+                            MEWS
                         </button>
                     </div>
 
@@ -252,6 +372,49 @@
                         </div>
                     </div>
 
+                    <!-- HAS-BLED Form -->
+                    <div id="calc-hasbled" class="hidden space-y-3 text-xs text-stone-600 dark:text-stone-300">
+                        <div class="space-y-2">
+                            <label class="flex items-start space-x-2 cursor-pointer">
+                                <input type="checkbox" id="hasbled-h" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                <span>Hypertension (SBP > 160 mmHg) (+1)</span>
+                            </label>
+                            <label class="flex items-start space-x-2 cursor-pointer">
+                                <input type="checkbox" id="hasbled-a" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                <span>Abnormal renal/liver function (+1)</span>
+                            </label>
+                            <label class="flex items-start space-x-2 cursor-pointer">
+                                <input type="checkbox" id="hasbled-s" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                <span>Stroke history (+1)</span>
+                            </label>
+                            <label class="flex items-start space-x-2 cursor-pointer">
+                                <input type="checkbox" id="hasbled-b" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                <span>Bleeding history/predisposition (+1)</span>
+                            </label>
+                            <label class="flex items-start space-x-2 cursor-pointer">
+                                <input type="checkbox" id="hasbled-l" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                <span>Labile INRs (+1)</span>
+                            </label>
+                            <label class="flex items-start space-x-2 cursor-pointer">
+                                <input type="checkbox" id="hasbled-e" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                <span>Elderly (Age > 65) (+1)</span>
+                            </label>
+                            <label class="flex items-start space-x-2 cursor-pointer">
+                                <input type="checkbox" id="hasbled-d" onchange="runHasbled()" class="mt-0.5 rounded border-stone-300 dark:border-stone-700 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                <span>Drugs/alcohol excess (+1)</span>
+                            </label>
+                        </div>
+                        <div class="p-3 rounded-xl bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-800/80 flex justify-between items-center mt-4">
+                            <div>
+                                <div class="font-bold text-stone-700 dark:text-stone-200">Score: <span id="hasbled-score">0</span></div>
+                                <div class="text-[10px] text-stone-400 dark:text-stone-550" id="hasbled-risk">Bleeding Risk: Low Bleeding Risk (1.13%)</div>
+                            </div>
+                            <button onclick="insertScore('HAS-BLED')" class="bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-[10px] px-2.5 py-1.5 rounded-lg transition duration-200 font-semibold border border-stone-300 dark:border-stone-700 shadow-sm">
+                                + Insert
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Wells' Criteria Form -->
                     <div id="calc-wells" class="hidden space-y-3 text-xs text-stone-600 dark:text-stone-300">
                         <div class="space-y-2">
@@ -290,6 +453,69 @@
                                 <div class="text-[10px] text-stone-400 dark:text-stone-550" id="wells-risk">PE Probability: Low (10%)</div>
                             </div>
                             <button onclick="insertScore('Wells')" class="bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-[10px] px-2.5 py-1.5 rounded-lg transition duration-200 font-semibold border border-stone-300 dark:border-stone-700 shadow-sm">
+                                + Insert
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MEWS Form -->
+                    <div id="calc-mews" class="hidden space-y-3 text-xs text-stone-600 dark:text-stone-300 animate-fadeIn">
+                        <div class="space-y-3">
+                            <div class="flex flex-col space-y-1">
+                                <label for="mews-sbp" class="font-semibold text-stone-500 dark:text-stone-400">Systolic Blood Pressure</label>
+                                <select id="mews-sbp" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                    <option value="3">≤ 70 mmHg (+3)</option>
+                                    <option value="2">71–80 mmHg (+2)</option>
+                                    <option value="1">81–100 mmHg (+1)</option>
+                                    <option value="0" selected>101–199 mmHg (0)</option>
+                                    <option value="2">≥ 200 mmHg (+2)</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <label for="mews-hr" class="font-semibold text-stone-500 dark:text-stone-400">Heart Rate</label>
+                                <select id="mews-hr" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                    <option value="2">≤ 40 bpm (+2)</option>
+                                    <option value="1">41–50 bpm (+1)</option>
+                                    <option value="0" selected>51–100 bpm (0)</option>
+                                    <option value="1">101–110 bpm (+1)</option>
+                                    <option value="2">111–129 bpm (+2)</option>
+                                    <option value="3">≥ 130 bpm (+3)</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <label for="mews-rr" class="font-semibold text-stone-500 dark:text-stone-400">Respiratory Rate</label>
+                                <select id="mews-rr" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                    <option value="2">≤ 8 rpm (+2)</option>
+                                    <option value="0" selected>9–14 rpm (0)</option>
+                                    <option value="1">15–20 rpm (+1)</option>
+                                    <option value="2">21–29 rpm (+2)</option>
+                                    <option value="3">≥ 30 rpm (+3)</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <label for="mews-temp" class="font-semibold text-stone-500 dark:text-stone-400">Temperature</label>
+                                <select id="mews-temp" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                    <option value="2">≤ 35.0 °C / 95 °F (+2)</option>
+                                    <option value="0" selected>35.1–38.4 °C / 95.2–101.1 °F (0)</option>
+                                    <option value="2">≥ 38.5 °C / 101.3 °F (+2)</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <label for="mews-avpu" class="font-semibold text-stone-500 dark:text-stone-400">Neurological (AVPU)</label>
+                                <select id="mews-avpu" onchange="runMews()" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                    <option value="0" selected>Alert (A) (0)</option>
+                                    <option value="1">Voice (V) (+1)</option>
+                                    <option value="2">Pain (P) (+2)</option>
+                                    <option value="3">Unresponsive (U) (+3)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-800/80 flex justify-between items-center mt-4">
+                            <div>
+                                <div class="font-bold text-stone-700 dark:text-stone-200">Score: <span id="mews-score">0</span></div>
+                                <div class="text-[10px] text-stone-400 dark:text-stone-550" id="mews-risk">Risk Assessment: Low Risk (routine checks)</div>
+                            </div>
+                            <button onclick="insertScore('MEWS')" class="bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-[10px] px-2.5 py-1.5 rounded-lg transition duration-200 font-semibold border border-stone-300 dark:border-stone-700 shadow-sm">
                                 + Insert
                             </button>
                         </div>
