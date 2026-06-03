@@ -25,16 +25,23 @@ Inspired by traditional Japanese zen and **wabi-sabi** (finding beauty in simpli
 ---
 
 ## 🚀 How to Run Locally
-No installation or compilation is required. The application runs entirely client-side in any modern web browser.
+No installation or compilation is required. The application runs client-side, but due to modern browser security policies (CORS) regarding ES Modules, it must be served via a local web server rather than opened directly as a file.
 
 1. Clone this repository:
    ```bash
    git clone https://github.com/safevoice009/shinrin-ai.git
    ```
-2. Open the file in your browser:
-   ```bash
-   firefox index.html
-   ```
+2. Start a lightweight local server from the project directory:
+   * **Python 3** (Default on most systems):
+     ```bash
+     python3 -m http.server 8080
+     ```
+   * **NodeJS / npm**:
+     ```bash
+     npx serve
+     ```
+3. Open your browser and navigate to:
+   [http://localhost:8080](http://localhost:8080) (or the port outputted by the server).
 
 ---
 

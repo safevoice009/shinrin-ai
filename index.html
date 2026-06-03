@@ -1086,6 +1086,52 @@
 
     <!-- Orchestration module script -->
     <script type="module" src="js/app.js"></script>
+
+    <!-- CORS File Protocol Check -->
+    <script>
+        if (window.location.protocol === 'file:') {
+            const warningDiv = document.createElement('div');
+            warningDiv.style.position = 'fixed';
+            warningDiv.style.top = '0';
+            warningDiv.style.left = '0';
+            warningDiv.style.width = '100vw';
+            warningDiv.style.height = '100vh';
+            warningDiv.style.backgroundColor = 'rgba(26, 24, 21, 0.96)';
+            warningDiv.style.zIndex = '999999';
+            warningDiv.style.display = 'flex';
+            warningDiv.style.flexDirection = 'column';
+            warningDiv.style.justifyContent = 'center';
+            warningDiv.style.alignItems = 'center';
+            warningDiv.style.padding = '2rem';
+            warningDiv.style.boxSizing = 'border-box';
+            warningDiv.style.color = '#FAF7F2';
+            warningDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+            warningDiv.style.textAlign = 'center';
+            warningDiv.style.backdropFilter = 'blur(12px)';
+
+            warningDiv.innerHTML = `
+                <div style="max-width: 550px; padding: 3rem; background: rgba(38, 35, 30, 0.85); border: 1px solid rgba(209, 161, 83, 0.4); border-radius: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.6); animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">🩺</div>
+                    <h2 style="font-size: 1.75rem; font-weight: 800; color: #D1A153; margin-bottom: 1rem; letter-spacing: -0.025em; text-transform: uppercase;">CORS Restriction Detected</h2>
+                    <p style="font-size: 0.95rem; line-height: 1.6; color: #E5E0D8; margin-bottom: 1.75rem;">
+                        You are loading <strong>Shinrin AI</strong> directly from local files (<code>file://</code>). Modern web browsers block ES Module imports locally to enforce security.
+                    </p>
+                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.75rem; text-align: left;">
+                        <span style="font-size: 0.75rem; font-weight: 900; color: #D1A153; text-transform: uppercase; tracking-wider">To run the app locally:</span>
+                        <pre style="margin: 0.75rem 0 0 0; font-size: 0.85rem; font-family: monospace; background: #12100e; padding: 0.75rem 1rem; border-radius: 10px; overflow-x: auto; color: #51e670; border: 1px solid rgba(255,255,255,0.03);">python3 -m http.server 8080</pre>
+                        <p style="font-size: 0.75rem; color: #A8A29E; margin: 0.75rem 0 0 0;">Then navigate to <a href="http://localhost:8080" style="color: #D1A153; text-decoration: underline; font-weight: 600;">http://localhost:8080</a> in your browser.</p>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #A8A29E; margin-bottom: 1.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+                        Alternatively, you can visit the live deployed production version directly:
+                    </div>
+                    <a href="https://shinrin-ai.vercel.app" target="_blank" style="display: inline-block; padding: 0.85rem 2rem; background: #D1A153; color: #1c1917; font-weight: 800; text-decoration: none; border-radius: 12px; font-size: 0.9rem; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(209, 161, 83, 0.3);">
+                        Go to Live Site (Vercel)
+                    </a>
+                </div>
+            `;
+            document.body.appendChild(warningDiv);
+        }
+    </script>
 </body>
 
 </html>
