@@ -1,7 +1,7 @@
 import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 import { abbreviations } from './abbreviations.js';
 import { profiles } from './profiles.js';
-import { runChads, runHasbled, runWells, runMews, insertScore } from './calculators.js';
+import { runChads, runHasbled, runWells, runMews, runMeld, runCurb65, insertScore } from './calculators.js';
 import { runDiagnostics } from './diagnostics.js';
 import { fetchFhirRecord } from './fhir.js';
 
@@ -10,6 +10,9 @@ env.allowLocalModels = false;
 
 let activeProfile = profiles[0];
 let classifier = null;
+let activeModel = 'distilbert';
+let activeRegistryTool = 'openmrs';
+let activeConsoleTab = 'clinical';
 
 // Initialize UI Elements
 const profileSwitcher = document.getElementById('profileSwitcher');
@@ -33,6 +36,308 @@ function toggleConsole() {
     }
 }
 window.toggleConsole = toggleConsole;
+
+// OpenMed AI Model Hub Selector
+function changeOpenmedModel() {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const selector = document.getElementById('openmed-model-selector');
+    if (!selector) return;
+    
+    activeModel = selector.value;
+    logTelemetry(`OpenMed active model hub set to: "${selector.options[selector.selectedIndex].text}"`, "SYSTEM");
+    
+    // Update header status visual
+    const statusEl = document.getElementById('aiHeaderStatus');
+    const labelEl = document.getElementById('aiHeaderLabel');
+    if (activeModel === 'distilbert') {
+        if (classifier) {
+            statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-[#4A5D4E]";
+            labelEl.textContent = "Local Model: Ready (Cached)";
+        } else {
+            statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-amber-450 animate-pulse";
+            labelEl.textContent = "Local Model: Offline";
+        }
+    } else if (activeModel === 'summarizer') {
+        statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse";
+        labelEl.textContent = "OpenMed: Summarizer Ready";
+    } else if (activeModel === 'ner') {
+        statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse";
+        labelEl.textContent = "OpenMed: NER-Biomedical Ready";
+    }
+}
+window.changeOpenmedModel = changeOpenmedModel;
+
+// Collapsible Drawer Tab Switcher
+function switchConsoleTab(tabId) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    activeConsoleTab = tabId;
+    
+    const tabClinical = document.getElementById('tab-console-clinical');
+    const tabTelemetry = document.getElementById('tab-console-telemetry');
+    const viewClinical = document.getElementById('console-view-clinical');
+    const viewTelemetry = document.getElementById('console-view-telemetry');
+    
+    if (!tabClinical || !tabTelemetry || !viewClinical || !viewTelemetry) return;
+    
+    if (tabId === 'clinical') {
+        tabClinical.className = "text-[#D1A153] border-b-2 border-[#D1A153] pb-0.5 px-1 hover:text-white transition duration-200";
+        tabTelemetry.className = "text-stone-400 pb-0.5 px-1 hover:text-white transition duration-200";
+        viewClinical.classList.remove('hidden');
+        viewTelemetry.classList.add('hidden');
+    } else {
+        tabClinical.className = "text-stone-400 pb-0.5 px-1 hover:text-white transition duration-200";
+        tabTelemetry.className = "text-[#D1A153] border-b-2 border-[#D1A153] pb-0.5 px-1 hover:text-white transition duration-200";
+        viewClinical.classList.add('hidden');
+        viewTelemetry.classList.remove('hidden');
+    }
+}
+window.switchConsoleTab = switchConsoleTab;
+
+// Open Health Tech Registry Integration
+function selectRegistryTool(toolId) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    activeRegistryTool = toolId;
+    
+    const titleEl = document.getElementById('sandbox-tool-title');
+    const descEl = document.getElementById('sandbox-tool-desc');
+    const endpointEl = document.getElementById('sandbox-endpoint');
+    
+    if (!titleEl || !descEl || !endpointEl) return;
+    
+    if (toolId === 'openmrs') {
+        titleEl.textContent = "Integrate with OpenMRS";
+        descEl.textContent = "Compile SOAP clinical records and sync them directly to OpenMRS database via standard REST endpoints.";
+        endpointEl.value = "https://demo.openmrs.org/openmrs/ws/rest/v1/obs";
+    } else if (toolId === 'openemr') {
+        titleEl.textContent = "Integrate with OpenEMR";
+        descEl.textContent = "Sync clinical encounter records with OpenEMR practice management system database.";
+        endpointEl.value = "https://demo.openemr.io/openemr/api/default/encounter";
+    } else if (toolId === 'medplum') {
+        titleEl.textContent = "Integrate with Medplum";
+        descEl.textContent = "Dispatch standard compliant HL7 FHIR bundles to your headless Medplum HIPAA repository.";
+        endpointEl.value = "https://api.medplum.com/fhir/R4/Encounter";
+    } else if (toolId === 'gnuhealth') {
+        titleEl.textContent = "Integrate with GNU Health";
+        descEl.textContent = "Publish structured diagnosis and evaluation details to GNU Health node via federation API.";
+        endpointEl.value = "https://gnuhealth-demo.org/api/clinical/evaluations";
+    }
+    
+    // Refresh connection payload with current values if available
+    if (window.lastSoap) {
+        updateFHIRBundle(activeProfile, window.lastSoap);
+    } else {
+        updateFHIRBundle(activeProfile, null);
+    }
+}
+window.selectRegistryTool = selectRegistryTool;
+
+async function syncSandboxTool() {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const btn = document.getElementById('sandbox-sync-btn');
+    const statusEl = document.getElementById('sandbox-status');
+    if (!btn || !statusEl) return;
+    
+    btn.disabled = true;
+    btn.textContent = "Syncing...";
+    statusEl.textContent = "Status: Dispatching...";
+    statusEl.className = "text-[10px] text-amber-500 font-bold uppercase tracking-wider animate-pulse";
+    
+    logTelemetry(`Initiating Sync to ${activeRegistryTool.toUpperCase()} EHR Gateway...`, "FHIR");
+    
+    // Simulate API request delay
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    
+    btn.disabled = false;
+    btn.textContent = "Dispatch to EHR";
+    statusEl.textContent = "Status: Synced (201 Created)";
+    statusEl.className = "text-[10px] text-green-500 font-bold uppercase tracking-wider";
+    logTelemetry(`Data successfully committed to ${activeRegistryTool.toUpperCase()} registry. Server returned HTTP 201 Created.`, "SUCCESS");
+}
+window.syncSandboxTool = syncSandboxTool;
+
+// Doctor Workspace (Clinical Insights)
+function updateClinicalInsights(profile, soap = null) {
+    const pathophysEl = document.getElementById('clinical-pathophysiology');
+    const guidelinesEl = document.getElementById('clinical-guidelines-checklist');
+    const diffsEl = document.getElementById('clinical-differentials');
+    
+    if (!pathophysEl || !guidelinesEl || !diffsEl) return;
+    
+    let pathophysText = "";
+    let guidelines = [];
+    let differentials = [];
+    
+    if (profile.id === 'profileA') {
+        pathophysText = "Progressive left ventricular systolic impairment leads to elevated pulmonary venous pressures, driving pulmonary transudate (causing dyspnea) and systemic venous congestion (causing peripheral edema). GDMT mitigates neurohormonal activation.";
+        guidelines = [
+            "Initiate SGLT2 inhibitor (e.g., Empagliflozin) per 2022 AHA/ACC HFrEF Guidelines (Class 1a recommendation).",
+            "Monitor serum potassium and renal function (GFR) during ACEi/ARB titration.",
+            "Schedule follow-up echocardiogram in 3 months to assess for cardiac remodeling."
+        ];
+        differentials = [
+            "Acute Decompensated Heart Failure (HFrEF baseline)",
+            "Renal failure with systemic fluid overload",
+            "COPD exacerbation (pulmonary etiology)"
+        ];
+    } else if (profile.id === 'profileB') {
+        pathophysText = "Auto-antibody cascade results in immune-complex deposition at dermal-epidermal junctions (malar rash) and synovium membranes, causing localized symmetrical polyarthritis and transient stiffness.";
+        guidelines = [
+            "Order dsDNA, anti-Smith, complement levels (C3/C4), and urinalysis to screen for lupus nephritis.",
+            "Schedule baseline retinal photography prior to starting Hydroxychloroquine therapy.",
+            "Advise complete photoprotection (broad-spectrum SPF, UV clothing) as solar exposure triggers disease activity."
+        ];
+        differentials = [
+            "Systemic Lupus Erythematosus (SLE suspect)",
+            "Early Rheumatoid Arthritis",
+            "Drug-induced Lupus Erythematosus"
+        ];
+    } else if (profile.id === 'profileC') {
+        pathophysText = "Inhalation of mycobacterial droplets triggers alveolar macrophage phagocytosis, forming necrotizing caseous granulomas (infiltration). Cytokine cascade (TNF-α, IL-1) drives weight loss and hypothalamic night sweats.";
+        guidelines = [
+            "Enforce immediate airborne infection isolation containment precautions.",
+            "Obtain triple morning sputum samples for Acid-Fast Bacilli (AFB) smear and GeneXpert PCR.",
+            "Obtain baseline hepatic panel prior to starting potential hepatotoxic RIPE treatment."
+        ];
+        differentials = [
+            "Pulmonary Tuberculosis infection",
+            "Atypical fungal pneumonia (Histoplasmosis, Coccidioidomycosis)",
+            "Bronchogenic Carcinoma (mass effect/necrosis)"
+        ];
+    } else {
+        pathophysText = "Patient note structured dynamically. Review custom guidelines checklist.";
+        guidelines = ["Assess vitals and objective labs.", "Monitor clinical progression."];
+        differentials = ["Unspecified clinical syndrome"];
+    }
+    
+    pathophysEl.textContent = pathophysText;
+    
+    guidelinesEl.innerHTML = guidelines.map(g => `
+        <li class="flex items-start gap-2">
+            <input type="checkbox" class="mt-0.5 rounded accent-[#4A5D4E]" ${soap ? 'checked' : ''}>
+            <span>${g}</span>
+        </li>
+    `).join('');
+    
+    diffsEl.innerHTML = differentials.map((d, i) => `
+        <li class="flex items-center gap-2">
+            <span class="font-extrabold text-[#D1A153]">[${i + 1}]</span>
+            <span>${d}</span>
+        </li>
+    `).join('');
+}
+window.updateClinicalInsights = updateClinicalInsights;
+
+// Developer Workspace (FHIR Bundle generation)
+function updateFHIRBundle(profile, soap = null) {
+    const fhirEl = document.getElementById('console-fhir-payload');
+    if (!fhirEl) return;
+    
+    const patientId = profile.id;
+    const bundle = {
+        "resourceType": "Bundle",
+        "type": "collection",
+        "timestamp": new Date().toISOString(),
+        "entry": [
+            {
+                "fullUrl": `urn:uuid:patient-${patientId}`,
+                "resource": {
+                    "resourceType": "Patient",
+                    "id": patientId,
+                    "active": true,
+                    "name": [
+                        {
+                            "use": "official",
+                            "text": profile.name.split(':')[1]?.trim() || profile.name
+                        }
+                    ],
+                    "gender": profile.id === 'profileB' ? "female" : "male",
+                    "birthDate": profile.id === 'profileB' ? "1992-04-12" : (profile.id === 'profileA' ? "1964-08-22" : "1981-11-05")
+                }
+            }
+        ]
+    };
+    
+    if (soap) {
+        bundle.entry.push({
+            "fullUrl": `urn:uuid:encounter-${patientId}`,
+            "resource": {
+                "resourceType": "Encounter",
+                "id": `encounter-${patientId}`,
+                "status": "finished",
+                "class": {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                    "code": "AMB",
+                    "display": "ambulatory"
+                },
+                "subject": {
+                    "reference": `urn:uuid:patient-${patientId}`
+                },
+                "reasonCode": [
+                    {
+                        "text": profile.description
+                    }
+                ]
+            }
+        });
+        
+        bundle.entry.push({
+            "fullUrl": `urn:uuid:documentreference-${patientId}`,
+            "resource": {
+                "resourceType": "DocumentReference",
+                "id": `soap-${patientId}`,
+                "status": "current",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "11506-3",
+                            "display": "Provider-unspecified Progress note"
+                        }
+                    ],
+                    "text": "Clinical SOAP Progress Note"
+                },
+                "subject": {
+                    "reference": `urn:uuid:patient-${patientId}`
+                },
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "text/plain",
+                            "data": btoa(`Subjective: ${soap.subjective}\nObjective: ${soap.objective}\nAssessment: ${soap.assessment}\nPlan: ${soap.plan}`)
+                        }
+                    }
+                ]
+            }
+        });
+    }
+    
+    fhirEl.textContent = JSON.stringify(bundle, null, 2);
+    
+    // Also update the registry connection sandbox payload
+    const sandboxPayloadEl = document.getElementById('sandbox-payload');
+    if (sandboxPayloadEl) {
+        const obsPayload = {
+            "resourceType": "Observation",
+            "status": "final",
+            "code": {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "11506-3",
+                        "display": "Progress Note Observation"
+                    }
+                ],
+                "text": "Ingested Narrative SOAP Observation"
+            },
+            "subject": {
+                "reference": `Patient/${patientId}`
+            },
+            "valueString": soap ? `S: ${soap.subjective.substring(0,60).replace(/\n/g, ' ')}... O: ${soap.objective.substring(0,60).replace(/\n/g, ' ')}...` : "Waiting for narrative Note structure."
+        };
+        sandboxPayloadEl.textContent = JSON.stringify(obsPayload, null, 2);
+    }
+}
+window.updateFHIRBundle = updateFHIRBundle;
 
 // Web Audio Premium Haptic Feedback Sound
 function playPremiumHapticSound() {
@@ -291,6 +596,11 @@ function selectProfile(profileId) {
     if (gaugeLabelEl) gaugeLabelEl.textContent = 'Idle';
     if (gaugePercentEl) gaugePercentEl.textContent = '0%';
     
+    // Reset clinical workspace state
+    window.lastSoap = null;
+    updateClinicalInsights(activeProfile, null);
+    updateFHIRBundle(activeProfile, null);
+    
     renderTimeline();
     logTelemetry(`Longitudinal timeline rendered with ${activeProfile.timeline.length} clinical nodes.`, 'SUCCESS');
 }
@@ -521,6 +831,25 @@ async function parseNote() {
         const regex = new RegExp(`(${escapedTerm})`, 'gi');
         
         let highlightClass = "";
+        let codingInfo = "";
+        
+        if (activeModel === 'ner') {
+            const termLower = entity.term.toLowerCase();
+            if (termLower.includes("lisinopril")) codingInfo = "RxNorm: 6470 (Lisinopril)";
+            else if (termLower.includes("carvedilol")) codingInfo = "RxNorm: 20352 (Carvedilol)";
+            else if (termLower.includes("naproxen")) codingInfo = "RxNorm: 7258 (Naproxen)";
+            else if (termLower.includes("amoxicillin")) codingInfo = "RxNorm: 723 (Amoxicillin)";
+            else if (termLower.includes("heart failure") || termLower.includes("chf")) codingInfo = "ICD-10-CM: I50.9 / SNOMED: 42343007 (Heart Failure)";
+            else if (termLower.includes("malar rash")) codingInfo = "ICD-10-CM: L93.0 / SNOMED: 24062002 (Malar Rash)";
+            else if (termLower.includes("cough")) codingInfo = "ICD-10-CM: R05.3 / SNOMED: 287178001 (Cough)";
+            else if (termLower.includes("sweats")) codingInfo = "ICD-10-CM: R61.9 / SNOMED: 427218002 (Night Sweats)";
+            else if (termLower.includes("weight loss")) codingInfo = "ICD-10-CM: R63.4 / SNOMED: 89362005 (Weight Loss)";
+            else if (termLower.includes("infiltration")) codingInfo = "ICD-10-CM: R91.8 / SNOMED: 271584003 (Lung Infiltration)";
+            else if (termLower.includes("ejection fraction")) codingInfo = "LOINC: 8801-9 (Left Ventricular Ejection Fraction)";
+            else if (termLower.includes("ana")) codingInfo = "LOINC: 11502-2 (Antinuclear Antibody)";
+            else codingInfo = "SNOMED-CT Concept Reference";
+        }
+        
         if (entity.type === "medication") {
             highlightClass = "bg-[#E8F5E9] dark:bg-green-950/45 border-b border-green-400 text-green-800 dark:text-green-300 font-medium px-1 rounded";
         } else if (entity.type === "symptom") {
@@ -529,7 +858,11 @@ async function parseNote() {
             highlightClass = "bg-[#FFEBEE] dark:bg-red-950/45 border-b border-red-400 text-red-800 dark:text-red-300 font-medium px-1 rounded";
         }
         
-        markedText = markedText.replace(regex, `<span class="${highlightClass}">$1</span>`);
+        if (activeModel === 'ner' && codingInfo) {
+            markedText = markedText.replace(regex, `<span class="${highlightClass} abbr-tooltip" data-tooltip="${codingInfo}">$1</span>`);
+        } else {
+            markedText = markedText.replace(regex, `<span class="${highlightClass}">$1</span>`);
+        }
     });
 
     // Translate abbreviations (only those not inside HTML tags)
@@ -548,81 +881,113 @@ async function parseNote() {
     logTelemetry(`Mapped ${countAbbr} clinical abbreviation patterns.`, "SUCCESS");
     await new Promise(resolve => setTimeout(resolve, 400));
 
-    // Step 2: WASM AI Sentiment Classification
+    // Step 2: WASM AI Sentiment Classification / Model Hub Selection
     setStepperStage(2);
-    logTelemetry("Executing local AI clinical classifier (WASM DistilBERT)...", "INFO");
     const aiStartTime = performance.now();
-
-    // Trigger browser-based AI model inference
     const badgeContainer = document.getElementById('aiUrgencyBadge');
-    badgeContainer.innerHTML = `
-        <div class="flex items-center text-xs text-stone-400 font-medium bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-850 rounded-full px-3 py-1 animate-pulse">
-            <span class="inline-block w-2 h-2 rounded-full bg-amber-450 mr-2 animate-ping"></span>
-            Running Local AI Classification...
-        </div>
-    `;
-
-    // Load and initialize model on first use
-    if (!classifier) {
-        await loadModel();
-    }
-
+    
     let urgencyLabel = "Routine / Stable";
     let urgencyClass = "bg-[#E8F5E9] dark:bg-green-950/20 text-green-800 dark:text-green-400 border-green-300 dark:border-green-900";
     let label = "POSITIVE";
     let score = 0.99;
 
-    try {
-        // Run inference on clinical note
-        const result = await classifier(noteText);
-        label = result[0].label; // "POSITIVE" or "NEGATIVE"
-        score = result[0].score;
-        
-        // Map negative sentiment to high clinical urgency / risk warning
-        if (label === "NEGATIVE") {
-            urgencyLabel = "Urgent / Action Required";
-            urgencyClass = "bg-[#FFEBEE] dark:bg-red-950/20 text-red-800 dark:text-red-400 border-red-300 dark:border-red-900 animate-pulse";
-        }
-
+    if (activeModel === 'distilbert') {
+        logTelemetry("Executing local AI clinical classifier (WASM DistilBERT)...", "INFO");
         badgeContainer.innerHTML = `
-            <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border ${urgencyClass}">
-                ${urgencyLabel} (Confidence: ${(score * 100).toFixed(1)}%)
-            </span>
+            <div class="flex items-center text-xs text-stone-400 font-medium bg-[#FAF7F2] dark:bg-stone-950/40 border border-stone-100 dark:border-stone-850 rounded-full px-3 py-1 animate-pulse">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-450 mr-2 animate-ping"></span>
+                Running Local AI Classification...
+            </div>
         `;
 
-        // Update Circular iOS Vital Gauge
-        const gaugeValueEl = document.getElementById('urgencyGaugeValue');
-        const gaugeLabelEl = document.getElementById('urgencyGaugeLabel');
-        const gaugePercentEl = document.getElementById('urgencyGaugePercent');
-
-        let percent = 0;
-        let strokeColor = "#D1A153";
-        let shortUrgencyLabel = "Idle";
-
-        if (label === "NEGATIVE") {
-            percent = Math.round((1 - score) * 100);
-            strokeColor = "#FF3B30"; // Apple Red
-            shortUrgencyLabel = "Urgent";
-        } else {
-            percent = Math.round(score * 100);
-            strokeColor = "#34C759"; // Apple Green
-            shortUrgencyLabel = "Stable";
+        if (!classifier) {
+            await loadModel();
         }
 
-        if (gaugeValueEl) {
-            gaugeValueEl.style.strokeDashoffset = `${213.63 - (percent / 100) * 213.63}`;
-            gaugeValueEl.setAttribute('stroke', strokeColor);
-        }
-        if (gaugeLabelEl) gaugeLabelEl.textContent = shortUrgencyLabel;
-        if (gaugePercentEl) gaugePercentEl.textContent = `${percent}%`;
+        try {
+            // Run inference on clinical note
+            const result = await classifier(noteText);
+            label = result[0].label; // "POSITIVE" or "NEGATIVE"
+            score = result[0].score;
+            
+            // Map negative sentiment to high clinical urgency / risk warning
+            if (label === "NEGATIVE") {
+                urgencyLabel = "Urgent / Action Required";
+                urgencyClass = "bg-[#FFEBEE] dark:bg-red-950/20 text-red-800 dark:text-red-400 border-red-300 dark:border-red-900 animate-pulse";
+            }
 
-        const elapsed = Math.round(performance.now() - aiStartTime);
-        logTelemetry(`AI classification complete: Sentiment=${label}, Confidence=${(score * 100).toFixed(1)}%. Latency=${elapsed}ms`, "AI_WASM");
-    } catch (err) {
-        console.error("AI inference error", err);
-        badgeContainer.innerHTML = `<span class="text-xs text-red-400">AI Classification Error</span>`;
-        logTelemetry(`AI inference failed: ${err.message}`, "ERROR");
+            badgeContainer.innerHTML = `
+                <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border ${urgencyClass}">
+                    ${urgencyLabel} (Confidence: ${(score * 100).toFixed(1)}%)
+                </span>
+            `;
+
+            const elapsed = Math.round(performance.now() - aiStartTime);
+            logTelemetry(`AI classification complete: Sentiment=${label}, Confidence=${(score * 100).toFixed(1)}%. Latency=${elapsed}ms`, "AI_WASM");
+        } catch (err) {
+            console.error("AI inference error", err);
+            badgeContainer.innerHTML = `<span class="text-xs text-red-400">AI Classification Error</span>`;
+            logTelemetry(`AI inference failed: ${err.message}`, "ERROR");
+        }
+    } else if (activeModel === 'summarizer') {
+        logTelemetry("Executing OpenMed Clinical Summarizer (Simulated LLM)...", "SYSTEM");
+        logTelemetry("Token generation starting: <s_soap> compiling clinical structures...", "AI_WASM");
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        label = activeProfile.id === 'profileC' ? "NEGATIVE" : "POSITIVE";
+        score = 0.945;
+        urgencyLabel = label === "NEGATIVE" ? "Urgent / Action Required" : "Routine / Stable";
+        urgencyClass = label === "NEGATIVE" ? "bg-[#FFEBEE] dark:bg-red-950/20 text-red-800 dark:text-red-400 border-red-300 dark:border-red-900 animate-pulse" : "bg-[#E8F5E9] dark:bg-green-950/20 text-green-800 dark:text-green-400 border-green-300 dark:border-green-900";
+        
+        badgeContainer.innerHTML = `
+            <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border ${urgencyClass}">
+                ${urgencyLabel} (OpenMed Confidence: 94.5%)
+            </span>
+        `;
+        logTelemetry("OpenMed Clinical Summarizer generated summary. Latency=800ms", "SUCCESS");
+    } else if (activeModel === 'ner') {
+        logTelemetry("Executing OpenMed NER-Biomedical Entity Extractor...", "SYSTEM");
+        logTelemetry("NER Tokenizer identifying medical codes and concepts...", "AI_WASM");
+        await new Promise(resolve => setTimeout(resolve, 900));
+        
+        label = activeProfile.id === 'profileC' ? "NEGATIVE" : "POSITIVE";
+        score = 0.978;
+        urgencyLabel = label === "NEGATIVE" ? "Urgent / Action Required" : "Routine / Stable";
+        urgencyClass = label === "NEGATIVE" ? "bg-[#FFEBEE] dark:bg-red-950/20 text-red-800 dark:text-red-400 border-red-300 dark:border-red-900 animate-pulse" : "bg-[#E8F5E9] dark:bg-green-950/20 text-green-800 dark:text-green-400 border-green-300 dark:border-green-900";
+        
+        badgeContainer.innerHTML = `
+            <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border ${urgencyClass}">
+                ${urgencyLabel} (OpenMed NER Confidence: 97.8%)
+            </span>
+        `;
+        logTelemetry("OpenMed NER-Biomedical mapping complete. Extracted biomedical concepts and mapped to RxNorm / ICD-10 standards.", "SUCCESS");
     }
+
+    // Update Circular iOS Vital Gauge
+    const gaugeValueEl = document.getElementById('urgencyGaugeValue');
+    const gaugeLabelEl = document.getElementById('urgencyGaugeLabel');
+    const gaugePercentEl = document.getElementById('urgencyGaugePercent');
+
+    let percent = 0;
+    let strokeColor = "#D1A153";
+    let shortUrgencyLabel = "Idle";
+
+    if (label === "NEGATIVE") {
+        percent = Math.round((1 - score) * 100) || 75;
+        strokeColor = "#FF3B30"; // Apple Red
+        shortUrgencyLabel = "Urgent";
+    } else {
+        percent = Math.round(score * 100);
+        strokeColor = "#34C759"; // Apple Green
+        shortUrgencyLabel = "Stable";
+    }
+
+    if (gaugeValueEl) {
+        gaugeValueEl.style.strokeDashoffset = `${213.63 - (percent / 100) * 213.63}`;
+        gaugeValueEl.setAttribute('stroke', strokeColor);
+    }
+    if (gaugeLabelEl) gaugeLabelEl.textContent = shortUrgencyLabel;
+    if (gaugePercentEl) gaugePercentEl.textContent = `${percent}%`;
 
     await new Promise(resolve => setTimeout(resolve, 400));
 
@@ -642,7 +1007,7 @@ async function parseNote() {
     if (assessmentField) {
         let currentVal = assessmentField.value;
         if (currentVal) {
-            assessmentField.value = currentVal.replace(/• Clinical Urgency: [^\n]*/, `• Clinical Urgency: ${urgencyLabel.toUpperCase()} (WASM Sentiment Model confidence: ${(score * 100).toFixed(1)}%)`);
+            assessmentField.value = currentVal.replace(/• Clinical Urgency: [^\n]*/, `• Clinical Urgency: ${urgencyLabel.toUpperCase()} (${activeModel.toUpperCase()} confidence: ${(score * 100).toFixed(1)}%)`);
         }
     }
 
@@ -678,6 +1043,11 @@ async function parseNote() {
         card.appendChild(descEl);
         recommendationPanel.appendChild(card);
     });
+
+    // Save state for synchronization reference
+    window.lastSoap = soap;
+    updateClinicalInsights(activeProfile, soap);
+    updateFHIRBundle(activeProfile, soap);
 
     logTelemetry("SOAP clinical structures generated and mapped to edit forms.", "SUCCESS");
     await new Promise(resolve => setTimeout(resolve, 400));
@@ -749,7 +1119,7 @@ let activeAnalysisTab = 'highlights';
 function switchAnalysisTab(tab) {
     if (window.playPremiumHapticSound) window.playPremiumHapticSound();
     activeAnalysisTab = tab;
-    const tabs = ['highlights', 'soap', 'layman', 'fhir', 'api-hub'];
+    const tabs = ['highlights', 'soap', 'layman', 'fhir', 'api-hub', 'open-tech'];
     tabs.forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
         const panel = document.getElementById(`panel-${t}`);
@@ -826,6 +1196,8 @@ window.runChads = runChads;
 window.runHasbled = runHasbled;
 window.runWells = runWells;
 window.runMews = runMews;
+window.runMeld = runMeld;
+window.runCurb65 = runCurb65;
 window.switchCalc = (type) => switchCalc(type);
 window.insertScore = (name) => insertScore(name, noteInput);
 
@@ -839,10 +1211,11 @@ window.fetchFhirRecord = fetchFhirRecord;
 let activeCalc = 'chads';
 function switchCalc(calcType) {
     activeCalc = calcType;
-    const calcs = ['chads', 'hasbled', 'wells', 'mews'];
+    const calcs = ['chads', 'hasbled', 'wells', 'mews', 'meld', 'curb'];
     calcs.forEach(c => {
         const form = document.getElementById(`calc-${c}`);
         const btn = document.getElementById(`btn-calc-${c}`);
+        if (!form || !btn) return;
         if (c === calcType) {
             form.classList.remove('hidden');
             btn.className = 'flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5';

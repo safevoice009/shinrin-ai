@@ -57,6 +57,52 @@ export async function runDiagnostics(classifier, activeProfile, noteInput, selec
             }
         },
         {
+            name: "MELD Liver Failure Risk Score Test",
+            fn: async () => {
+                const mockBilirubin = document.createElement('input');
+                mockBilirubin.id = 'meld-bilirubin';
+                mockBilirubin.value = '1.2';
+                const mockInr = document.createElement('input');
+                mockInr.id = 'meld-inr';
+                mockInr.value = '1.1';
+                const mockCreatinine = document.createElement('input');
+                mockCreatinine.id = 'meld-creatinine';
+                mockCreatinine.value = '1.5';
+                const mockDialysis = document.createElement('input');
+                mockDialysis.type = 'checkbox';
+                mockDialysis.id = 'meld-dialysis';
+                mockDialysis.checked = false;
+                
+                const scoreSpan = document.createElement('span');
+                scoreSpan.id = 'meld-score';
+                const riskDiv = document.createElement('div');
+                riskDiv.id = 'meld-mortality-risk';
+                
+                document.body.appendChild(mockBilirubin);
+                document.body.appendChild(mockInr);
+                document.body.appendChild(mockCreatinine);
+                document.body.appendChild(mockDialysis);
+                document.body.appendChild(scoreSpan);
+                document.body.appendChild(riskDiv);
+                
+                try {
+                    const { runMeld } = await import('./calculators.js');
+                    runMeld();
+                    const score = parseInt(scoreSpan.textContent, 10);
+                    if (isNaN(score) || score <= 0) {
+                        throw new Error(`Calculated invalid MELD score: ${score}`);
+                    }
+                } finally {
+                    mockBilirubin.remove();
+                    mockInr.remove();
+                    mockCreatinine.remove();
+                    mockDialysis.remove();
+                    scoreSpan.remove();
+                    riskDiv.remove();
+                }
+            }
+        },
+        {
             name: "WASM Transformers.js Model Inference Test",
             fn: async () => {
                 if (!classifier) {

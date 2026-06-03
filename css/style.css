@@ -160,3 +160,7 @@ body {
         transform: translateY(0);
     }
 }
+
+.console-drawer-transition {
+    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease, border-color 0.4s ease;
+}

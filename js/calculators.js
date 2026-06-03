@@ -72,6 +72,53 @@ export function runMews() {
     document.getElementById('mews-risk').textContent = `Risk Assessment: ${risk}`;
 }
 
+export function runMeld() {
+    let bilirubin = parseFloat(document.getElementById('meld-bilirubin').value) || 1.0;
+    let inr = parseFloat(document.getElementById('meld-inr').value) || 1.0;
+    let creatinine = parseFloat(document.getElementById('meld-creatinine').value) || 1.0;
+    let dialysis = document.getElementById('meld-dialysis').checked;
+
+    if (dialysis || creatinine > 4.0) {
+        creatinine = 4.0;
+    }
+
+    // Lower bound cap at 1.0
+    bilirubin = Math.max(1.0, bilirubin);
+    inr = Math.max(1.0, inr);
+    creatinine = Math.max(1.0, creatinine);
+
+    let meldVal = (3.78 * Math.log(bilirubin)) + (11.2 * Math.log(inr)) + (9.57 * Math.log(creatinine)) + 6.43;
+    let score = Math.round(meldVal);
+
+    let mortality = "1.9% 3-month mortality";
+    if (score >= 40) mortality = "71.3% 3-month mortality (Immediate ICU/Transplant Priority)";
+    else if (score >= 30) mortality = "52.6% 3-month mortality (Severe liver failure)";
+    else if (score >= 20) mortality = "19.6% 3-month mortality (Moderate-severe liver failure)";
+    else if (score >= 10) mortality = "6.0% 3-month mortality (Mild-moderate liver failure)";
+
+    document.getElementById('meld-score').textContent = score;
+    document.getElementById('meld-mortality-risk').textContent = `Mortality Risk: ${mortality}`;
+}
+
+export function runCurb65() {
+    let score = 0;
+    if (document.getElementById('curb-c').checked) score += 1;
+    if (document.getElementById('curb-u').checked) score += 1;
+    if (document.getElementById('curb-r').checked) score += 1;
+    if (document.getElementById('curb-b').checked) score += 1;
+    if (document.getElementById('curb-age').checked) score += 1;
+
+    let mortality = "1.5% 30-day mortality (Low Risk - Outpatient care)";
+    if (score >= 3) {
+        mortality = `22.0% 30-day mortality (Severe Risk - Urgent Inpatient admission, evaluate for ICU if >= 4)`;
+    } else if (score === 2) {
+        mortality = `9.2% 30-day mortality (Moderate Risk - Short-stay inpatient or close outpatient monitoring)`;
+    }
+
+    document.getElementById('curb-score').textContent = score;
+    document.getElementById('curb-mortality-risk').textContent = `Assessment: ${mortality}`;
+}
+
 export function insertScore(name, noteInput) {
     let textToInsert = "";
     if (name === 'CHA₂DS₂-VASc') {
@@ -90,8 +137,17 @@ export function insertScore(name, noteInput) {
         const score = document.getElementById('mews-score').textContent;
         const risk = document.getElementById('mews-risk').textContent;
         textToInsert = `[Calculated MEWS Score: ${score} - ${risk}]`;
+    } else if (name === 'MELD') {
+        const score = document.getElementById('meld-score').textContent;
+        const risk = document.getElementById('meld-mortality-risk').textContent;
+        textToInsert = `[Calculated MELD Score: ${score} - ${risk}]`;
+    } else if (name === 'CURB-65') {
+        const score = document.getElementById('curb-score').textContent;
+        const risk = document.getElementById('curb-mortality-risk').textContent;
+        textToInsert = `[Calculated CURB-65 Score: ${score} - ${risk}]`;
     }
     const noteText = noteInput.value;
     noteInput.value = noteText.trim() + "\n" + textToInsert;
     alert(`${name} score appended to Clinical Narrative Note. Please click 'Structure Note' to refresh highlights and SOAP fields.`);
 }
+
