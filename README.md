@@ -1,4 +1,4 @@
-# Shinrin AI (森林 AI)
+# Shinrin AI
 
 > **A Japanese Wabi-Sabi Styled Clinical Decision Support Dashboard.**
 
