@@ -650,13 +650,31 @@ let recognition = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let whisperPipeline = null;
+let loadedWhisperModelName = "";
 let isDictating = false;
+let activeTimelineIdx = 0;
 
 async function processAudioBlob(blob) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContextClass();
     const arrayBuffer = await blob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    return audioBuffer.getChannelData(0);
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    
+    // Resample to 16000Hz using OfflineAudioContext
+    const OfflineContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const offlineCtx = new OfflineContextClass(
+        1,
+        Math.round(audioBuffer.duration * 16000),
+        16000
+    );
+    
+    const bufferSource = offlineCtx.createBufferSource();
+    bufferSource.buffer = audioBuffer;
+    bufferSource.connect(offlineCtx.destination);
+    bufferSource.start();
+    
+    const resampledBuffer = await offlineCtx.startRendering();
+    return resampledBuffer.getChannelData(0);
 }
 
 async function toggleDictation() {
@@ -738,6 +756,14 @@ async function toggleDictation() {
             isDictating = false;
             return;
         }
+
+        const modelSelector = document.getElementById('whisperModelSelector');
+        const selectedModel = modelSelector ? modelSelector.value : 'Xenova/whisper-base.en';
+        
+        // Reset pipeline if model selection changed
+        if (whisperPipeline && loadedWhisperModelName !== selectedModel) {
+            whisperPipeline = null;
+        }
         
         // Load Whisper pipeline if not loaded
         if (!whisperPipeline) {
@@ -752,7 +778,7 @@ async function toggleDictation() {
             }
             
             try {
-                whisperPipeline = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
+                whisperPipeline = await pipeline('automatic-speech-recognition', selectedModel, {
                     progress_callback: (data) => {
                         if (data.status === 'progress') {
                             const percent = Math.round(data.progress);
@@ -761,6 +787,7 @@ async function toggleDictation() {
                         }
                     }
                 });
+                loadedWhisperModelName = selectedModel;
                 if (loader) loader.classList.add('hidden');
                 showToast("Whisper Speech Model Ready!", "success");
             } catch (err) {
@@ -772,7 +799,15 @@ async function toggleDictation() {
         }
         
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    channelCount: 1,
+                    sampleRate: 16000
+                }
+            });
             audioChunks = [];
             mediaRecorder = new MediaRecorder(stream);
             
@@ -1204,6 +1239,8 @@ function generateCustomRecommendations(noteText) {
 function selectProfile(profileId) {
     activeProfile = currentProfiles.find(p => p.id === profileId);
     renderSwitcher();
+    
+    activeTimelineIdx = 0;
     
     // Set stepper to stage 0
     setStepperStage(0);
@@ -1771,23 +1808,39 @@ async function parseNote() {
 }
 window.parseNote = parseNote;
 
-// Render horizontal scrollable timeline
+// Render vertical scrollable timeline
 function renderTimeline() {
     timelinePanel.innerHTML = '';
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex space-x-6 min-w-max py-2 px-1';
+    const container = document.createElement('div');
+    container.className = 'relative pl-6 space-y-6 before:content-[\'\'] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200 dark:before:bg-stone-850';
 
     activeProfile.timeline.forEach((entry, idx) => {
-        const container = document.createElement('div');
-        container.className = 'flex items-center space-x-4';
+        const item = document.createElement('div');
+        item.className = 'relative flex items-start group transition-all duration-300';
+        item.id = `timeline-item-${idx}`;
 
+        // Node dot
+        const dot = document.createElement('div');
+        let dotColor = "bg-stone-400 border-white dark:border-stone-900";
+        if (entry.type === "medication") {
+            dotColor = "bg-emerald-500 ring-4 ring-emerald-500/10";
+        } else if (entry.type === "test") {
+            dotColor = "bg-[#D1A153] ring-4 ring-[#D1A153]/15";
+        } else if (entry.type === "risk") {
+            dotColor = "bg-red-500 ring-4 ring-red-500/10";
+        }
+        
+        dot.className = `absolute -left-[22px] top-1.5 w-3.5 h-3.5 rounded-full border-2 ${dotColor} transition-transform duration-300 group-hover:scale-125`;
+        item.appendChild(dot);
+
+        // Card
         const card = document.createElement('div');
         
         let colorBorder = "border-stone-200 dark:border-stone-800";
         let colorBg = "bg-stone-50/40 dark:bg-stone-900/40";
         if (entry.type === "medication") {
-            colorBorder = "border-green-300 dark:border-green-900";
+            colorBorder = "border-green-300 dark:border-green-900/60";
             colorBg = "bg-[#E8F5E9]/10 dark:bg-green-950/5";
         } else if (entry.type === "test") {
             colorBorder = "border-[#D1A153]/55 dark:border-[#D1A153]/30";
@@ -1797,7 +1850,13 @@ function renderTimeline() {
             colorBg = "bg-[#FFEBEE]/10 dark:bg-red-950/5";
         }
 
-        card.className = `w-64 p-4 rounded-xl border ${colorBorder} ${colorBg} shadow-sm hover:shadow transition-all duration-300`;
+        // Highlight selected/active timeline step
+        if (idx === activeTimelineIdx) {
+            colorBorder = "border-[#D1A153] shadow-md ring-2 ring-[#D1A153]/25 dark:ring-[#D1A153]/15";
+        }
+
+        card.className = `w-full p-4 rounded-xl border ${colorBorder} ${colorBg} shadow-sm hover:shadow transition-all duration-300 cursor-pointer`;
+        card.onclick = () => selectTimelineIndex(idx);
 
         const dateEl = document.createElement('div');
         dateEl.className = 'text-[9px] uppercase tracking-widest text-stone-400 dark:text-stone-550 font-bold mb-1';
@@ -1809,21 +1868,41 @@ function renderTimeline() {
 
         card.appendChild(dateEl);
         card.appendChild(eventEl);
-        container.appendChild(card);
-
-        // Add arrow indicator between timeline steps
-        if (idx < activeProfile.timeline.length - 1) {
-            const arrow = document.createElement('div');
-            arrow.className = 'text-stone-300 dark:text-stone-750 text-sm font-light select-none';
-            arrow.innerHTML = '➔';
-            container.appendChild(arrow);
-        }
-
-        wrapper.appendChild(container);
+        item.appendChild(card);
+        container.appendChild(item);
     });
 
-    timelinePanel.appendChild(wrapper);
+    timelinePanel.appendChild(container);
 }
+
+function selectTimelineIndex(idx) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    if (idx < 0 || idx >= activeProfile.timeline.length) return;
+    
+    activeTimelineIdx = idx;
+    renderTimeline();
+    
+    // Smooth scroll the selected item into view
+    const activeEl = document.getElementById(`timeline-item-${idx}`);
+    if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+window.selectTimelineIndex = selectTimelineIndex;
+
+function nextTimelineEvent() {
+    if (!activeProfile.timeline || activeProfile.timeline.length === 0) return;
+    const nextIdx = (activeTimelineIdx + 1) % activeProfile.timeline.length;
+    selectTimelineIndex(nextIdx);
+}
+window.nextTimelineEvent = nextTimelineEvent;
+
+function prevTimelineEvent() {
+    if (!activeProfile.timeline || activeProfile.timeline.length === 0) return;
+    const prevIdx = (activeTimelineIdx - 1 + activeProfile.timeline.length) % activeProfile.timeline.length;
+    selectTimelineIndex(prevIdx);
+}
+window.prevTimelineEvent = prevTimelineEvent;
 
 // Active Analysis Tab Switcher
 let activeAnalysisTab = 'highlights';

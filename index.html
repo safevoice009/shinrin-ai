@@ -287,9 +287,15 @@
                             class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-6 py-2.5 rounded-xl transition duration-200 tracking-wide font-bold shadow-sm hover:shadow">
                             Structure Note
                         </button>
-                        <button id="dictateBtn" onclick="toggleDictation()" class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5">
-                            <span id="dictateIcon">🎙️</span> <span id="dictateText">Dictate Note</span>
-                        </button>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button id="dictateBtn" onclick="toggleDictation()" class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5">
+                                <span id="dictateIcon">🎙️</span> <span id="dictateText">Dictate Note</span>
+                            </button>
+                            <select id="whisperModelSelector" class="text-xs border border-stone-200 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50 text-stone-600 dark:text-stone-300 px-3 py-2.5 rounded-xl outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                <option value="Xenova/whisper-tiny.en">Whisper Tiny (Fast)</option>
+                                <option value="Xenova/whisper-base.en" selected>Whisper Base (High Accuracy)</option>
+                            </select>
+                        </div>
                         <button onclick="resetNote()"
                             class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold">
                             Clear
@@ -379,8 +385,22 @@
 
         <!-- Timeline Section -->
         <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs">
-            <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-6">Longitudinal Timeline</h2>
-            <div id="timelinePanel" class="overflow-x-auto pb-4">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Patient Clinical History Timeline</h2>
+                    <p class="text-[10px] text-stone-400 dark:text-stone-550 mt-1 font-semibold">Step through previous milestones and auto-discovered findings</p>
+                </div>
+                <!-- Navigation Arrows -->
+                <div class="flex items-center gap-2">
+                    <button onclick="prevTimelineEvent()" class="px-2 py-1 bg-stone-100 dark:bg-stone-850 hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 rounded-lg text-xs font-bold transition-all duration-200 border border-stone-200/50 dark:border-stone-800/40 shadow-sm" title="Previous event">
+                        ←
+                    </button>
+                    <button onclick="nextTimelineEvent()" class="px-3 py-1 bg-stone-100 dark:bg-stone-850 hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 rounded-lg text-xs font-bold transition-all duration-200 border border-stone-200/50 dark:border-stone-800/40 shadow-sm flex items-center gap-1" title="Next event">
+                        Next Event →
+                    </button>
+                </div>
+            </div>
+            <div id="timelinePanel" class="max-h-80 overflow-y-auto pb-2 pr-2 scrollbar-thin scroll-smooth">
                 <!-- Timeline items render here -->
             </div>
         </section>
