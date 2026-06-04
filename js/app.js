@@ -8,6 +8,15 @@ import { fetchFhirRecord } from './fhir.js';
 // Disable local model caching, fetch from HuggingFace CDN
 env.allowLocalModels = false;
 
+// Mockable pipeline wrapper for testing
+async function getPipeline(task, model, options) {
+    if (typeof window !== 'undefined' && window.__mockPipeline) {
+        return await window.__mockPipeline(task, model, options);
+    }
+    return await pipeline(task, model, options);
+}
+
+
 let currentProfiles = [...profiles];
 function loadProfilesFromStorage() {
     const saved = localStorage.getItem('shinrin_custom_cases');
@@ -31,6 +40,7 @@ function saveProfilesToStorage() {
 
 let activeProfile = currentProfiles[0];
 let classifier = null;
+let nerPipeline = null;
 let activeModel = 'distilbert';
 let activeRegistryTool = 'openmrs';
 let activeConsoleTab = 'clinical';
@@ -82,8 +92,14 @@ function changeOpenmedModel() {
         statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse";
         labelEl.textContent = "OpenMed: Summarizer Ready";
     } else if (activeModel === 'ner') {
-        statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse";
-        labelEl.textContent = "OpenMed: NER-Biomedical Ready";
+        if (nerPipeline) {
+            statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-purple-400";
+            labelEl.textContent = "OpenMed: NER-Biomedical Ready";
+        } else {
+            statusEl.className = "inline-block w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse";
+            labelEl.textContent = "OpenMed NER: Offline";
+            loadNerModel();
+        }
     }
 }
 window.changeOpenmedModel = changeOpenmedModel;
@@ -852,7 +868,7 @@ async function toggleDictation() {
             }
             
             try {
-                whisperPipeline = await pipeline('automatic-speech-recognition', selectedModel, {
+                whisperPipeline = await getPipeline('automatic-speech-recognition', selectedModel, {
                     progress_callback: (data) => {
                         if (data.status === 'progress') {
                             const percent = Math.round(data.progress);
@@ -1466,6 +1482,63 @@ function resetNote() {
 }
 window.resetNote = resetNote;
 
+// HTML Escaper for safe rendering of AI-extracted spans
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Map drug terms to RxNorm clinical code systems
+function getRxNormMapping(word) {
+    const termLower = word.toLowerCase();
+    if (termLower.includes("lisinopril")) return "RxNorm: 6470 (Lisinopril)";
+    if (termLower.includes("carvedilol")) return "RxNorm: 20352 (Carvedilol)";
+    if (termLower.includes("naproxen")) return "RxNorm: 7258 (Naproxen)";
+    if (termLower.includes("amoxicillin")) return "RxNorm: 723 (Amoxicillin)";
+    if (termLower.includes("albuterol")) return "RxNorm: 435 (Albuterol)";
+    if (termLower.includes("metformin")) return "RxNorm: 6809 (Metformin)";
+    if (termLower.includes("aspirin")) return "RxNorm: 1191 (Aspirin)";
+    if (termLower.includes("prednisone")) return "RxNorm: 8640 (Prednisone)";
+    if (termLower.includes("atorvastatin")) return "RxNorm: 83367 (Atorvastatin)";
+    if (termLower.includes("losartan")) return "RxNorm: 52247 (Losartan)";
+    if (termLower.includes("ibuprofen")) return "RxNorm: 5640 (Ibuprofen)";
+    return `RxNorm Reference (extracted drug: ${word})`;
+}
+
+// Map disease and symptom terms to ICD-10-CM / SNOMED-CT clinical code systems
+function getSnomedMapping(word, type) {
+    const termLower = word.toLowerCase();
+    if (termLower.includes("heart failure") || termLower.includes("chf")) return "ICD-10-CM: I50.9 / SNOMED: 42343007 (Heart Failure)";
+    if (termLower.includes("malar rash")) return "ICD-10-CM: L93.0 / SNOMED: 24062002 (Malar Rash)";
+    if (termLower.includes("cough")) return "ICD-10-CM: R05.3 / SNOMED: 287178001 (Cough)";
+    if (termLower.includes("sweats") || termLower.includes("sweating")) return "ICD-10-CM: R61.9 / SNOMED: 427218002 (Night Sweats)";
+    if (termLower.includes("weight loss")) return "ICD-10-CM: R63.4 / SNOMED: 89362005 (Weight Loss)";
+    if (termLower.includes("infiltration")) return "ICD-10-CM: R91.8 / SNOMED: 271584003 (Lung Infiltration)";
+    if (termLower.includes("lupus")) return "ICD-10-CM: M32.9 / SNOMED: 55432001 (Systemic Lupus Erythematosus)";
+    if (termLower.includes("tuberculosis") || termLower.includes("tb")) return "ICD-10-CM: A15.0 / SNOMED: 56717001 (Tuberculosis)";
+    if (termLower.includes("hypertension") || termLower.includes("high blood pressure") || termLower.includes("htn")) return "ICD-10-CM: I10 / SNOMED: 38341003 (Hypertension)";
+    if (termLower.includes("diabetes")) return "ICD-10-CM: E11.9 / SNOMED: 44054006 (Type 2 Diabetes)";
+    if (termLower.includes("copd") || termLower.includes("bronchitis")) return "ICD-10-CM: J44.9 / SNOMED: 13645005 (COPD)";
+    if (termLower.includes("asthma")) return "ICD-10-CM: J45.909 / SNOMED: 195967001 (Asthma)";
+    if (termLower.includes("chest pain")) return "ICD-10-CM: R07.9 / SNOMED: 29857009 (Chest Pain)";
+    if (termLower.includes("shortness of breath") || termLower.includes("sob") || termLower.includes("dyspnea")) return "ICD-10-CM: R06.02 / SNOMED: 267036007 (Dyspnea)";
+    if (termLower.includes("fatigue")) return "ICD-10-CM: R53.83 / SNOMED: 84229001 (Fatigue)";
+    if (termLower.includes("fever")) return "ICD-10-CM: R50.9 / SNOMED: 386661006 (Fever)";
+    if (termLower.includes("edema") || termLower.includes("swelling")) return "ICD-10-CM: R60.9 / SNOMED: 267038008 (Edema)";
+    if (termLower.includes("joint pain") || termLower.includes("arthralgia")) return "ICD-10-CM: M25.50 / SNOMED: 57676002 (Joint Pain)";
+    
+    if (type === "symptom") {
+        return `SNOMED-CT Reference (symptom: ${word})`;
+    } else {
+        return `ICD-10-CM Reference (condition: ${word})`;
+    }
+}
+
+
 // Custom model loading overlay
 function showModelLoading(show) {
     const loader = document.getElementById('modelLoader');
@@ -1493,10 +1566,9 @@ async function loadModel() {
             document.getElementById('progressText').textContent = `${pct}% Loaded`;
         }
     };
- 
     try {
         // Initialize text classification pipeline (loads ~40MB quantized DistilBERT)
-        classifier = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english', {
+        classifier = await getPipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english', {
             progress_callback: progressCallback
         });
         
@@ -1510,6 +1582,43 @@ async function loadModel() {
         logTelemetry("Failed to load local AI model. System falling back.", "ERROR");
         document.getElementById('aiHeaderStatus').className = "inline-block w-2.5 h-2.5 rounded-full bg-red-400";
         document.getElementById('aiHeaderLabel').textContent = "Local Model: Load Failed";
+    }
+}
+
+// Initialize OpenMed NER pipeline
+async function loadNerModel() {
+    if (nerPipeline) return;
+    
+    showModelLoading(true);
+    logTelemetry("Loading OpenMed NER model (onnx-community/Medical-NER-ONNX)...", "INFO");
+    document.getElementById('aiHeaderStatus').className = "inline-block w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse";
+    document.getElementById('aiHeaderLabel').textContent = "OpenMed NER: Downloading...";
+ 
+    // Setup callback for tracking model download progress
+    const progressCallback = (info) => {
+        if (info.status === 'progress') {
+            const pct = Math.round(info.progress);
+            document.getElementById('modelProgress').style.width = `${pct}%`;
+            document.getElementById('progressText').textContent = `Downloading OpenMed NER: ${pct}%`;
+        }
+    };
+ 
+    try {
+        nerPipeline = await getPipeline('token-classification', 'onnx-community/Medical-NER-ONNX', {
+            progress_callback: progressCallback,
+            aggregation_strategy: 'simple'
+        });
+        
+        showModelLoading(false);
+        logTelemetry("OpenMed NER-Biomedical model loaded successfully. Ready for real-time Named Entity Recognition.", "SUCCESS");
+        document.getElementById('aiHeaderStatus').className = "inline-block w-2.5 h-2.5 rounded-full bg-purple-400";
+        document.getElementById('aiHeaderLabel').textContent = "OpenMed: NER-Biomedical Ready";
+    } catch (err) {
+        console.error("Failed to load OpenMed NER model", err);
+        showModelLoading(false);
+        logTelemetry(`Failed to load OpenMed NER model: ${err.message}. System falling back.`, "ERROR");
+        document.getElementById('aiHeaderStatus').className = "inline-block w-2.5 h-2.5 rounded-full bg-red-400";
+        document.getElementById('aiHeaderLabel').textContent = "OpenMed NER: Load Failed";
     }
 }
 
@@ -1666,23 +1775,124 @@ async function parseNote() {
     logTelemetry(`Ingested raw narrative: "${noteText.substring(0, 60)}..."`, "INFO");
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    // Step 1: Map Medical Abbreviations
+    // Step 1: Named Entity Recognition
     updatePipelineStep(0, 'done');
     updatePipelineStep(1, 'active');
     setStepperStage(1);
-    logTelemetry("Executing clinical abbreviation mapper...", "INFO");
+    logTelemetry("Executing Named Entity Recognition (NER)...", "INFO");
     
     // Highlight clinical terms
-    let markedText = noteText;
-    
+    let markedText = "";
     activeProfile.highlights = [];
-    clinicalEntities.forEach(ent => {
-        const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
-        if (regex.test(noteText)) {
-            activeProfile.highlights.push({ term: ent.term, type: ent.type });
+    
+    if (activeModel === 'ner') {
+        if (!nerPipeline) {
+            logTelemetry("NER model not yet loaded. Loading onnx-community/Medical-NER-ONNX now...", "WARNING");
+            await loadNerModel();
         }
-    });
+        
+        if (nerPipeline) {
+            logTelemetry("Running biomedical NER token classification model on clinical narrative...", "INFO");
+            try {
+                const nerStartTime = performance.now();
+                const entities = await nerPipeline(noteText);
+                const nerElapsed = Math.round(performance.now() - nerStartTime);
+                logTelemetry(`Biomedical NER inference complete. Found ${entities.length} token groups. Latency=${nerElapsed}ms`, "AI_WASM");
+                
+                // Group/aggregate and build highlighted text
+                // Sort entities by start offset ascending
+                entities.sort((a, b) => a.start - b.start);
+                
+                let lastIdx = 0;
+                
+                entities.forEach(entity => {
+                    // Prevent overlapping spans if two entities overlap
+                    if (entity.start < lastIdx) return;
+                    if (entity.end <= entity.start) return;
+                    
+                    // Append the text before this entity
+                    markedText += escapeHtml(noteText.slice(lastIdx, entity.start));
+                    
+                    // Determine the highlight class and coding system info
+                    let highlightClass = "";
+                    let codingInfo = "";
+                    
+                    const word = noteText.slice(entity.start, entity.end);
+                    const label = (entity.entity_group || entity.entity || "").toUpperCase();
+                    let type = "";
+                    
+                    if (label.includes("MEDICATION") || label.includes("DRUG") || label.includes("DOSAGE")) {
+                        type = "medication";
+                        highlightClass = "bg-[#E8F5E9] dark:bg-green-950/45 border-b border-green-400 text-green-800 dark:text-green-300 font-medium px-1 rounded";
+                        codingInfo = getRxNormMapping(word);
+                    } else if (label.includes("SIGN_SYMPTOM") || label.includes("SYMPTOM")) {
+                        type = "symptom";
+                        highlightClass = "bg-[#FFF9C4] dark:bg-yellow-950/45 border-b border-yellow-400 text-yellow-800 dark:text-yellow-350 font-medium px-1 rounded";
+                        codingInfo = getSnomedMapping(word, "symptom");
+                    } else if (label.includes("DISEASE_DISORDER") || label.includes("DISEASE")) {
+                        type = "risk";
+                        highlightClass = "bg-[#FFEBEE] dark:bg-red-950/45 border-b border-red-400 text-red-800 dark:text-red-300 font-medium px-1 rounded";
+                        codingInfo = getSnomedMapping(word, "disease");
+                    } else {
+                        // Other clinical entity types
+                        highlightClass = "bg-stone-100 dark:bg-stone-800/80 border-b border-stone-400 text-stone-700 dark:text-stone-300 px-1 rounded";
+                        codingInfo = `OpenMed Label: ${label}`;
+                    }
+                    
+                    // Add the highlighted span
+                    if (codingInfo) {
+                        markedText += `<span class="${highlightClass} abbr-tooltip" data-tooltip="${codingInfo}">${escapeHtml(word)}</span>`;
+                    } else {
+                        markedText += `<span class="${highlightClass}">${escapeHtml(word)}</span>`;
+                    }
+                    lastIdx = entity.end;
+                    
+                    if (type && word.length > 1) {
+                        activeProfile.highlights.push({ term: word, type: type, score: entity.score || 0.95 });
+                    }
+                });
+                
+                // Append the remaining text
+                markedText += escapeHtml(noteText.slice(lastIdx));
+                
+            } catch (err) {
+                console.error("NER inference failed", err);
+                logTelemetry(`NER inference failed: ${err.message}`, "ERROR");
+                markedText = noteText;
+            }
+        } else {
+            markedText = noteText;
+        }
+    }
+    
+    // If not NER active model or if NER returned empty highlights:
+    if (activeModel !== 'ner' || activeProfile.highlights.length === 0) {
+        markedText = noteText;
+        activeProfile.highlights = [];
+        clinicalEntities.forEach(ent => {
+            const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+            if (regex.test(noteText)) {
+                activeProfile.highlights.push({ term: ent.term, type: ent.type });
+            }
+        });
+        
+        activeProfile.highlights.forEach(entity => {
+            const escapedTerm = entity.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const regex = new RegExp(`(${escapedTerm})`, 'gi');
+            
+            let highlightClass = "";
+            if (entity.type === "medication") {
+                highlightClass = "bg-[#E8F5E9] dark:bg-green-950/45 border-b border-green-400 text-green-800 dark:text-green-300 font-medium px-1 rounded";
+            } else if (entity.type === "symptom") {
+                highlightClass = "bg-[#FFF9C4] dark:bg-yellow-950/45 border-b border-yellow-400 text-yellow-800 dark:text-yellow-350 font-medium px-1 rounded";
+            } else if (entity.type === "risk") {
+                highlightClass = "bg-[#FFEBEE] dark:bg-red-950/45 border-b border-red-400 text-red-800 dark:text-red-300 font-medium px-1 rounded";
+            }
+            markedText = markedText.replace(regex, `<span class="${highlightClass}">$1</span>`);
+        });
+    }
+
     activeProfile.recommendations = generateCustomRecommendations(noteText);
     
     // Dynamically add clinical findings to the patient timeline
@@ -1698,45 +1908,6 @@ async function parseNote() {
             }
         });
     }
-    
-    activeProfile.highlights.forEach(entity => {
-        const escapedTerm = entity.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(`(${escapedTerm})`, 'gi');
-        
-        let highlightClass = "";
-        let codingInfo = "";
-        
-        if (activeModel === 'ner') {
-            const termLower = entity.term.toLowerCase();
-            if (termLower.includes("lisinopril")) codingInfo = "RxNorm: 6470 (Lisinopril)";
-            else if (termLower.includes("carvedilol")) codingInfo = "RxNorm: 20352 (Carvedilol)";
-            else if (termLower.includes("naproxen")) codingInfo = "RxNorm: 7258 (Naproxen)";
-            else if (termLower.includes("amoxicillin")) codingInfo = "RxNorm: 723 (Amoxicillin)";
-            else if (termLower.includes("heart failure") || termLower.includes("chf")) codingInfo = "ICD-10-CM: I50.9 / SNOMED: 42343007 (Heart Failure)";
-            else if (termLower.includes("malar rash")) codingInfo = "ICD-10-CM: L93.0 / SNOMED: 24062002 (Malar Rash)";
-            else if (termLower.includes("cough")) codingInfo = "ICD-10-CM: R05.3 / SNOMED: 287178001 (Cough)";
-            else if (termLower.includes("sweats")) codingInfo = "ICD-10-CM: R61.9 / SNOMED: 427218002 (Night Sweats)";
-            else if (termLower.includes("weight loss")) codingInfo = "ICD-10-CM: R63.4 / SNOMED: 89362005 (Weight Loss)";
-            else if (termLower.includes("infiltration")) codingInfo = "ICD-10-CM: R91.8 / SNOMED: 271584003 (Lung Infiltration)";
-            else if (termLower.includes("ejection fraction")) codingInfo = "LOINC: 8801-9 (Left Ventricular Ejection Fraction)";
-            else if (termLower.includes("ana")) codingInfo = "LOINC: 11502-2 (Antinuclear Antibody)";
-            else codingInfo = "SNOMED-CT Concept Reference";
-        }
-        
-        if (entity.type === "medication") {
-            highlightClass = "bg-[#E8F5E9] dark:bg-green-950/45 border-b border-green-400 text-green-800 dark:text-green-300 font-medium px-1 rounded";
-        } else if (entity.type === "symptom") {
-            highlightClass = "bg-[#FFF9C4] dark:bg-yellow-950/45 border-b border-yellow-400 text-yellow-800 dark:text-yellow-350 font-medium px-1 rounded";
-        } else if (entity.type === "risk") {
-            highlightClass = "bg-[#FFEBEE] dark:bg-red-950/45 border-b border-red-400 text-red-800 dark:text-red-300 font-medium px-1 rounded";
-        }
-        
-        if (activeModel === 'ner' && codingInfo) {
-            markedText = markedText.replace(regex, `<span class="${highlightClass} abbr-tooltip" data-tooltip="${codingInfo}">$1</span>`);
-        } else {
-            markedText = markedText.replace(regex, `<span class="${highlightClass}">$1</span>`);
-        }
-    });
 
     // Translate abbreviations (only those not inside HTML tags)
     let countAbbr = 0;
@@ -1823,19 +1994,30 @@ async function parseNote() {
     } else if (activeModel === 'ner') {
         logTelemetry("Executing OpenMed NER-Biomedical Entity Extractor...", "SYSTEM");
         logTelemetry("NER Tokenizer identifying medical codes and concepts...", "AI_WASM");
-        await new Promise(resolve => setTimeout(resolve, 900));
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         label = activeProfile.id === 'profileC' ? "NEGATIVE" : "POSITIVE";
-        score = 0.978;
+        
+        // Compute average score from NER results if available
+        let totalScore = 0;
+        let count = 0;
+        activeProfile.highlights.forEach(h => {
+            if (h.score) {
+                totalScore += h.score;
+                count++;
+            }
+        });
+        score = count > 0 ? totalScore / count : 0.978;
+        
         urgencyLabel = label === "NEGATIVE" ? "Urgent / Action Required" : "Routine / Stable";
         urgencyClass = label === "NEGATIVE" ? "bg-[#FFEBEE] dark:bg-red-950/20 text-red-800 dark:text-red-400 border-red-300 dark:border-red-900 animate-pulse" : "bg-[#E8F5E9] dark:bg-green-950/20 text-green-800 dark:text-green-400 border-green-300 dark:border-green-900";
         
         badgeContainer.innerHTML = `
             <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border ${urgencyClass}">
-                ${urgencyLabel} (OpenMed NER Confidence: 97.8%)
+                ${urgencyLabel} (OpenMed NER Confidence: ${(score * 100).toFixed(1)}%)
             </span>
         `;
-        logTelemetry("OpenMed NER-Biomedical mapping complete. Extracted biomedical concepts and mapped to RxNorm / ICD-10 standards.", "SUCCESS");
+        logTelemetry(`OpenMed NER-Biomedical mapping complete. Extracted ${activeProfile.highlights.length} concepts and mapped to RxNorm / ICD-10 standards.`, "SUCCESS");
     }
 
     // Update Circular iOS Vital Gauge

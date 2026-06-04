@@ -105,6 +105,37 @@ test('Shinrin AI - Full Clinician Flow E2E Test', async ({ page }) => {
             }
             destination = {};
         };
+
+        // Mock transformers.js pipeline calls to avoid downloading model files in headless tests
+        window.__mockPipeline = async (task, model, options) => {
+            if (options && options.progress_callback) {
+                options.progress_callback({ status: 'progress', progress: 100 });
+            }
+            if (task === 'text-classification') {
+                return async (text) => [{ label: 'POSITIVE', score: 0.99 }];
+            }
+            if (task === 'token-classification') {
+                return async (text) => {
+                    const res = [];
+                    const textLower = text.toLowerCase();
+                    if (textLower.includes('lisinopril')) {
+                        res.push({ entity_group: 'MEDICATION', word: 'lisinopril', score: 0.99, start: textLower.indexOf('lisinopril'), end: textLower.indexOf('lisinopril') + 10 });
+                    }
+                    if (textLower.includes('progressive')) {
+                        res.push({ entity_group: 'SIGN_SYMPTOM', word: 'progressive', score: 0.98, start: textLower.indexOf('progressive'), end: textLower.indexOf('progressive') + 11 });
+                    }
+                    if (textLower.includes('dyspnea')) {
+                        res.push({ entity_group: 'SIGN_SYMPTOM', word: 'dyspnea', score: 0.98, start: textLower.indexOf('dyspnea'), end: textLower.indexOf('dyspnea') + 7 });
+                    }
+                    return res;
+                };
+            }
+            if (task === 'automatic-speech-recognition') {
+                return async (audio) => {
+                    return { text: "Patient reports progressive dyspnea and joint pain. Start lisinopril." };
+                };
+            }
+        };
     });
 
     // Open the local test server
