@@ -30,12 +30,10 @@
     <!-- Floating Pill Navigation Bar -->
     <div class="fixed top-4 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none max-w-full">
         <nav class="bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/60 dark:border-stone-800/40 px-4 py-2 rounded-full shadow-[0_12px_40px_rgba(28,25,23,0.06)] flex gap-2 items-center text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 overflow-x-auto max-w-full scrollbar-none whitespace-nowrap pointer-events-auto">
-            <button onclick="scrollToSection('activeProfileCard', this)" class="nav-pill-btn bg-stone-200/80 dark:bg-stone-850/80 text-stone-900 dark:text-white px-3 py-1.5 rounded-full transition duration-200">Patient Profile</button>
-            <button onclick="scrollToSection('noteInput', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Note Ingestion</button>
-            <button onclick="scrollToSection('highlightsContainer', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Clinical Hub</button>
-            <button onclick="scrollToSection('calc-chads', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Calculators</button>
-            <button onclick="scrollToSection('timelinePanel', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Timeline</button>
-            <button onclick="scrollToSection('diagnosticsList', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Self-Diagnostics</button>
+            <button id="primary-tab-workspace" onclick="switchPrimaryTab('workspace', this)" class="nav-pill-btn bg-stone-200/80 dark:bg-stone-850/80 text-stone-900 dark:text-white px-3 py-1.5 rounded-full transition duration-200">Clinical Workspace</button>
+            <button id="primary-tab-calculators" onclick="switchPrimaryTab('calculators', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Risk Calculators</button>
+            <button id="primary-tab-ehr" onclick="switchPrimaryTab('ehr', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">EHR Sync Gateway</button>
+            <button id="primary-tab-diagnostics" onclick="switchPrimaryTab('diagnostics', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Self-Diagnostics</button>
         </nav>
     </div>
 
@@ -188,8 +186,9 @@
         </header>
 
         <!-- Main Workspace -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Workspace: Note Parser -->
+        <div id="view-workspace" class="primary-view-container space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Workspace: Note Parser -->
             <div class="lg:col-span-2 space-y-8">
                 <!-- Patient Profile Selector & Context -->
                 <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-ingest tilt-card-3d">
@@ -280,12 +279,16 @@
                             class="w-full px-4 py-3 rounded-2xl border border-stone-200 dark:border-stone-800 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]/80 text-stone-850 dark:text-stone-150 bg-white/40 dark:bg-stone-950/40 text-sm leading-relaxed"
                             rows="7"
                             placeholder="Type or paste unstructured clinical note here..."></textarea>
+                        <div id="autocomplete-dropdown" class="absolute left-4 right-4 bottom-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-xl z-50 text-xs hidden max-h-40 overflow-y-auto divide-y divide-stone-100 dark:divide-stone-850"></div>
                     </div>
 
-                    <div class="flex space-x-3">
+                    <div class="flex flex-wrap gap-3">
                         <button onclick="parseNote()"
                             class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-6 py-2.5 rounded-xl transition duration-200 tracking-wide font-bold shadow-sm hover:shadow">
                             Structure Note
+                        </button>
+                        <button id="dictateBtn" onclick="toggleDictation()" class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5">
+                            <span id="dictateIcon">🎙️</span> <span id="dictateText">Dictate Note</span>
                         </button>
                         <button onclick="resetNote()"
                             class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold">
@@ -306,15 +309,6 @@
                             </button>
                             <button onclick="switchAnalysisTab('layman')" id="tab-layman" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
                                 Patient Layman Summary
-                            </button>
-                            <button onclick="switchAnalysisTab('fhir')" id="tab-fhir" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
-                                EHR Integration (FHIR)
-                            </button>
-                            <button onclick="switchAnalysisTab('api-hub')" id="tab-api-hub" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
-                                Clinical API Hub
-                            </button>
-                            <button onclick="switchAnalysisTab('open-tech')" id="tab-open-tech" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
-                                Open Health Tech
                             </button>
                         </div>
                         <div id="aiUrgencyBadge" class="mt-2 md:mt-0"></div>
@@ -366,329 +360,6 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Content Panel: EHR Integration (FHIR) & HIPAA Compliance APIs -->
-                    <div id="panel-fhir" class="hidden space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            <!-- Column 1: Live FHIR / openFDA Sandbox -->
-                            <div class="space-y-4">
-                                <div>
-                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">FHIR & Health API Sandbox</h3>
-                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Query public sandbox data. Real-time patient de-identification keeps HIPAA compliance.</p>
-                                </div>
-                                
-                                <div class="space-y-3">
-                                    <div class="flex flex-col space-y-1">
-                                        <label for="fhir-server" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Target Sandbox Server</label>
-                                        <select id="fhir-server" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
-                                            <option value="https://hapi.fhir.org/baseR4">HAPI FHIR public sandbox (R4)</option>
-                                            <option value="https://server.fire.ly">Firely public sandbox (R4)</option>
-                                            <option value="https://api.fda.gov/drug">openFDA Adverse Drug Events API</option>
-                                        </select>
-                                    </div>
-                                    <div class="flex flex-col space-y-1">
-                                        <label for="fhir-resource-id" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Resource ID / API Query</label>
-                                        <input type="text" id="fhir-resource-id" value="Patient/2823029" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="e.g. Patient/12345">
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center justify-between pt-1">
-                                    <button id="fhir-fetch-btn" onclick="fetchFhirRecord()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2.5 rounded-xl transition duration-200 font-medium shadow-sm">
-                                        Fetch FHIR Resource
-                                    </button>
-                                    <span id="fhir-status" class="text-[10px] text-stone-400 dark:text-stone-555 font-semibold">Status: Idle</span>
-                                </div>
-                                
-                                <!-- Response JSON viewer -->
-                                <div class="space-y-1.5">
-                                    <label class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 flex justify-between">
-                                        <span>Server Response Payload</span>
-                                        <span class="text-green-600 dark:text-green-400 font-normal normal-case">HIPAA Shield Active</span>
-                                    </label>
-                                    <pre id="fhir-payload" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-400 text-[10px] font-mono leading-relaxed overflow-auto max-h-56 select-all">
-{
-  "status": "Inactive. Click 'Fetch FHIR Resource' to query."
-}
-                                    </pre>
-                                </div>
-                            </div>
-                            
-                            <!-- Column 2: Freely Available Healthcare APIs & HIPAA Info -->
-                            <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0">
-                                <div>
-                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">Open-Access Compliance APIs & Sandboxes</h3>
-                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Free developer resources for HIPAA validation, FHIR standards, and health dataset querying.</p>
-                                </div>
-                                
-                                <div class="space-y-3 max-h-[340px] overflow-y-auto pr-1">
-                                    <!-- API Item 1 -->
-                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">HAPI FHIR R4 / R5 Sandbox</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-[#E8F5E9] dark:bg-green-950/40 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">FHIR R4</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">The standard open-source test sandbox implementing HL7 FHIR specs. Ideal for EHR/EMR client connectivity tests.</p>
-                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-550 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
-                                            <span class="truncate">https://hapi.fhir.org/baseR4</span>
-                                            <button onclick="navigator.clipboard.writeText('https://hapi.fhir.org/baseR4'); alert('Endpoint copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- API Item 2 -->
-                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">openFDA Drug Events API</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 rounded border border-blue-200 dark:border-blue-900">Drug Recall</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">Provides queries into public FDA adverse event records, labeling warnings, and device recalls. HIPAA compliant due to complete de-identification.</p>
-                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
-                                            <span class="truncate">https://api.fda.gov/drug/event.json</span>
-                                            <button onclick="navigator.clipboard.writeText('https://api.fda.gov/drug/event.json'); alert('Endpoint copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- API Item 3 -->
-                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">SMART Health IT Launcher</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 rounded border border-amber-200 dark:border-amber-900">OAuth / App Sandbox</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">Configure custom simulated EHR systems to test client applications using OAuth2 launch procedures and simulated patient charts.</p>
-                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
-                                            <span class="truncate">https://launcher.smarthealthit.org</span>
-                                            <button onclick="navigator.clipboard.writeText('https://launcher.smarthealthit.org'); alert('Link copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- API Item 4 -->
-                                    <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200">Medplum Headless EHR API</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 rounded border border-purple-200 dark:border-purple-900">Open Source HIPAA</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">A self-hostable HIPAA-compliant backend platform built on FHIR standards. Offers client libraries for TypeScript/React.</p>
-                                        <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
-                                            <span class="truncate">https://github.com/medplum/medplum</span>
-                                            <button onclick="navigator.clipboard.writeText('https://github.com/medplum/medplum'); alert('Link copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Content Panel: Clinical API Hub -->
-                    <div id="panel-api-hub" class="hidden space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            <!-- Column 1: openFDA Adverse Events Query Tool -->
-                            <div class="space-y-4">
-                                <div>
-                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">openFDA Adverse Event Query Tool</h3>
-                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Query live FDA records to list common side effects and adverse event reports for any drug.</p>
-                                </div>
-                                
-                                <div class="space-y-3">
-                                    <div class="flex flex-col space-y-1">
-                                        <label for="fda-drug-name" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Drug Generic / Brand Name</label>
-                                        <div class="flex gap-2">
-                                            <input type="text" id="fda-drug-name" value="lisinopril" class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="e.g. ibuprofen, lisinopril, aspirin">
-                                            <button id="fda-query-btn" onclick="queryFdaAdverseEvents()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition duration-200 font-medium shadow-sm whitespace-nowrap">
-                                                Query FDA
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Adverse Events Results -->
-                                <div class="space-y-1.5">
-                                    <label class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 flex justify-between">
-                                        <span>Top Reported Adverse Reactions</span>
-                                        <span id="fda-status" class="text-stone-400 dark:text-stone-550 font-semibold normal-case">Status: Idle</span>
-                                    </label>
-                                    <div id="fda-results" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-400 text-xs font-mono leading-relaxed overflow-y-auto max-h-56">
-                                        <div class="text-stone-500 italic">Enter a drug name and click 'Query FDA' to view live adverse events.</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Column 2: HIPAA Preflight Checklist -->
-                            <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0">
-                                <div>
-                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">HIPAA Preflight Safeguards Check</h3>
-                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Ensure this local dashboard instance satisfies all required HIPAA administrative, physical, and technical safeguards.</p>
-                                </div>
-                                
-                                <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-                                    <!-- Safeguard 1 -->
-                                    <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
-                                        <div class="flex-1 pr-4">
-                                            <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Technical Safeguard: In-Browser WASM</div>
-                                            <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Zero network inference. Text classification is run 100% locally in browser memory.</div>
-                                        </div>
-                                        <div class="relative">
-                                            <input type="checkbox" checked disabled class="sr-only peer">
-                                            <div class="w-9 h-5 bg-[#34C759] rounded-full relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:translate-x-4"></div>
-                                        </div>
-                                    </label>
-                                    <!-- Safeguard 2 -->
-                                    <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
-                                        <div class="flex-1 pr-4">
-                                            <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Technical Safeguard: FHIR De-identification</div>
-                                            <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Patient identification information is automatically stripped before sending queries to public sandbox endpoints.</div>
-                                        </div>
-                                        <div class="relative">
-                                            <input type="checkbox" checked disabled class="sr-only peer">
-                                            <div class="w-9 h-5 bg-[#34C759] rounded-full relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:translate-x-4"></div>
-                                        </div>
-                                    </label>
-                                    <!-- Safeguard 3 -->
-                                    <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
-                                        <div class="flex-1 pr-4">
-                                            <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Administrative Safeguard: Session Auto-Lock</div>
-                                            <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Enable auto-clear of clinical notes after 15 minutes of inactivity to prevent unauthorized screen exposure.</div>
-                                        </div>
-                                        <div class="relative">
-                                            <input type="checkbox" id="hipaa-autolock" onchange="toggleHipaaAutolock()" class="sr-only peer">
-                                            <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Content Panel: Open Health Tech Registry -->
-                    <div id="panel-open-tech" class="hidden space-y-6 animate-fadeIn">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            <!-- Column 1: Open Source Integration Registry -->
-                            <div class="space-y-4">
-                                <div>
-                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">Open Source Medical Registry</h3>
-                                    <p class="text-[11px] text-stone-400 dark:text-stone-500">Explore core open-source health tech platforms. Choose a platform to simulate EHR data synchronization.</p>
-                                </div>
-                                
-                                <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-                                    <!-- Tool 1: OpenMRS -->
-                                    <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('openmrs')">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200 flex items-center gap-1.5">🏥 OpenMRS</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-[#E8F5E9] dark:bg-green-950/40 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">EMR System</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">Enterprise electronic medical record system platform designed for developing countries.</p>
-                                    </div>
-                                    
-                                    <!-- Tool 2: OpenEMR -->
-                                    <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('openemr')">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200 flex items-center gap-1.5">🩺 OpenEMR</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-[#E8F5E9] dark:bg-green-950/40 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">Practice Mgt</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">ONC-certified open-source medical practice management and EHR system.</p>
-                                    </div>
-
-                                    <!-- Tool 3: Medplum -->
-                                    <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('medplum')">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200 flex items-center gap-1.5">🔌 Medplum</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 rounded border border-purple-200 dark:border-purple-900">FHIR API Backend</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">Headless, developer-first EHR platform based entirely on HL7 FHIR standards.</p>
-                                    </div>
-
-                                    <!-- Tool 4: GNU Health -->
-                                    <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('gnuhealth')">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="font-bold text-xs text-stone-800 dark:text-stone-200 flex items-center gap-1.5">🕊️ GNU Health</span>
-                                            <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 rounded border border-blue-200 dark:border-blue-900">Hospital Info</span>
-                                        </div>
-                                        <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">GNU-licensed ecosystem for hospitals, research, and public health tracking.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Column 2: Connection Sandbox & Simulation -->
-                            <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0 flex flex-col justify-between">
-                                <div>
-                                    <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200 animate-fadeIn" id="sandbox-tool-title">Integrate with OpenMRS</h3>
-                                    <p class="text-[11px] text-stone-400 dark:text-stone-500 mt-1 leading-relaxed" id="sandbox-tool-desc">Compile SOAP clinical records and sync them directly to OpenMRS database via standard REST endpoints.</p>
-                                </div>
-
-                                <!-- Visual EHR Connection Pathway Diagram -->
-                                <div class="bg-[#FAF7F2]/60 dark:bg-stone-900/40 p-4 rounded-2xl border border-stone-200/40 dark:border-stone-800/40 my-3 relative overflow-hidden flex flex-col items-center">
-                                    <div class="flex justify-between items-center w-full max-w-[280px] relative z-10">
-                                        <!-- Node 1: Local -->
-                                        <div class="flex flex-col items-center space-y-1.5 relative">
-                                            <div id="sync-node-local" class="w-8 h-8 rounded-full bg-[#4A5D4E]/15 border-2 border-[#4A5D4E] flex items-center justify-center text-[10px] font-bold text-stone-700 dark:text-stone-300 sync-node-pulse shadow-sm">💻</div>
-                                            <span class="text-[8px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Shinrin</span>
-                                        </div>
-                                        
-                                        <!-- Connection Line 1 -->
-                                        <div class="flex-1 h-[2px] mx-1 relative bg-stone-200 dark:bg-stone-800 overflow-hidden rounded-full">
-                                            <div id="sync-line-1" class="absolute top-0 left-0 h-full w-full bg-gradient-to-r from-[#4A5D4E] to-[#D1A153] opacity-0 transition-opacity duration-300"></div>
-                                        </div>
-
-                                        <!-- Node 2: Gateway -->
-                                        <div class="flex flex-col items-center space-y-1.5 relative">
-                                            <div id="sync-node-gateway" class="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-950 border-2 border-stone-250/20 dark:border-stone-800 flex items-center justify-center text-[10px] font-bold text-stone-400">🛡️</div>
-                                            <span class="text-[8px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Gateway</span>
-                                        </div>
-
-                                        <!-- Connection Line 2 -->
-                                        <div class="flex-1 h-[2px] mx-1 relative bg-stone-200 dark:bg-stone-800 overflow-hidden rounded-full">
-                                            <div id="sync-line-2" class="absolute top-0 left-0 h-full w-full bg-gradient-to-r from-[#D1A153] to-emerald-500 opacity-0 transition-opacity duration-300"></div>
-                                        </div>
-
-                                        <!-- Node 3: EHR -->
-                                        <div class="flex flex-col items-center space-y-1.5 relative">
-                                            <div id="sync-node-ehr" class="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-950 border-2 border-stone-250/20 dark:border-stone-800 flex items-center justify-center text-[10px] font-bold text-stone-400">🏥</div>
-                                            <span id="sync-node-ehr-label" class="text-[8px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">OpenMRS</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Glow animation overlay -->
-                                    <div class="absolute inset-0 pointer-events-none opacity-20">
-                                        <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M 45,32 L 255,32" stroke="#D1A153" stroke-width="2" fill="none" class="sync-line-animated hidden" id="sync-glow-path" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                
-                                <div class="space-y-3 mt-3 flex-1">
-                                    <div class="flex flex-col space-y-1">
-                                        <label for="sandbox-endpoint" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Mock API Gateway</label>
-                                        <input type="text" id="sandbox-endpoint" readonly value="https://demo.openmrs.org/openmrs/ws/rest/v1/obs" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 text-xs font-mono">
-                                    </div>
-                                    
-                                    <div class="flex flex-col space-y-1">
-                                        <label class="text-[9px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500 flex justify-between">
-                                            <span>Active Clinical Payload</span>
-                                            <span class="text-[#D1A153] font-normal normal-case">Ready to Dispatch</span>
-                                        </label>
-                                        <pre id="sandbox-payload" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-450 text-[10px] font-mono leading-relaxed overflow-y-auto max-h-40">
-{
-  "resourceType": "Observation",
-  "status": "final",
-  "code": {
-    "text": "Clinical SOAP Narrative Note"
-  },
-  "valueString": "No active clinical note parsed yet."
-}
-                                        </pre>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center justify-between pt-4 border-t border-stone-150 dark:border-stone-850 mt-4">
-                                    <button id="sandbox-sync-btn" onclick="syncSandboxTool()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-5 py-2.5 rounded-xl transition duration-200 font-medium shadow-sm">
-                                        Dispatch to EHR
-                                    </button>
-                                    <span id="sandbox-status" class="text-[10px] text-stone-400 dark:text-stone-555 font-bold uppercase tracking-wider">Status: Idle</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -706,10 +377,23 @@
                     </div>
                 </div>
 
-                <!-- Integrated Clinical Risk Calculators -->
-                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs tilt-card-3d">
-                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-1.5">Clinical Score Calculators</h2>
-                    <p class="text-[11px] text-stone-400 dark:text-stone-500 mb-4">Calculate scores to insert directly into clinical SOAP objective assessments.</p>
+        <!-- Timeline Section -->
+        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs">
+            <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-6">Longitudinal Timeline</h2>
+            <div id="timelinePanel" class="overflow-x-auto pb-4">
+                <!-- Timeline items render here -->
+            </div>
+        </section>
+    </div>
+</div>
+</div>
+
+    <!-- view-calculators container -->
+    <div id="view-calculators" class="primary-view-container hidden space-y-8">
+        <!-- Integrated Clinical Risk Calculators -->
+        <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs tilt-card-3d">
+            <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-1.5">Clinical Score Calculators</h2>
+            <p class="text-[11px] text-stone-400 dark:text-stone-550 mb-4">Calculate scores to insert directly into clinical SOAP objective assessments.</p>
                     
                     <!-- Calculator Tab Selector -->
                     <div class="flex p-1 bg-stone-200/50 dark:bg-stone-950 rounded-xl space-x-1 mb-4 overflow-x-auto">
@@ -1157,17 +841,341 @@
                 </div>
             </div>
         </div>
-
-        <!-- Timeline Section -->
-        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs">
-            <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-6">Longitudinal Timeline</h2>
-            <div id="timelinePanel" class="overflow-x-auto pb-4">
-                <!-- Timeline items render here -->
+    </div>
+    
+    <!-- view-ehr container -->
+    <div id="view-ehr" class="primary-view-container hidden space-y-8">
+        <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 tilt-card-3d">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-stone-250/20 dark:border-stone-800/50 gap-4">
+                <div>
+                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">EHR Sync Gateway</h2>
+                    <p class="text-xs text-stone-400 dark:text-stone-555">Sync clinical encounters and query public FHIR datasets</p>
+                </div>
+                <div class="flex p-1 bg-stone-200/50 dark:bg-stone-950 rounded-xl space-x-1 w-full md:w-auto overflow-x-auto">
+                    <button onclick="switchEhrTab('fhir')" id="tab-ehr-fhir" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5">
+                        FHIR Sandbox
+                    </button>
+                    <button onclick="switchEhrTab('api-hub')" id="tab-ehr-api-hub" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
+                        openFDA Safety Lookup
+                    </button>
+                    <button onclick="switchEhrTab('open-tech')" id="tab-ehr-open-tech" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
+                        EHR Registry Sync
+                    </button>
+                </div>
             </div>
-        </section>
 
-        <!-- Diagnostics Panel -->
-        <section class="mt-12 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-calcs">
+            <!-- Content Panel: EHR Integration (FHIR) & HIPAA Compliance APIs -->
+            <div id="panel-ehr-fhir" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Column 1: Live FHIR / openFDA Sandbox -->
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">FHIR & Health API Sandbox</h3>
+                            <p class="text-[11px] text-stone-400 dark:text-stone-500">Query public sandbox data. Real-time patient de-identification keeps HIPAA compliance.</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex flex-col space-y-1">
+                                <label for="fhir-server" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Target Sandbox Server</label>
+                                <select id="fhir-server" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                    <option value="https://hapi.fhir.org/baseR4">HAPI FHIR public sandbox (R4)</option>
+                                    <option value="https://server.fire.ly">Firely public sandbox (R4)</option>
+                                    <option value="https://api.fda.gov/drug">openFDA Adverse Drug Events API</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <label for="fhir-resource-id" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Resource ID / API Query</label>
+                                <input type="text" id="fhir-resource-id" value="Patient/2823029" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="e.g. Patient/12345">
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-1">
+                            <button id="fhir-fetch-btn" onclick="fetchFhirRecord()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2.5 rounded-xl transition duration-200 font-medium shadow-sm">
+                                Fetch FHIR Resource
+                            </button>
+                            <span id="fhir-status" class="text-[10px] text-stone-400 dark:text-stone-555 font-semibold">Status: Idle</span>
+                        </div>
+                        
+                        <!-- Response JSON viewer -->
+                        <div class="space-y-1.5">
+                            <label class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 flex justify-between">
+                                <span>Server Response Payload</span>
+                                <span class="text-green-600 dark:text-green-400 font-normal normal-case">HIPAA Shield Active</span>
+                            </label>
+                            <pre id="fhir-payload" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-400 text-[10px] font-mono leading-relaxed overflow-auto max-h-56 select-all">
+{
+  "status": "Inactive. Click 'Fetch FHIR Resource' to query."
+}
+                            </pre>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: Freely Available Healthcare APIs & HIPAA Info -->
+                    <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0">
+                        <div>
+                            <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">Open-Access Compliance APIs & Sandboxes</h3>
+                            <p class="text-[11px] text-stone-400 dark:text-stone-500">Free developer resources for HIPAA validation, FHIR standards, and health dataset querying.</p>
+                        </div>
+                        
+                        <div class="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                            <!-- API Item 1 -->
+                            <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">HAPI FHIR R4 / R5 Sandbox</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-[#E8F5E9] dark:bg-green-950/40 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">FHIR R4</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">The standard open-source test sandbox implementing HL7 FHIR specs. Ideal for EHR/EMR client connectivity tests.</p>
+                                <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-550 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                    <span class="truncate">https://hapi.fhir.org/baseR4</span>
+                                    <button onclick="navigator.clipboard.writeText('https://hapi.fhir.org/baseR4'); alert('Endpoint copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                </div>
+                            </div>
+
+                            <!-- API Item 2 -->
+                            <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">openFDA Drug Events API</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 rounded border border-blue-200 dark:border-blue-900">Drug Recall</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">Provides queries into public FDA adverse event records, labeling warnings, and device recalls. HIPAA compliant due to complete de-identification.</p>
+                                <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                    <span class="truncate">https://api.fda.gov/drug/event.json</span>
+                                    <button onclick="navigator.clipboard.writeText('https://api.fda.gov/drug/event.json'); alert('Endpoint copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                </div>
+                            </div>
+
+                            <!-- API Item 3 -->
+                            <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">SMART Health IT Launcher</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 rounded border border-amber-200 dark:border-amber-900">OAuth / App Sandbox</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">Configure simulated EHR systems to test client applications using simulated patient charts.</p>
+                                <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                    <span class="truncate">https://launcher.smarthealthit.org</span>
+                                    <button onclick="navigator.clipboard.writeText('https://launcher.smarthealthit.org'); alert('Link copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                </div>
+                            </div>
+
+                            <!-- API Item 4 -->
+                            <div class="p-3 rounded-xl border border-stone-200 dark:border-stone-800/60 bg-[#FAF7F2] dark:bg-stone-950/20 shadow-sm hover:shadow transition duration-200">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">Medplum Headless EHR API</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 rounded border border-purple-200 dark:border-purple-900">Open Source HIPAA</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-400 leading-relaxed mb-2">A self-hostable HIPAA-compliant backend platform built on FHIR standards.</p>
+                                <div class="flex justify-between items-center text-[9px] font-mono text-stone-400 dark:text-stone-555 bg-white dark:bg-stone-900 p-1 rounded border border-stone-150 dark:border-stone-850">
+                                    <span class="truncate">https://github.com/medplum/medplum</span>
+                                    <button onclick="navigator.clipboard.writeText('https://github.com/medplum/medplum'); alert('Link copied!');" class="hover:text-stone-700 dark:hover:text-stone-300 px-1 font-sans font-semibold">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Panel: Clinical API Hub -->
+            <div id="panel-ehr-api-hub" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Column 1: openFDA Adverse Events Query Tool -->
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">openFDA Adverse Event Query Tool</h3>
+                            <p class="text-[11px] text-stone-400 dark:text-stone-500">Query live FDA records to list common side effects and adverse event reports for any drug.</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex flex-col space-y-1">
+                                <label for="fda-drug-name" class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Drug Generic / Brand Name</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="fda-drug-name" value="lisinopril" class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="e.g. ibuprofen, lisinopril, aspirin">
+                                    <button id="fda-query-btn" onclick="queryFdaAdverseEvents()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition duration-200 font-medium shadow-sm whitespace-nowrap">
+                                        Query FDA
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Adverse Events Results -->
+                        <div class="space-y-1.5">
+                            <label class="text-[9px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-555 flex justify-between">
+                                <span>Top Reported Adverse Reactions</span>
+                                <span id="fda-status" class="text-stone-400 dark:text-stone-555 font-semibold normal-case">Status: Idle</span>
+                            </label>
+                            <div id="fda-results" class="p-3.5 rounded-xl border border-stone-200/50 dark:border-stone-850 bg-stone-950 text-emerald-450 text-xs font-mono leading-relaxed overflow-y-auto max-h-56">
+                                <div class="text-stone-500 italic">Enter a drug name and click 'Query FDA' to view live adverse events.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: HIPAA Preflight Checklist -->
+                    <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0">
+                        <div>
+                            <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">HIPAA Preflight Safeguards Check</h3>
+                            <p class="text-[11px] text-stone-400 dark:text-stone-500">Ensure this local dashboard instance satisfies all required HIPAA administrative, physical, and technical safeguards.</p>
+                        </div>
+                        
+                        <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+                            <!-- Safeguard 1 -->
+                            <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
+                                <div class="flex-1 pr-4">
+                                    <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Technical Safeguard: In-Browser WASM</div>
+                                    <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Zero network inference. Text classification is run 100% locally in browser memory.</div>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" checked disabled class="sr-only peer">
+                                    <div class="w-9 h-5 bg-[#34C759] rounded-full relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:translate-x-4"></div>
+                                </div>
+                            </label>
+                            <!-- Safeguard 2 -->
+                            <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
+                                <div class="flex-1 pr-4">
+                                    <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Technical Safeguard: FHIR De-identification</div>
+                                    <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Patient identification information is automatically stripped before sending queries to public sandbox endpoints.</div>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" checked disabled class="sr-only peer">
+                                    <div class="w-9 h-5 bg-[#34C759] rounded-full relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:translate-x-4"></div>
+                                </div>
+                            </label>
+                            <!-- Safeguard 3 -->
+                            <label class="flex items-start justify-between cursor-pointer space-x-3 w-full py-1.5 border-b border-stone-150 dark:border-stone-850">
+                                <div class="flex-1 pr-4">
+                                    <div class="text-xs font-bold text-stone-800 dark:text-stone-200">Administrative Safeguard: Session Auto-Lock</div>
+                                    <div class="text-[10px] text-stone-500 dark:text-stone-450 mt-0.5">Enable auto-clear of clinical notes after 15 minutes of inactivity.</div>
+                                </div>
+                                <div class="relative">
+                                    <input type="checkbox" id="hipaa-autolock-ehr" onchange="toggleHipaaAutolock()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-stone-200/80 dark:bg-stone-800 rounded-full peer peer-checked:bg-[#34C759] transition-colors duration-200 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:translate-x-4"></div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Panel: Open Health Tech Registry -->
+            <div id="panel-ehr-open-tech" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Column 1: Open Source Integration Registry -->
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200">Open Source Medical Registry</h3>
+                            <p class="text-[11px] text-stone-400 dark:text-stone-550">Simulate EMR data synchronization using standard open APIs.</p>
+                        </div>
+                        
+                        <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                            <!-- Tool 1 -->
+                            <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('openmrs')">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">🏥 OpenMRS</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-[#E8F5E9] dark:bg-green-950/40 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">EMR System</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">Enterprise electronic medical record system platform.</p>
+                            </div>
+                            
+                            <!-- Tool 2 -->
+                            <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('openemr')">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">🩺 OpenEMR</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-[#E8F5E9] dark:bg-green-950/40 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">Practice Mgt</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">ONC-certified open-source medical practice management.</p>
+                            </div>
+
+                            <!-- Tool 3 -->
+                            <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('medplum')">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">🔌 Medplum</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 rounded border border-purple-200 dark:border-purple-900">FHIR API Backend</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">Headless API-first EHR platform based on FHIR standards.</p>
+                            </div>
+
+                            <!-- Tool 4 -->
+                            <div class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/25 shadow-sm hover:shadow hover:border-[#4A5D4E]/45 transition duration-200 cursor-pointer" onclick="selectRegistryTool('gnuhealth')">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="font-bold text-xs text-stone-800 dark:text-stone-200">🕊️ GNU Health</span>
+                                    <span class="px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 rounded border border-blue-200 dark:border-blue-900">Hospital Info</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">GNU-licensed ecosystem for clinics and hospital settings.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2 -->
+                    <div class="space-y-4 border-t md:border-t-0 md:border-l border-stone-100 dark:border-stone-800/80 md:pl-6 pt-4 md:pt-0 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-sm font-semibold text-stone-850 dark:text-stone-200" id="sandbox-tool-title">Integrate with OpenMRS</h3>
+                            <p class="text-[11px] text-stone-400 dark:text-stone-500 mt-1 leading-relaxed" id="sandbox-tool-desc">Compile SOAP clinical records and sync them directly to OpenMRS database via standard REST endpoints.</p>
+                        </div>
+
+                        <!-- Visual EHR Pathway Diagram -->
+                        <div class="bg-[#FAF7F2]/60 dark:bg-stone-900/40 p-4 rounded-2xl border border-stone-200/40 dark:border-stone-800/40 my-3 relative overflow-hidden flex flex-col items-center">
+                            <div class="flex justify-between items-center w-full max-w-[280px] relative z-10">
+                                <div class="flex flex-col items-center space-y-1.5 relative">
+                                    <div id="sync-node-local" class="w-8 h-8 rounded-full bg-[#4A5D4E]/15 border-2 border-[#4A5D4E] flex items-center justify-center text-[10px] font-bold text-stone-700 dark:text-stone-300 sync-node-pulse shadow-sm">💻</div>
+                                    <span class="text-[8px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-550">Shinrin</span>
+                                </div>
+                                <div class="flex-1 h-[2px] mx-1 relative bg-stone-200 dark:bg-stone-800 overflow-hidden rounded-full">
+                                    <div id="sync-line-1" class="absolute top-0 left-0 h-full w-full bg-gradient-to-r from-[#4A5D4E] to-[#D1A153] opacity-0 transition-opacity duration-300"></div>
+                                </div>
+                                <div id="sync-node-gateway" class="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-950 border-2 border-stone-250/20 dark:border-stone-800 flex items-center justify-center text-[10px] font-bold text-stone-400">🛡️</div>
+                                <div class="flex-1 h-[2px] mx-1 relative bg-stone-200 dark:bg-stone-800 overflow-hidden rounded-full">
+                                    <div id="sync-line-2" class="absolute top-0 left-0 h-full w-full bg-gradient-to-r from-[#D1A153] to-emerald-500 opacity-0 transition-opacity duration-300"></div>
+                                </div>
+                                <div class="flex flex-col items-center space-y-1.5 relative">
+                                    <div id="sync-node-ehr" class="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-950 border-2 border-stone-250/20 dark:border-stone-800 flex items-center justify-center text-[10px] font-bold text-stone-400">🏥</div>
+                                    <span id="sync-node-ehr-label" class="text-[8px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-550">OpenMRS</span>
+                                </div>
+                            </div>
+                            <div class="absolute inset-0 pointer-events-none opacity-20">
+                                <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M 45,32 L 255,32" stroke="#D1A153" stroke-width="2" fill="none" class="sync-line-animated hidden" id="sync-glow-path" />
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3 mt-3 flex-1">
+                            <div class="flex flex-col space-y-1">
+                                <label for="sandbox-endpoint" class="text-[9px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-555">Mock API Gateway</label>
+                                <input type="text" id="sandbox-endpoint" readonly value="https://demo.openmrs.org/openmrs/ws/rest/v1/obs" class="p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 text-xs font-mono">
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <label class="text-[9px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-550 flex justify-between">
+                                    <span>Active Clinical Payload</span>
+                                    <span class="text-[#D1A153] font-normal normal-case">Ready to Dispatch</span>
+                                </label>
+                                <pre id="sandbox-payload" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-450 text-[10px] font-mono leading-relaxed overflow-y-auto max-h-40">
+{
+  "resourceType": "Observation",
+  "status": "final",
+  "code": {
+    "text": "Clinical SOAP Narrative Note"
+  },
+  "valueString": "No active clinical note parsed yet."
+}
+                                </pre>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-4 border-t border-stone-150 dark:border-stone-850 mt-4">
+                            <button id="sandbox-sync-btn" onclick="syncSandboxTool()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-5 py-2.5 rounded-xl transition duration-200 font-medium shadow-sm">
+                                Dispatch to EHR
+                            </button>
+                            <span id="sandbox-status" class="text-[10px] text-stone-400 dark:text-stone-555 font-bold uppercase tracking-wider">Status: Idle</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- view-diagnostics container -->
+    <div id="view-diagnostics" class="primary-view-container hidden space-y-8">
             <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50">
                 <div>
                     <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Shinrin Self-Diagnostics</h2>
@@ -1183,7 +1191,6 @@
                     Click 'Run Self-Test Suite' to execute local code assertions and benchmark the local AI model.
                 </div>
             </div>
-        </section>
     </div>
 
     <!-- Doctor & Developer Dual Workspace Console Drawer -->
@@ -1270,15 +1277,18 @@
     </div>
 
     <!-- Mobile Bottom Navigation Dock (Fixed) -->
-    <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200/60 dark:border-stone-800/40 md:hidden flex justify-around py-2 px-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <button onclick="switchMobileTab('ingest')" id="tab-mob-ingest" class="flex flex-col items-center gap-0.5 text-stone-900 dark:text-white font-extrabold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl bg-stone-100 dark:bg-stone-800">
-            <span>📥</span><span>Ingest</span>
+    <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200/60 dark:border-stone-800/40 md:hidden flex justify-around py-2.5 px-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <button onclick="switchMobileTab('workspace')" id="tab-mob-workspace" class="flex flex-col items-center gap-0.5 text-stone-900 dark:text-white font-extrabold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl bg-stone-100 dark:bg-stone-800">
+            <span>📥</span><span>Workspace</span>
         </button>
-        <button onclick="switchMobileTab('hub')" id="tab-mob-hub" class="flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-550 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl">
-            <span>🩺</span><span>Clinical Hub</span>
-        </button>
-        <button onclick="switchMobileTab('calcs')" id="tab-mob-calcs" class="flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-555 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl">
+        <button onclick="switchMobileTab('calculators')" id="tab-mob-calculators" class="flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-550 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl">
             <span>🧮</span><span>Calculators</span>
+        </button>
+        <button onclick="switchMobileTab('ehr')" id="tab-mob-ehr" class="flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-555 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl">
+            <span>🔗</span><span>EHR Sync</span>
+        </button>
+        <button onclick="switchMobileTab('diagnostics')" id="tab-mob-diagnostics" class="flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-555 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl">
+            <span>🔬</span><span>Diagnostics</span>
         </button>
     </div>
 

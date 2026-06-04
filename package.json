@@ -1,0 +1,26 @@
+{
+  "name": "shinrin-ai",
+  "version": "1.0.0",
+  "description": "> **A Japanese Wabi-Sabi Styled Clinical Decision Support Dashboard.**",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/safevoice009/shinrin-ai.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/safevoice009/shinrin-ai/issues"
+  },
+  "homepage": "https://github.com/safevoice009/shinrin-ai#readme",
+  "dependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

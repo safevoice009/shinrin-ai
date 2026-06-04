@@ -237,11 +237,16 @@ function updateClinicalInsights(profile, soap = null) {
     
     if (!pathophysEl || !guidelinesEl || !diffsEl) return;
     
+    // Get text to analyze (active note or profile notes)
+    const noteText = profile.notes || (document.getElementById('noteInput') ? document.getElementById('noteInput').value : "");
+    const lowerText = noteText.toLowerCase();
+    
     let pathophysText = "";
     let guidelines = [];
     let differentials = [];
     
-    if (profile.id === 'profileA') {
+    // Check if cardiac / heart failure is mentioned
+    if (lowerText.includes('chf') || lowerText.includes('heart failure') || lowerText.includes('dyspnea') || lowerText.includes('edema') || lowerText.includes('cardiac') || lowerText.includes('lisinopril') || lowerText.includes('carvedilol') || profile.id === 'profileA') {
         pathophysText = "Progressive left ventricular systolic impairment leads to elevated pulmonary venous pressures, driving pulmonary transudate (causing dyspnea) and systemic venous congestion (causing peripheral edema). GDMT mitigates neurohormonal activation.";
         guidelines = [
             "Initiate SGLT2 inhibitor (e.g., Empagliflozin) per 2022 AHA/ACC HFrEF Guidelines (Class 1a recommendation).",
@@ -253,7 +258,9 @@ function updateClinicalInsights(profile, soap = null) {
             "Renal failure with systemic fluid overload",
             "COPD exacerbation (pulmonary etiology)"
         ];
-    } else if (profile.id === 'profileB') {
+    } 
+    // Check if rheumatological / lupus is mentioned
+    else if (lowerText.includes('joint pain') || lowerText.includes('lupus') || lowerText.includes('ana') || lowerText.includes('rash') || lowerText.includes('malar') || lowerText.includes('rheumat') || profile.id === 'profileB') {
         pathophysText = "Auto-antibody cascade results in immune-complex deposition at dermal-epidermal junctions (malar rash) and synovium membranes, causing localized symmetrical polyarthritis and transient stiffness.";
         guidelines = [
             "Order dsDNA, anti-Smith, complement levels (C3/C4), and urinalysis to screen for lupus nephritis.",
@@ -265,7 +272,9 @@ function updateClinicalInsights(profile, soap = null) {
             "Early Rheumatoid Arthritis",
             "Drug-induced Lupus Erythematosus"
         ];
-    } else if (profile.id === 'profileC') {
+    } 
+    // Check if pulmonary / tuberculosis is mentioned
+    else if (lowerText.includes('cough') || lowerText.includes('sweats') || lowerText.includes('infiltration') || lowerText.includes('tb') || lowerText.includes('tuberculosis') || profile.id === 'profileC') {
         pathophysText = "Inhalation of mycobacterial droplets triggers alveolar macrophage phagocytosis, forming necrotizing caseous granulomas (infiltration). Cytokine cascade (TNF-α, IL-1) drives weight loss and hypothalamic night sweats.";
         guidelines = [
             "Enforce immediate airborne infection isolation containment precautions.",
@@ -277,10 +286,63 @@ function updateClinicalInsights(profile, soap = null) {
             "Atypical fungal pneumonia (Histoplasmosis, Coccidioidomycosis)",
             "Bronchogenic Carcinoma (mass effect/necrosis)"
         ];
-    } else {
-        pathophysText = "Patient note structured dynamically. Review custom guidelines checklist.";
-        guidelines = ["Assess vitals and objective labs.", "Monitor clinical progression."];
-        differentials = ["Unspecified clinical syndrome"];
+    } 
+    // Otherwise, generate completely dynamic guidelines based on symptoms and medications found!
+    else {
+        // Find symptoms, meds, and risk factors from clinicalEntities in lowerText
+        const matchedSymptoms = [];
+        const matchedMeds = [];
+        const matchedRisks = [];
+        
+        if (typeof clinicalEntities !== 'undefined') {
+            clinicalEntities.forEach(ent => {
+                const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+                if (regex.test(noteText)) {
+                    if (ent.type === 'symptom') matchedSymptoms.push(ent.term);
+                    else if (ent.type === 'medication') matchedMeds.push(ent.term);
+                    else if (ent.type === 'risk') matchedRisks.push(ent.term);
+                }
+            });
+        }
+        
+        if (matchedSymptoms.length > 0 || matchedMeds.length > 0 || matchedRisks.length > 0) {
+            pathophysText = `Dynamic Pathophysiology: Analyzing clinical interactions of symptoms (${matchedSymptoms.join(', ') || 'none'}) under risk profiles (${matchedRisks.join(', ') || 'none'}). Pathological processes are evaluated in real-time.`;
+            
+            guidelines = [];
+            if (matchedSymptoms.length > 0) {
+                guidelines.push(`Monitor progression of symptoms: ${matchedSymptoms.join(', ')}.`);
+            }
+            if (matchedMeds.length > 0) {
+                guidelines.push(`Review dosing, efficacy, and compliance of active medication(s): ${matchedMeds.join(', ')}.`);
+            }
+            if (matchedRisks.length > 0) {
+                guidelines.push(`Order standard screens targeting risk factors: ${matchedRisks.join(', ')}.`);
+            }
+            guidelines.push("Perform complete physical examination and review recent metabolic panel.");
+            
+            differentials = matchedSymptoms.map(sym => `Primary clinical etiology of ${sym}`);
+            if (differentials.length === 0) {
+                differentials = ["Unspecified clinical syndrome (needs lab/diagnostic imaging workup)"];
+            } else {
+                if (differentials.length < 3) {
+                    differentials.push("Secondary organ system pathology");
+                    differentials.push("Idiopathic / Functional etiology");
+                }
+            }
+        } else {
+            pathophysText = "Patient note structured dynamically. Please enter symptoms, medications, or history details to generate pathophysiology insights.";
+            guidelines = [
+                "Enter patient symptoms or clinical history in the workspace note.",
+                "Review basic vitals (BP, Heart Rate, Respiratory Rate, Temperature).",
+                "Review baseline blood count and metabolic profile."
+            ];
+            differentials = [
+                "Undifferentiated clinical presentation",
+                "Atypical presentation of common disease",
+                "Environmental / lifestyle etiology"
+            ];
+        }
     }
     
     pathophysEl.textContent = pathophysText;
@@ -299,7 +361,7 @@ function updateClinicalInsights(profile, soap = null) {
         </li>
     `).join('');
 }
-window.updateClinicalInsights = updateClinicalInsights;
+window.updateClinicalInsights = updateClinicalInsights;;
 
 // Developer Workspace (FHIR Bundle JSON Syntax Highlighter)
 function highlightJson(jsonObj) {
@@ -510,10 +572,63 @@ function initCard3DTilt() {
 window.initCard3DTilt = initCard3DTilt;
 
 
+// Primary Tab routing (separated dashboard views)
+function switchPrimaryTab(tabId, btn) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    
+    // Hide all primary view containers
+    const containers = document.querySelectorAll('.primary-view-container');
+    containers.forEach(c => c.classList.add('hidden'));
+    
+    // Show selected container
+    const selected = document.getElementById(`view-${tabId}`);
+    if (selected) {
+        selected.classList.remove('hidden');
+    }
+    
+    // Reset styling on all tab buttons
+    const buttons = document.querySelectorAll('.nav-pill-btn');
+    buttons.forEach(b => {
+        b.className = 'nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 text-stone-500 dark:text-stone-400 px-3 py-1.5 rounded-full transition duration-200';
+    });
+    
+    // Set styling for active button
+    if (btn) {
+        btn.className = 'nav-pill-btn bg-stone-200/80 dark:bg-stone-850/80 text-stone-900 dark:text-white px-3 py-1.5 rounded-full transition duration-200';
+    } else {
+        const activeBtn = document.getElementById(`primary-tab-${tabId}`);
+        if (activeBtn) {
+            activeBtn.className = 'nav-pill-btn bg-stone-200/80 dark:bg-stone-850/80 text-stone-900 dark:text-white px-3 py-1.5 rounded-full transition duration-200';
+        }
+    }
+}
+window.switchPrimaryTab = switchPrimaryTab;
+
+// EHR Sync Sub-tab switcher
+function switchEhrTab(tabId) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const tabs = ['fhir', 'api-hub', 'open-tech'];
+    
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tab-ehr-${t}`);
+        const panel = document.getElementById(`panel-ehr-${t}`);
+        if (!btn || !panel) return;
+        
+        if (t === tabId) {
+            btn.className = "flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5";
+            panel.classList.remove('hidden');
+        } else {
+            btn.className = "flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400";
+            panel.classList.add('hidden');
+        }
+    });
+}
+window.switchEhrTab = switchEhrTab;
+
 // Mobile Responsive Tab Switcher
 function switchMobileTab(tabName) {
-    playPremiumHapticSound();
-    const tabs = ['ingest', 'hub', 'calcs'];
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const tabs = ['workspace', 'calculators', 'ehr', 'diagnostics'];
     
     // Toggle navigation button styles
     tabs.forEach(t => {
@@ -522,29 +637,90 @@ function switchMobileTab(tabName) {
         if (t === tabName) {
             btn.className = 'flex flex-col items-center gap-0.5 text-stone-900 dark:text-white font-extrabold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl bg-stone-100 dark:bg-stone-800';
         } else {
-            btn.className = 'flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-550 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl';
+            btn.className = 'flex flex-col items-center gap-0.5 text-stone-400 dark:text-stone-555 font-bold text-[9px] uppercase tracking-wider py-1 px-3 rounded-xl';
         }
     });
     
-    // Show/hide screen layouts
-    tabs.forEach(t => {
-        const sections = document.querySelectorAll(`.mob-section-${t}`);
-        sections.forEach(sec => {
-            if (t === tabName) {
-                if (sec.id === 'highlightsContainer') {
-                    if (window.isNoteParsed) {
-                        sec.classList.remove('hidden');
-                    }
-                } else {
-                    sec.classList.remove('hidden');
-                }
-            } else {
-                sec.classList.add('hidden');
-            }
-        });
-    });
+    // Switch primary view
+    switchPrimaryTab(tabName, document.getElementById(`primary-tab-${tabName}`));
 }
 window.switchMobileTab = switchMobileTab;
+
+// Hands-free Voice-to-Text Clinical Dictation
+let recognition = null;
+let isDictating = false;
+function toggleDictation() {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        showToast("Speech Recognition is not supported in this browser. Please try Chrome/Safari.", "warning");
+        return;
+    }
+    
+    const dictateBtn = document.getElementById('dictateBtn');
+    const dictateIcon = document.getElementById('dictateIcon');
+    const dictateText = document.getElementById('dictateText');
+    const noteInput = document.getElementById('noteInput');
+    
+    if (!dictateBtn || !dictateIcon || !dictateText || !noteInput) return;
+    
+    if (isDictating) {
+        if (recognition) recognition.stop();
+        isDictating = false;
+        dictateIcon.textContent = "🎙️";
+        dictateText.textContent = "Dictate Note";
+        dictateBtn.className = "border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5";
+        showToast("Dictation stopped.", "info");
+    } else {
+        try {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isDictating = true;
+                dictateIcon.textContent = "🔴";
+                dictateText.textContent = "Listening... Click to Stop";
+                dictateBtn.className = "border border-red-500 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5 animate-pulse shadow-sm";
+                showToast("Dictation active. Start speaking.", "success");
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[event.results.length - 1][0].transcript;
+                const space = noteInput.value.length && !noteInput.value.endsWith(' ') ? ' ' : '';
+                noteInput.value += space + transcript.trim();
+                
+                // Trigger input event to autosave
+                const inputEvent = new Event('input', { bubbles: true });
+                noteInput.dispatchEvent(inputEvent);
+            };
+            
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event);
+                showToast(`Speech recognition error: ${event.error}`, "warning");
+                isDictating = false;
+                dictateIcon.textContent = "🎙️";
+                dictateText.textContent = "Dictate Note";
+                dictateBtn.className = "border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5";
+            };
+            
+            recognition.onend = () => {
+                isDictating = false;
+                dictateIcon.textContent = "🎙️";
+                dictateText.textContent = "Dictate Note";
+                dictateBtn.className = "border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5";
+            };
+            
+            recognition.start();
+        } catch (err) {
+            console.error("Failed to start SpeechRecognition", err);
+            showToast("Failed to initialize microphone.", "warning");
+        }
+    }
+}
+window.toggleDictation = toggleDictation;
 
 // HIPAA session auto-lock countdown timer
 let hipaaTimer = null;
@@ -1649,11 +1825,185 @@ function switchCalc(calcType) {
     });
 }
 
+// Predictive Medical Autocomplete / Suggestion Dropdown
+window.activeAutocompleteIndex = -1;
+let autocompleteSuggestions = [];
+
+function insertAutocompleteSuggestion(sug) {
+    const noteInput = document.getElementById('noteInput');
+    const dropdown = document.getElementById('autocomplete-dropdown');
+    if (!noteInput || !dropdown) return;
+    
+    const text = noteInput.value;
+    const cursorPos = noteInput.selectionStart;
+    
+    const textBefore = text.slice(0, cursorPos);
+    const textAfter = text.slice(cursorPos);
+    
+    // Find the word under cursor to replace
+    const lastWordRegex = /\b([A-Za-z0-9\-]+)$/;
+    const match = textBefore.match(lastWordRegex);
+    
+    if (match) {
+        const wordToReplace = match[1];
+        const newTextBefore = textBefore.slice(0, textBefore.length - wordToReplace.length) + sug.insertText;
+        noteInput.value = newTextBefore + textAfter;
+        const newCursorPos = newTextBefore.length;
+        noteInput.setSelectionRange(newCursorPos, newCursorPos);
+    } else {
+        noteInput.value = textBefore + sug.insertText + textAfter;
+        const newCursorPos = cursorPos + sug.insertText.length;
+        noteInput.setSelectionRange(newCursorPos, newCursorPos);
+    }
+    
+    dropdown.classList.add('hidden');
+    dropdown.innerHTML = '';
+    window.activeAutocompleteIndex = -1;
+    autocompleteSuggestions = [];
+    
+    // Trigger input event to update autosave and highlights
+    const inputEvent = new Event('input', { bubbles: true });
+    noteInput.dispatchEvent(inputEvent);
+    
+    noteInput.focus();
+}
+window.insertAutocompleteSuggestion = insertAutocompleteSuggestion;
+
+function initAutocomplete() {
+    const noteInput = document.getElementById('noteInput');
+    const dropdown = document.getElementById('autocomplete-dropdown');
+    if (!noteInput || !dropdown) return;
+    
+    noteInput.addEventListener('input', () => {
+        const text = noteInput.value;
+        const cursorPos = noteInput.selectionStart;
+        const textBefore = text.slice(0, cursorPos);
+        
+        const match = textBefore.match(/\b([A-Za-z0-9\-]+)$/);
+        if (!match) {
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            window.activeAutocompleteIndex = -1;
+            autocompleteSuggestions = [];
+            return;
+        }
+        
+        const activeWord = match[1];
+        if (activeWord.length < 2) {
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            window.activeAutocompleteIndex = -1;
+            autocompleteSuggestions = [];
+            return;
+        }
+        
+        const suggestions = [];
+        
+        // Search abbreviations
+        for (const [abbr, desc] of Object.entries(abbreviations)) {
+            if (abbr.toLowerCase().startsWith(activeWord.toLowerCase())) {
+                suggestions.push({
+                    displayText: `${abbr} <span class="text-stone-400 dark:text-stone-550 font-normal">(${desc.split(' (')[0]})</span>`,
+                    insertText: abbr,
+                    type: 'abbreviation'
+                });
+            }
+        }
+        
+        // Search clinical entities
+        clinicalEntities.forEach(ent => {
+            if (ent.term.toLowerCase().startsWith(activeWord.toLowerCase()) && !suggestions.some(s => s.insertText.toLowerCase() === ent.term.toLowerCase())) {
+                let colorClass = "text-blue-500";
+                if (ent.type === 'medication') colorClass = "text-green-500";
+                else if (ent.type === 'symptom') colorClass = "text-yellow-500";
+                else if (ent.type === 'risk') colorClass = "text-red-500";
+                
+                suggestions.push({
+                    displayText: `${ent.term} <span class="text-[9px] font-bold ${colorClass} uppercase ml-1">[${ent.type}]</span>`,
+                    insertText: ent.term,
+                    type: ent.type
+                });
+            }
+        });
+        
+        if (suggestions.length === 0) {
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            window.activeAutocompleteIndex = -1;
+            autocompleteSuggestions = [];
+            return;
+        }
+        
+        autocompleteSuggestions = suggestions.slice(0, 5);
+        window.activeAutocompleteIndex = 0;
+        renderSuggestions();
+    });
+    
+    function renderSuggestions() {
+        dropdown.innerHTML = autocompleteSuggestions.map((s, index) => {
+            const isActive = index === window.activeAutocompleteIndex;
+            const activeClass = isActive ? 'bg-stone-100 dark:bg-stone-850 text-stone-900 dark:text-white font-extrabold border-l-2 border-[#4A5D4E]' : 'hover:bg-stone-50 dark:hover:bg-stone-850/50';
+            return `
+                <div class="px-4 py-2 cursor-pointer font-medium text-stone-750 dark:text-stone-300 transition duration-150 flex items-center justify-between ${activeClass}" 
+                     data-index="${index}">
+                    <span>${s.displayText}</span>
+                    <span class="text-[8px] font-bold text-stone-400 dark:text-stone-555 uppercase">${s.type}</span>
+                </div>
+            `;
+        }).join('');
+        
+        dropdown.querySelectorAll('[data-index]').forEach(el => {
+            el.addEventListener('click', () => {
+                const index = parseInt(el.getAttribute('data-index'));
+                insertAutocompleteSuggestion(autocompleteSuggestions[index]);
+            });
+        });
+        
+        dropdown.classList.remove('hidden');
+    }
+    
+    noteInput.addEventListener('keydown', (e) => {
+        if (dropdown.classList.contains('hidden')) return;
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            window.activeAutocompleteIndex = (window.activeAutocompleteIndex + 1) % autocompleteSuggestions.length;
+            renderSuggestions();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            window.activeAutocompleteIndex = (window.activeAutocompleteIndex - 1 + autocompleteSuggestions.length) % autocompleteSuggestions.length;
+            renderSuggestions();
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (window.activeAutocompleteIndex >= 0 && window.activeAutocompleteIndex < autocompleteSuggestions.length) {
+                e.preventDefault();
+                insertAutocompleteSuggestion(autocompleteSuggestions[window.activeAutocompleteIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            window.activeAutocompleteIndex = -1;
+            autocompleteSuggestions = [];
+        }
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (e.target !== noteInput && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            window.activeAutocompleteIndex = -1;
+            autocompleteSuggestions = [];
+        }
+    });
+}
+window.initAutocomplete = initAutocomplete;
+
 // Init App state
 initTheme();
 selectProfile('profileA');
 bindHapticClickListeners();
 initCard3DTilt();
+initAutocomplete();
 
 // Auto-save clinical note to active profile in real-time
 noteInput.addEventListener('input', () => {
@@ -1661,52 +2011,14 @@ noteInput.addEventListener('input', () => {
     if (activeProfile.id.startsWith('profile_')) {
         saveProfilesToStorage();
     }
-});
-
-// Handle responsive viewport transitions
-window.addEventListener('resize', () => {
-    if (window.innerWidth < 768) {
-        switchMobileTab('ingest');
-    } else {
-        // Desktop recovery
-        ['ingest', 'hub', 'calcs'].forEach(t => {
-            const sections = document.querySelectorAll(`.mob-section-${t}`);
-            sections.forEach(sec => {
-                if (sec.id === 'highlightsContainer') {
-                    if (window.isNoteParsed) {
-                        sec.classList.remove('hidden');
-                    } else {
-                        sec.classList.add('hidden');
-                    }
-                } else {
-                    sec.classList.remove('hidden');
-                }
-            });
-        });
-    }
+    // Live update clinical insights on note input
+    updateClinicalInsights(activeProfile, activeProfile.soap);
 });
 
 // Mobile startup trigger
 if (window.innerWidth < 768) {
     setTimeout(() => {
-        switchMobileTab('ingest');
+        switchMobileTab('workspace');
     }, 100);
 }
-
-function scrollToSection(id, btn) {
-    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
-    const el = document.getElementById(id);
-    if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    document.querySelectorAll('.nav-pill-btn').forEach(b => {
-        b.classList.remove('bg-stone-200/80', 'dark:bg-stone-850/80', 'text-stone-900', 'dark:text-white');
-        b.classList.add('hover:text-stone-900', 'dark:hover:text-white', 'hover:bg-stone-100/50', 'dark:hover:bg-stone-800/50');
-    });
-    if (btn) {
-        btn.classList.remove('hover:text-stone-900', 'dark:hover:text-white', 'hover:bg-stone-100/50', 'dark:hover:bg-stone-800/50');
-        btn.classList.add('bg-stone-200/80', 'dark:bg-stone-850/80', 'text-stone-900', 'dark:text-white');
-    }
-}
-window.scrollToSection = scrollToSection;
 
