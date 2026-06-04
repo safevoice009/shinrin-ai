@@ -259,7 +259,7 @@ function updateClinicalInsights(profile, soap = null) {
     
     const activeConditions = [];
     
-    // Scan for active conditions
+    // Scan for active conditions in text
     if (lowerText.includes('hiv') || lowerText.includes('aids') || lowerText.includes('immunodefic') || lowerText.includes('anti-retro-viral') || lowerText.includes('antiretroviral') || lowerText.includes('art')) {
         activeConditions.push('hiv');
     }
@@ -281,6 +281,35 @@ function updateClinicalInsights(profile, soap = null) {
     if (lowerText.includes('copd') || lowerText.includes('asthma') || lowerText.includes('wheezing') || lowerText.includes('albuterol') || lowerText.includes('prednisone') || lowerText.includes('bronchospasm')) {
         activeConditions.push('copd_asthma');
     }
+    
+    // Scan highlights for any condition name (to capture custom clinical terms like hemophilia, alcohol, etc.)
+    const highlights = profile.highlights || [];
+    highlights.forEach(h => {
+        const termLower = h.term.toLowerCase();
+        // If it's a disease/disorder term or specific custom risk, extract it
+        if (h.type === 'risk' || termLower.includes('hemophilia') || termLower.includes('alcohol') || termLower.includes('anemia') || termLower.includes('hepatitis')) {
+            let matchedKey = "";
+            if (termLower.includes('hiv') || termLower.includes('aids')) matchedKey = 'hiv';
+            else if (termLower.includes('chf') || termLower.includes('heart failure')) matchedKey = 'chf';
+            else if (termLower.includes('lupus')) matchedKey = 'lupus';
+            else if (termLower.includes('tb') || termLower.includes('tuberculosis') || termLower.includes('pulmonary')) matchedKey = 'pulmonary_infection';
+            else if (termLower.includes('hypertension') || termLower.includes('htn')) matchedKey = 'hypertension';
+            else if (termLower.includes('diabetes')) matchedKey = 'diabetes';
+            else if (termLower.includes('copd') || termLower.includes('asthma')) matchedKey = 'copd_asthma';
+            else if (termLower.includes('hemophilia')) matchedKey = 'hemophilia';
+            else if (termLower.includes('alcohol')) matchedKey = 'alcohol';
+            else if (termLower.includes('anemia')) matchedKey = 'anemia';
+            else if (termLower.includes('hepatitis')) matchedKey = 'hepatitis';
+            else {
+                // Completely custom condition from NER
+                matchedKey = h.term.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+            }
+            
+            if (matchedKey && !activeConditions.includes(matchedKey)) {
+                activeConditions.push(matchedKey);
+            }
+        }
+    });
 
     let pathophysText = "";
     let guidelines = [];
@@ -293,7 +322,11 @@ function updateClinicalInsights(profile, soap = null) {
         'pulmonary_infection': "Inhalation of pathogens triggers alveolar macrophage phagocytosis, forming caseous granulomas or consolidated lung segments (infiltration). Cytokine cascades drive night sweats.",
         'hypertension': "Chronic elevation of systemic vascular resistance increases left ventricular afterload, predisposing to arterial wall remodeling and microvascular damage.",
         'diabetes': "Impaired insulin secretion or peripheral insulin resistance leads to chronic hyperglycemia, causing endothelial damage and cellular dysfunction.",
-        'copd_asthma': "Chronic inflammatory processes or bronchial hyperresponsiveness causes smooth muscle hypertrophy and expiratory airflow obstruction."
+        'copd_asthma': "Chronic inflammatory processes or bronchial hyperresponsiveness causes smooth muscle hypertrophy and expiratory airflow obstruction.",
+        'hemophilia': "Inherited X-linked bleeding disorder characterized by deficiency of clotting Factor VIII (Hemophilia A) or Factor IX (Hemophilia B), disrupting the intrinsic coagulation pathway and leading to prolonged bleeding.",
+        'alcohol': "Chronic ethanol exposure leads to hepatic steatohepatitis, GABA-receptor downregulation, and nutritional deficits, predisposing to Wernicke encephalopathy and liver cirrhosis.",
+        'anemia': "Reduction in total circulating red blood cell mass or hemoglobin concentration, impairing tissue oxygen delivery.",
+        'hepatitis': "Inflammatory injury to hepatocytes caused by viral pathogens (Hep A/B/C), toxins (ethanol/drugs), or autoimmune mechanisms, leading to cellular necrosis and liver failure."
     };
 
     const guidelinesMap = {
@@ -305,7 +338,7 @@ function updateClinicalInsights(profile, soap = null) {
         ],
         'chf': [
             "Initiate SGLT2 inhibitor (e.g., Empagliflozin) per AHA/ACC HFrEF Guidelines.",
-            "Monitor serum potassium, renal function (GFR), and electrolytes during medication titration.",
+            "Monitor serum potassium, GFR, and electrolytes during titration.",
             "Instruct patient on daily volume status checks (daily weight log, peripheral edema monitoring).",
             "Schedule follow-up echocardiogram in 3 months to re-evaluate LVEF."
         ],
@@ -315,7 +348,7 @@ function updateClinicalInsights(profile, soap = null) {
             "Advise complete photoprotection (broad-spectrum SPF, UV clothing) as solar exposure triggers disease activity."
         ],
         'pulmonary_infection': [
-            "Enforce airborne infection isolation containment precautions immediately if TB is suspected.",
+            "Enforce airborne infection isolation precautions immediately if TB is suspected.",
             "Obtain triple morning sputum samples for Acid-Fast Bacilli (AFB) smear and GeneXpert PCR.",
             "Obtain baseline hepatic panel prior to starting potential hepatotoxic regimens.",
             "Order high-resolution chest CT scan."
@@ -334,6 +367,28 @@ function updateClinicalInsights(profile, soap = null) {
             "Assess inhaler device technique and review medication adherence.",
             "Order spirometry to evaluate FEV1/FVC ratio and post-bronchodilator reversibility.",
             "Counsel patient on smoking cessation and avoidance of known environmental triggers."
+        ],
+        'hemophilia': [
+            "Verify Factor VIII or IX activity levels to classify severity (mild, moderate, or severe).",
+            "Avoid aspirin, NSAIDs, and other antiplatelet agents that impair hemostasis.",
+            "Administer recombinant factor concentrate or desmopressin (DDAVP) for acute bleeding or prophylaxis.",
+            "Monitor for target joint hemarthrosis and refer to a comprehensive hemophilia treatment center."
+        ],
+        'alcohol': [
+            "Administer high-dose Thiamine (Vitamin B1) to prevent Wernicke encephalopathy.",
+            "Assess withdrawal risk using the Clinical Institute Withdrawal Assessment (CIWA-Ar) protocol.",
+            "Order liver function panel (AST/ALT ratio, Albumin, bilirubin, INR).",
+            "Counsel on psychosocial support and medical options (e.g. naltrexone, acamprosate)."
+        ],
+        'anemia': [
+            "Order CBC, serum iron, ferritin, transferrin, and reticulocyte count.",
+            "Perform fecal occult blood test to screen for gastrointestinal blood loss.",
+            "Evaluate peripheral smear for microcytic or macrocytic morphology."
+        ],
+        'hepatitis': [
+            "Order acute hepatitis serologies (HBsAg, anti-HCV, anti-HAV IgM).",
+            "Monitor hepatic synthetic function (INR, Albumin) and transaminases (AST/ALT).",
+            "Assess for portal hypertension, ascites, or hepatic encephalopathy."
         ]
     };
 
@@ -371,14 +426,46 @@ function updateClinicalInsights(profile, soap = null) {
             "COPD exacerbation",
             "Acute bronchial asthma",
             "Cardiac asthma (CHF-induced lung congestion)"
+        ],
+        'hemophilia': [
+            "Von Willebrand Disease",
+            "Factor XI deficiency (Hemophilia C)",
+            "Acquired hemophilia (autoimmune)",
+            "Vitamin K deficiency"
+        ],
+        'alcohol': [
+            "Alcoholic liver cirrhosis / hepatitis",
+            "Benzodiazepine withdrawal",
+            "Wernicke-Korsakoff syndrome"
+        ],
+        'anemia': [
+            "Iron deficiency anemia",
+            "Anemia of chronic disease",
+            "Thalassemia trait",
+            "Vitamin B12 or folate deficiency"
+        ],
+        'hepatitis': [
+            "Acute Viral Hepatitis",
+            "Drug-Induced Liver Injury (DILI)",
+            "Autoimmune Hepatitis"
         ]
     };
 
     if (activeConditions.length > 0) {
-        pathophysText = activeConditions.map(cond => `[${cond.toUpperCase().replace('_', ' ')}] ${pathophysiologies[cond]}`).join("\n\n");
+        pathophysText = activeConditions.map(cond => {
+            const clean = cond.toLowerCase();
+            const desc = pathophysiologies[clean] || getDynamicConditionInsights(cond).pathophysiology;
+            const displayLabel = cond.length <= 4 ? cond.toUpperCase() : cond.charAt(0).toUpperCase() + cond.slice(1);
+            return `[${displayLabel.replace('_', ' ')}] ${desc}`;
+        }).join("\n\n");
+        
         activeConditions.forEach(cond => {
-            guidelines = guidelines.concat(guidelinesMap[cond]);
-            differentials = differentials.concat(differentialsMap[cond]);
+            const clean = cond.toLowerCase();
+            const list = guidelinesMap[clean] || getDynamicConditionInsights(cond).guidelines;
+            guidelines = guidelines.concat(list);
+            
+            const diffs = differentialsMap[clean] || getDynamicConditionInsights(cond).differentials;
+            differentials = differentials.concat(diffs);
         });
         differentials = [...new Set(differentials)];
     } else {
@@ -423,12 +510,6 @@ function updateClinicalInsights(profile, soap = null) {
         } else {
             pathophysText = "Patient note structured dynamically. Please enter symptoms, medications, or history details to generate clinical decision insights.";
             guidelines = [
-                "Enter patient symptoms or clinical history in the workspace note.",
-                "Review basic vitals (BP, Heart Rate, Respiratory Rate, Temperature).",
-                "Review baseline blood count and metabolic profile."
-            ];
-            differentials = [
-                "Undifferentiated clinical presentation",
                 "Atypical presentation of common disease",
                 "Environmental / lifestyle etiology"
             ];
@@ -1303,7 +1384,14 @@ const clinicalEntities = [
     { term: "polydipsia", type: "symptom" },
     { term: "chest pain", type: "symptom" },
     { term: "infidration", type: "risk" },
-    { term: "infiltration in the right upper lobe", type: "risk" }
+    { term: "infiltration in the right upper lobe", type: "risk" },
+    { term: "hemophilia type 2", type: "risk" },
+    { term: "hemophilia", type: "risk" },
+    { term: "alcohol", type: "risk" },
+    { term: "alcoholism", type: "risk" },
+    { term: "withdrawal", type: "risk" },
+    { term: "cuff", type: "symptom" },
+    { term: "drenching", type: "symptom" }
 ];
 
 function generateCustomRecommendations(noteText) {
@@ -1492,6 +1580,92 @@ function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
+// Dynamic clinical resolver for condition details (pathophysiology, guidelines, differentials)
+function getDynamicConditionInsights(conditionName) {
+    const term = conditionName.toLowerCase();
+    
+    if (term.includes("hemophilia")) {
+        return {
+            pathophysiology: "Inherited X-linked bleeding disorder characterized by deficiency of clotting Factor VIII (Hemophilia A) or Factor IX (Hemophilia B), disrupting the intrinsic coagulation pathway and leading to prolonged bleeding.",
+            guidelines: [
+                "Verify Factor VIII or IX activity levels to classify severity (mild, moderate, or severe).",
+                "Avoid aspirin, NSAIDs, and other antiplatelet agents that impair hemostasis.",
+                "Administer recombinant factor concentrate or desmopressin (DDAVP) for acute bleeding or prophylaxis.",
+                "Monitor for target joint hemarthrosis and refer to a comprehensive hemophilia treatment center."
+            ],
+            differentials: [
+                "Von Willebrand Disease",
+                "Factor XI deficiency (Hemophilia C)",
+                "Acquired hemophilia (autoimmune)",
+                "Vitamin K deficiency"
+            ]
+        };
+    }
+    if (term.includes("alcohol")) {
+        return {
+            pathophysiology: "Chronic ethanol exposure leads to hepatic steatohepatitis, GABA-receptor downregulation, and nutritional deficits, predisposing to Wernicke encephalopathy and liver cirrhosis.",
+            guidelines: [
+                "Administer high-dose Thiamine (Vitamin B1) to prevent Wernicke encephalopathy.",
+                "Assess withdrawal risk using the Clinical Institute Withdrawal Assessment (CIWA-Ar) protocol.",
+                "Order liver function panel (AST/ALT ratio, Albumin, bilirubin, INR).",
+                "Counsel on psychosocial support and medical options (e.g. naltrexone, acamprosate)."
+            ],
+            differentials: [
+                "Alcoholic liver cirrhosis / hepatitis",
+                "Benzodiazepine withdrawal",
+                "Wernicke-Korsakoff syndrome"
+            ]
+        };
+    }
+    if (term.includes("anemia")) {
+        return {
+            pathophysiology: "Reduction in total circulating red blood cell mass or hemoglobin concentration, impairing tissue oxygen delivery.",
+            guidelines: [
+                "Order CBC, serum iron, ferritin, transferrin, and reticulocyte count.",
+                "Perform fecal occult blood test to screen for gastrointestinal blood loss.",
+                "Evaluate peripheral smear for microcytic or macrocytic morphology."
+            ],
+            differentials: [
+                "Iron deficiency anemia",
+                "Anemia of chronic disease",
+                "Thalassemia trait",
+                "Vitamin B12 or folate deficiency"
+            ]
+        };
+    }
+    if (term.includes("hepatitis")) {
+        return {
+            pathophysiology: "Inflammatory injury to hepatocytes caused by viral pathogens (Hep A/B/C), toxins (ethanol/drugs), or autoimmune mechanisms, leading to cellular necrosis and liver failure.",
+            guidelines: [
+                "Order acute hepatitis serologies (HBsAg, anti-HCV, anti-HAV IgM).",
+                "Monitor hepatic synthetic function (INR, Albumin) and transaminases (AST/ALT).",
+                "Assess for clinical signs of portal hypertension, ascites, or hepatic encephalopathy."
+            ],
+            differentials: [
+                "Acute Viral Hepatitis",
+                "Drug-Induced Liver Injury (DILI)",
+                "Autoimmune Hepatitis"
+            ]
+        };
+    }
+    
+    // Generative fallback based on word structure
+    const capitalizedName = conditionName.charAt(0).toUpperCase() + conditionName.slice(1);
+    return {
+        pathophysiology: `Pathology associated with ${capitalizedName} is evaluated dynamically. Implicated molecular or systemic processes are mapped under the clinical decision support engine.`,
+        guidelines: [
+            `Obtain diagnostic laboratory baseline or imaging relevant to ${capitalizedName}.`,
+            `Review history, onset severity, and active medication exposures for ${capitalizedName}.`,
+            `Perform localized physical examination and schedule specialist consult if indicated.`
+        ],
+        differentials: [
+            `${capitalizedName} exacerbation`,
+            `Secondary etiology simulating ${capitalizedName}`,
+            `Infectious or inflammatory mimic of ${capitalizedName}`
+        ]
+    };
+}
+
 // Map drug terms to RxNorm clinical code systems
 function getRxNormMapping(word) {
     const termLower = word.toLowerCase();
@@ -1536,6 +1710,46 @@ function getSnomedMapping(word, type) {
     } else {
         return `ICD-10-CM Reference (condition: ${word})`;
     }
+}
+
+// Translate medical concepts into layman terms dynamically
+function getDynamicTranslation(word) {
+    const termLower = word.toLowerCase();
+    const translations = {
+        "dyspnea": "shortness of breath",
+        "fatigue": "unusual tiredness / low energy",
+        "peripheral edema": "fluid swelling in the legs/ankles",
+        "congestive heart failure": "heart muscle weakness",
+        "malar rash": "butterfly-shaped facial rash from sun exposure",
+        "arthralgias": "joint pain",
+        "tuberculosis": "a bacterial lung infection",
+        "infiltration": "cloudy spot on lung imaging, usually indicating inflammation or infection",
+        "bronchoscopy": "a visual examination of the lungs with a thin tube camera",
+        "afb": "a bacteria-specific lab stain",
+        "pcr": "a highly sensitive genetic molecule test",
+        "gdmt": "evidence-based heart medication guidelines",
+        "titer": "blood concentration measurement",
+        "hemoptysis": "coughing up blood",
+        "hemophilia": "an inherited bleeding disorder where blood does not clot properly",
+        "alcohol": "alcohol / ethanol consumption",
+        "alcoholism": "uncontrolled alcohol consumption",
+        "metformin": "a blood sugar lowering medication for diabetes",
+        "albuterol": "a rescue inhaler medication that opens up airways",
+        "lisinopril": "a blood pressure lowering heart medication",
+        "carvedilol": "a beta-blocker heart medication that slows down heart rate",
+        "naproxen": "a strong anti-inflammatory pain reliever",
+        "amoxicillin": "a common antibiotic for bacterial infections",
+        "cuff": "cough",
+        "drenching": "heavy, soaking sweats",
+        "hiv": "human immunodeficiency virus, which affects immune cells",
+        "art": "antiretroviral therapy (standard medication combination for HIV)"
+    };
+    
+    for (const [k, v] of Object.entries(translations)) {
+        if (termLower.includes(k)) return v;
+    }
+    
+    return `a clinical medical term`;
 }
 
 
@@ -1666,6 +1880,62 @@ function generateSOAP(noteText, profile) {
             }
         });
 
+        // Enrich using dynamic NER highlights if available
+        if (profile && profile.highlights && profile.highlights.length > 0) {
+            const meds = profile.highlights.filter(h => h.type === 'medication').map(h => h.term);
+            const syms = profile.highlights.filter(h => h.type === 'symptom').map(h => h.term);
+            const risks = profile.highlights.filter(h => h.type === 'risk').map(h => h.term);
+            
+            if (meds.length > 0) {
+                oLines.push(`• Active medications identified: ${meds.join(', ')}.`);
+            }
+            if (syms.length > 0 || risks.length > 0) {
+                let assessmentLine = "• Clinical Presentation: ";
+                if (syms.length > 0) assessmentLine += `symptoms of ${syms.join(', ')}`;
+                if (risks.length > 0) {
+                    if (syms.length > 0) assessmentLine += " with ";
+                    assessmentLine += `underlying condition/risk profile for ${risks.join(', ')}`;
+                }
+                aLines.push(assessmentLine);
+                
+                // Add coded references
+                const codes = [];
+                profile.highlights.forEach(h => {
+                    let code = "";
+                    if (h.type === 'medication') code = getRxNormMapping(h.term);
+                    else code = getSnomedMapping(h.term, h.type);
+                    if (code && !code.startsWith("RxNorm Reference") && !code.startsWith("SNOMED-CT Reference") && !code.startsWith("ICD-10-CM Reference")) {
+                        codes.push(code);
+                    }
+                });
+                if (codes.length > 0) {
+                    aLines.push(`• Mapped Clinical Standards: ${codes.join('; ')}.`);
+                }
+            }
+            
+            // Add dynamic plan recommendations based on highlights
+            const customConditions = [];
+            profile.highlights.forEach(h => {
+                const termLower = h.term.toLowerCase();
+                if (termLower.includes('hemophilia')) customConditions.push('hemophilia');
+                if (termLower.includes('alcohol')) customConditions.push('alcohol');
+                if (termLower.includes('hiv')) customConditions.push('hiv');
+                if (termLower.includes('chf') || termLower.includes('heart failure')) customConditions.push('chf');
+                if (termLower.includes('lupus')) customConditions.push('lupus');
+                if (termLower.includes('tb') || termLower.includes('tuberculosis') || termLower.includes('infiltration')) customConditions.push('pulmonary_infection');
+                if (termLower.includes('diabetes')) customConditions.push('diabetes');
+                if (termLower.includes('hypertension') || termLower.includes('htn')) customConditions.push('hypertension');
+                if (termLower.includes('copd') || termLower.includes('asthma')) customConditions.push('copd_asthma');
+            });
+            
+            [...new Set(customConditions)].forEach(cond => {
+                const insights = getDynamicConditionInsights(cond);
+                insights.guidelines.forEach(g => {
+                    pLines.push(`• Guideline: ${g}`);
+                });
+            });
+        }
+
         subjective = sLines.join('\n') || "• Patient reports symptoms described in note.";
         objective = oLines.join('\n') || "• Reference raw clinical narrative for vitals/meds.";
         assessment = aLines.join('\n') || "• Evaluated using browser local AI classifier.";
@@ -1719,27 +1989,36 @@ function generateLaymanSummary(noteText, profile) {
 
     let summary = `**Patient Layman Summary**\n\n• **Summary**: You are undergoing a clinical evaluation. Based on the notes compiled, here is a translated guide to the terms used:\n`;
     let termFound = false;
-    const translations = {
-        "dyspnea": "shortness of breath",
-        "fatigue": "unusual tiredness",
-        "peripheral edema": "fluid swelling in the legs/ankles",
-        "congestive heart failure": "heart muscle weakness",
-        "malar rash": "butterfly-shaped facial rash from sun exposure",
-        "arthralgias": "joint pain",
-        "tuberculosis": "a bacterial lung infection",
-        "infiltration": "cloudy spot on lung imaging, usually indicating inflammation or infection",
-        "bronchoscopy": "a visual examination of the lungs with a thin tube camera",
-        "AFB": "a bacteria-specific lab stain",
-        "PCR": "a highly sensitive genetic molecule test",
-        "gdmt": "evidence-based heart medication guidelines",
-        "titer": "blood concentration measurement",
-        "hempoptysis": "coughing up blood"
-    };
-
-    for (const [jargon, explanation] of Object.entries(translations)) {
-        if (noteText.toLowerCase().includes(jargon)) {
-            summary += `  - **${jargon}**: translates to **${explanation}**.\n`;
+    
+    if (profile && profile.highlights && profile.highlights.length > 0) {
+        profile.highlights.forEach(h => {
+            const translation = getDynamicTranslation(h.term);
+            const typeLabel = h.type === 'risk' ? 'clinical condition/risk' : h.type;
+            summary += `  - **${h.term}** (${typeLabel}): translates to **${translation}**.\n`;
             termFound = true;
+        });
+    } else {
+        const translations = {
+            "dyspnea": "shortness of breath",
+            "fatigue": "unusual tiredness",
+            "peripheral edema": "fluid swelling in the legs/ankles",
+            "congestive heart failure": "heart muscle weakness",
+            "malar rash": "butterfly-shaped facial rash from sun exposure",
+            "arthralgias": "joint pain",
+            "tuberculosis": "a bacterial lung infection",
+            "infiltration": "cloudy spot on lung imaging, usually indicating inflammation or infection",
+            "bronchoscopy": "a visual examination of the lungs with a thin tube camera",
+            "AFB": "a bacteria-specific lab stain",
+            "PCR": "a highly sensitive genetic molecule test",
+            "gdmt": "evidence-based heart medication guidelines",
+            "titer": "blood concentration measurement",
+            "hempoptysis": "coughing up blood"
+        };
+        for (const [jargon, explanation] of Object.entries(translations)) {
+            if (noteText.toLowerCase().includes(jargon)) {
+                summary += `  - **${jargon}**: translates to **${explanation}**.\n`;
+                termFound = true;
+            }
         }
     }
 
