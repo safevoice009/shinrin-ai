@@ -122,6 +122,35 @@
         </div>
     </div>
 
+    <!-- New Patient Case Modal -->
+    <div id="newCaseModal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-50 flex items-center justify-center hidden transition-opacity duration-350">
+        <div class="bg-white/95 dark:bg-stone-900/95 p-6 rounded-[28px] max-w-sm w-full mx-4 border border-white/20 dark:border-stone-800/40 shadow-2xl text-left space-y-4">
+            <h3 class="text-base font-extrabold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                <span>➕</span> Create New Patient Case
+            </h3>
+            
+            <div class="space-y-3">
+                <div class="flex flex-col space-y-1">
+                    <label for="new-case-name" class="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Patient Name</label>
+                    <input type="text" id="new-case-name" placeholder="e.g. Jane Doe" class="p-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                </div>
+                <div class="flex flex-col space-y-1">
+                    <label for="new-case-demo" class="text-[10px] font-bold uppercase tracking-wider text-stone-450 dark:text-stone-500">Demographics</label>
+                    <input type="text" id="new-case-demo" placeholder="e.g. 52yo F • History of Hypertension" class="p-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                </div>
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button onclick="submitNewCase()" class="flex-1 bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs py-2.5 rounded-xl transition duration-200 font-bold shadow-sm">
+                    Create Case
+                </button>
+                <button onclick="closeNewCaseModal()" class="flex-1 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs py-2.5 rounded-xl transition duration-200 font-bold">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-6xl mx-auto px-4 md:px-6 pt-10">
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-8 border-b border-stone-200/50 dark:border-stone-850/50">
@@ -164,7 +193,12 @@
             <div class="lg:col-span-2 space-y-8">
                 <!-- Patient Profile Selector & Context -->
                 <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-ingest tilt-card-3d">
-                    <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest mb-4">Select Patient Profile</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Select Patient Profile</h2>
+                        <button onclick="promptNewCase()" class="bg-[#4A5D4E]/10 hover:bg-[#4A5D4E]/20 text-[#4A5D4E] dark:text-[#FAF7F2] text-[10px] px-3 py-1.5 rounded-lg transition duration-200 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                            <span>＋</span> New Case
+                        </button>
+                    </div>
                     <div id="profileSwitcher" class="flex space-x-3.5 mb-6 overflow-x-auto pb-2"></div>
                     
                     <div id="activeProfileCard" class="bg-white/40 dark:bg-stone-900/40 p-6 rounded-2xl border border-white/20 dark:border-stone-850/50 flex flex-col md:flex-row justify-between items-center gap-6 transition-all duration-300">
@@ -301,19 +335,19 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Subjective (S)</label>
-                                <textarea id="soap-s" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
+                                <textarea id="soap-s" oninput="onSoapEdit()" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Objective (O)</label>
-                                <textarea id="soap-o" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
+                                <textarea id="soap-o" oninput="onSoapEdit()" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Assessment (A)</label>
-                                <textarea id="soap-a" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
+                                <textarea id="soap-a" oninput="onSoapEdit()" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555">Plan (P)</label>
-                                <textarea id="soap-p" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
+                                <textarea id="soap-p" oninput="onSoapEdit()" class="w-full p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-xs text-stone-700 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" rows="5"></textarea>
                             </div>
                         </div>
                         <div class="flex justify-end pt-2">

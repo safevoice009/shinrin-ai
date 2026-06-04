@@ -8,7 +8,28 @@ import { fetchFhirRecord } from './fhir.js';
 // Disable local model caching, fetch from HuggingFace CDN
 env.allowLocalModels = false;
 
-let activeProfile = profiles[0];
+let currentProfiles = [...profiles];
+function loadProfilesFromStorage() {
+    const saved = localStorage.getItem('shinrin_custom_cases');
+    if (saved) {
+        try {
+            const customCases = JSON.parse(saved);
+            customCases.forEach(customCase => {
+                currentProfiles.push(customCase);
+            });
+        } catch (e) {
+            console.error("Failed to parse custom cases from localStorage", e);
+        }
+    }
+}
+loadProfilesFromStorage();
+
+function saveProfilesToStorage() {
+    const custom = currentProfiles.filter(p => p.id.startsWith('profile_'));
+    localStorage.setItem('shinrin_custom_cases', JSON.stringify(custom));
+}
+
+let activeProfile = currentProfiles[0];
 let classifier = null;
 let activeModel = 'distilbert';
 let activeRegistryTool = 'openmrs';
@@ -380,7 +401,7 @@ function updateFHIRBundle(profile, soap = null) {
                     {
                         "attachment": {
                             "contentType": "text/plain",
-                            "data": btoa(`Subjective: ${soap.subjective}\nObjective: ${soap.objective}\nAssessment: ${soap.assessment}\nPlan: ${soap.plan}`)
+                            "data": btoa(unescape(encodeURIComponent(`Subjective: ${soap.subjective}\nObjective: ${soap.objective}\nAssessment: ${soap.assessment}\nPlan: ${soap.plan}`)))
                         }
                     }
                 ]
@@ -700,26 +721,200 @@ window.updatePipelineStep = updatePipelineStep;
 // Create profile switcher buttons
 function renderSwitcher() {
     profileSwitcher.innerHTML = '';
-    profiles.forEach(profile => {
+    currentProfiles.forEach(profile => {
         const btn = document.createElement('button');
         btn.id = `btn-${profile.id}`;
-        btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 border dark:border-stone-850';
+        btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 border dark:border-stone-850 flex items-center gap-1 hover:bg-stone-50 dark:hover:bg-stone-800';
         
         if (profile.id === activeProfile.id) {
             btn.className += ' bg-[#4A5D4E] text-[#FAF7F2] border-[#4A5D4E] shadow-sm';
+            btn.classList.remove('hover:bg-stone-50', 'dark:hover:bg-stone-800');
         } else {
-            btn.className += ' bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800';
+            btn.className += ' bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200';
         }
 
-        btn.textContent = profile.name.split(':')[0]; // Show short name
+        const label = document.createElement('span');
+        label.textContent = profile.name.split(':')[0];
+        btn.appendChild(label);
+
+        if (profile.id.startsWith('profile_')) {
+            const delBtn = document.createElement('span');
+            delBtn.innerHTML = '&times;';
+            delBtn.className = 'ml-2 text-stone-400 hover:text-red-500 font-bold cursor-pointer text-sm transition-colors px-1 rounded-full hover:bg-stone-200 dark:hover:bg-stone-800';
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteCustomCase(profile.id);
+            };
+            btn.appendChild(delBtn);
+        }
+
         btn.onclick = () => selectProfile(profile.id);
         profileSwitcher.appendChild(btn);
     });
     bindHapticClickListeners();
 }
 
+function deleteCustomCase(profileId) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    if (confirm("Are you sure you want to delete this patient case?")) {
+        currentProfiles = currentProfiles.filter(p => p.id !== profileId);
+        saveProfilesToStorage();
+        if (activeProfile.id === profileId) {
+            selectProfile(currentProfiles[0].id);
+        } else {
+            renderSwitcher();
+        }
+        showToast("Case deleted successfully.", "info");
+    }
+}
+window.deleteCustomCase = deleteCustomCase;
+
+function promptNewCase() {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const modal = document.getElementById('newCaseModal');
+    if (modal) {
+        document.getElementById('new-case-name').value = '';
+        document.getElementById('new-case-demo').value = '';
+        modal.classList.remove('hidden');
+    }
+}
+window.promptNewCase = promptNewCase;
+
+function closeNewCaseModal() {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const modal = document.getElementById('newCaseModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+window.closeNewCaseModal = closeNewCaseModal;
+
+function submitNewCase() {
+    const nameInputVal = document.getElementById('new-case-name').value.trim();
+    const demoInputVal = document.getElementById('new-case-demo').value.trim();
+    
+    if (!nameInputVal) {
+        showToast("Patient Name is required.", "warning");
+        return;
+    }
+    
+    const id = 'profile_' + Date.now();
+    const newProfile = {
+        id: id,
+        name: `Case: ${nameInputVal}`,
+        demographics: demoInputVal || "Demographics unspecified",
+        description: "Clinician created custom patient profile. Input history below.",
+        notes: "",
+        timeline: [
+            { date: new Date().toLocaleDateString(), event: "New Patient Case Opened", type: "test" }
+        ],
+        highlights: [],
+        recommendations: [
+            {
+                title: "Custom Case Initialized",
+                description: "Type the unstructured narrative note and click 'Structure Note' to activate the pipeline."
+            }
+        ],
+        soap: null
+    };
+    
+    currentProfiles.push(newProfile);
+    saveProfilesToStorage();
+    closeNewCaseModal();
+    selectProfile(id);
+    showToast(`New case added: ${nameInputVal}`, "success");
+}
+window.submitNewCase = submitNewCase;
+
+function onSoapEdit() {
+    if (!activeProfile.soap) activeProfile.soap = {};
+    
+    activeProfile.soap.subjective = document.getElementById('soap-s').value;
+    activeProfile.soap.objective = document.getElementById('soap-o').value;
+    activeProfile.soap.assessment = document.getElementById('soap-a').value;
+    activeProfile.soap.plan = document.getElementById('soap-p').value;
+    
+    window.lastSoap = activeProfile.soap;
+    
+    if (activeProfile.id.startsWith('profile_')) {
+        saveProfilesToStorage();
+    }
+    
+    updateClinicalInsights(activeProfile, activeProfile.soap);
+    updateFHIRBundle(activeProfile, activeProfile.soap);
+}
+window.onSoapEdit = onSoapEdit;
+
+const clinicalEntities = [
+    { term: "lisinopril", type: "medication" },
+    { term: "carvedilol", type: "medication" },
+    { term: "naproxen", type: "medication" },
+    { term: "amoxicillin", type: "medication" },
+    { term: "progressive dyspnea", type: "symptom" },
+    { term: "dyspnea", type: "symptom" },
+    { term: "fatigue", type: "symptom" },
+    { term: "peripheral edema", type: "symptom" },
+    { term: "joint pain", type: "symptom" },
+    { term: "malar rash", type: "symptom" },
+    { term: "cough", type: "symptom" },
+    { term: "night sweats", type: "symptom" },
+    { term: "weight loss", type: "symptom" },
+    { term: "congestive heart failure", type: "risk" },
+    { term: "chf", type: "risk" },
+    { term: "positive ANA titer", type: "risk" },
+    { term: "upper lobe infiltration", type: "risk" },
+    { term: "infiltration", type: "risk" }
+];
+
+function generateCustomRecommendations(noteText) {
+    const recs = [];
+    const lowerText = noteText.toLowerCase();
+
+    if (lowerText.includes('chf') || lowerText.includes('heart failure') || lowerText.includes('dyspnea')) {
+        recs.push({
+            title: "Initiate Guideline-Directed Medical Therapy (GDMT)",
+            description: "Consider adding a sodium-glucose cotransporter-2 (SGLT2) inhibitor (e.g., empagliflozin) per AHA/ACC guidelines for heart failure."
+        });
+        recs.push({
+            title: "Volume Status Monitoring",
+            description: "Address peripheral edema and volume overload with short-term loop diuretic adjustments and daily weight logs."
+        });
+    }
+
+    if (lowerText.includes('joint pain') || lowerText.includes('lupus') || lowerText.includes('ana')) {
+        recs.push({
+            title: "Evaluate for Autoimmune Connective Tissue Disease",
+            description: "Evaluate for Systemic Lupus Erythematosus (SLE) or Rheumatoid Arthritis. Request dsDNA, anti-Smith, complement levels (C3/C4)."
+        });
+        recs.push({
+            title: "Hydroxychloroquine Baseline retinoscopy",
+            description: "Advise complete UV sunblock protection and schedule baseline retinal scans prior to starting antimalarials."
+        });
+    }
+
+    if (lowerText.includes('cough') || lowerText.includes('sweats') || lowerText.includes('infiltration') || lowerText.includes('tb')) {
+        recs.push({
+            title: "Rule Out Granulomatous Lung Infection",
+            description: "Isolate patient immediately under airborne precautions. Order sputum AFB smears and M. tuberculosis PCR."
+        });
+        recs.push({
+            title: "Diagnostic Bronchoscopy / Chest CT Scan",
+            description: "Order high-resolution chest CT scan or refer for diagnostic bronchoscopy with BAL if sputum samples are negative."
+        });
+    }
+
+    if (recs.length === 0) {
+        recs.push({
+            title: "Clinical Organ System Assessment",
+            description: "Review vitals, basic metabolics (CBC/CMP), and follow clinic-specific longitudinal diagnostic guidelines."
+        });
+    }
+
+    return recs;
+}
+
 function selectProfile(profileId) {
-    activeProfile = profiles.find(p => p.id === profileId);
+    activeProfile = currentProfiles.find(p => p.id === profileId);
     renderSwitcher();
     
     // Set stepper to stage 0
@@ -740,7 +935,7 @@ function selectProfile(profileId) {
     
     // Reset diagnostic panel message
     recommendationPanel.innerHTML = `
-        <div class="text-center py-12 text-stone-400 dark:text-stone-550 text-sm">
+        <div class="text-center py-12 text-stone-400 dark:text-stone-555 text-sm">
             <p>New profile loaded: ${activeProfile.name.split(':')[0]}</p>
             <p class="text-xs mt-1">Click 'Structure Note' to generate recommendations.</p>
         </div>
@@ -758,9 +953,24 @@ function selectProfile(profileId) {
     if (gaugePercentEl) gaugePercentEl.textContent = '0%';
     
     // Reset clinical workspace state
-    window.lastSoap = null;
-    updateClinicalInsights(activeProfile, null);
-    updateFHIRBundle(activeProfile, null);
+    window.lastSoap = activeProfile.soap || null;
+    
+    if (activeProfile.soap) {
+        document.getElementById('soap-s').value = activeProfile.soap.subjective || '';
+        document.getElementById('soap-o').value = activeProfile.soap.objective || '';
+        document.getElementById('soap-a').value = activeProfile.soap.assessment || '';
+        document.getElementById('soap-p').value = activeProfile.soap.plan || '';
+        updateClinicalInsights(activeProfile, activeProfile.soap);
+        updateFHIRBundle(activeProfile, activeProfile.soap);
+        document.getElementById('highlightsContainer').classList.remove('hidden');
+    } else {
+        document.getElementById('soap-s').value = '';
+        document.getElementById('soap-o').value = '';
+        document.getElementById('soap-a').value = '';
+        document.getElementById('soap-p').value = '';
+        updateClinicalInsights(activeProfile, null);
+        updateFHIRBundle(activeProfile, null);
+    }
     
     renderTimeline();
     logTelemetry(`Longitudinal timeline rendered with ${activeProfile.timeline.length} clinical nodes.`, 'SUCCESS');
@@ -999,6 +1209,30 @@ async function parseNote() {
     
     // Highlight clinical terms
     let markedText = noteText;
+    
+    if (activeProfile.id.startsWith('profile_')) {
+        activeProfile.highlights = [];
+        clinicalEntities.forEach(ent => {
+            const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+            if (regex.test(noteText)) {
+                activeProfile.highlights.push({ term: ent.term, type: ent.type });
+            }
+        });
+        activeProfile.recommendations = generateCustomRecommendations(noteText);
+        
+        // Dynamically add clinical findings to the patient timeline
+        if (activeProfile.timeline.length <= 1) {
+            activeProfile.highlights.forEach(h => {
+                activeProfile.timeline.push({
+                    date: new Date().toLocaleDateString(),
+                    event: `Clinical finding: ${h.term} (${h.type})`,
+                    type: h.type
+                });
+            });
+        }
+    }
+    
     activeProfile.highlights.forEach(entity => {
         const escapedTerm = entity.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         const regex = new RegExp(`(${escapedTerm})`, 'gi');
@@ -1223,6 +1457,10 @@ async function parseNote() {
 
     // Save state for synchronization reference
     window.lastSoap = soap;
+    activeProfile.soap = soap;
+    if (activeProfile.id.startsWith('profile_')) {
+        saveProfilesToStorage();
+    }
     updateClinicalInsights(activeProfile, soap);
     updateFHIRBundle(activeProfile, soap);
 
@@ -1416,6 +1654,14 @@ initTheme();
 selectProfile('profileA');
 bindHapticClickListeners();
 initCard3DTilt();
+
+// Auto-save clinical note to active profile in real-time
+noteInput.addEventListener('input', () => {
+    activeProfile.notes = noteInput.value;
+    if (activeProfile.id.startsWith('profile_')) {
+        saveProfilesToStorage();
+    }
+});
 
 // Handle responsive viewport transitions
 window.addEventListener('resize', () => {
