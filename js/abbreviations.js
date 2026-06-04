@@ -11,5 +11,13 @@ export const abbreviations = {
     "SLE": "Systemic Lupus Erythematosus (chronic autoimmune disease affecting multiple organs)",
     "dsDNA": "Double-stranded DNA antibody (specific marker for Lupus auto-immunity)",
     "BAL": "Bronchoalveolar Lavage (lung washing procedure to gather samples)",
-    "CXR": "Chest X-Ray (imaging of chest structure and lungs)"
+    "CXR": "Chest X-Ray (imaging of chest structure and lungs)",
+    "HIV": "Human Immunodeficiency Virus (immune system virus)",
+    "ART": "Antiretroviral Therapy (standard medication combination for HIV)",
+    "HTN": "Hypertension (high blood pressure condition)",
+    "COPD": "Chronic Obstructive Pulmonary Disease (progressive lung inflammatory disease)",
+    "DM": "Diabetes Mellitus (chronic high blood sugar condition)",
+    "PCP": "Pneumocystis Pneumonia (serious opportunistic lung infection in immunocompromised hosts)",
+    "BMP": "Basic Metabolic Panel (standard blood test for kidney function and electrolytes)",
+    "A1c": "Hemoglobin A1c (average blood sugar level over the past 3 months)"
 };

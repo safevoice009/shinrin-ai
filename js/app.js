@@ -241,75 +241,149 @@ function updateClinicalInsights(profile, soap = null) {
     const noteText = profile.notes || (document.getElementById('noteInput') ? document.getElementById('noteInput').value : "");
     const lowerText = noteText.toLowerCase();
     
+    const activeConditions = [];
+    
+    // Scan for active conditions
+    if (lowerText.includes('hiv') || lowerText.includes('aids') || lowerText.includes('immunodefic') || lowerText.includes('anti-retro-viral') || lowerText.includes('antiretroviral') || lowerText.includes('art')) {
+        activeConditions.push('hiv');
+    }
+    if (lowerText.includes('chf') || lowerText.includes('heart failure') || lowerText.includes('dyspnea') || lowerText.includes('edema') || lowerText.includes('cardiac') || lowerText.includes('lisinopril') || lowerText.includes('carvedilol') || profile.id === 'profileA') {
+        activeConditions.push('chf');
+    }
+    if (lowerText.includes('joint pain') || lowerText.includes('lupus') || lowerText.includes('ana') || lowerText.includes('rash') || lowerText.includes('malar') || lowerText.includes('rheumat') || profile.id === 'profileB') {
+        activeConditions.push('lupus');
+    }
+    if (lowerText.includes('cough') || lowerText.includes('sweats') || lowerText.includes('infiltration') || lowerText.includes('tb') || lowerText.includes('tuberculosis') || lowerText.includes('infidration') || profile.id === 'profileC') {
+        activeConditions.push('pulmonary_infection');
+    }
+    if (lowerText.includes('hypertension') || lowerText.includes('high blood pressure') || lowerText.includes('htn') || lowerText.includes('amlodipine') || lowerText.includes('losartan') || lowerText.includes('hydrochlorothiazide') || lowerText.includes('hctz')) {
+        activeConditions.push('hypertension');
+    }
+    if (lowerText.includes('diabetes') || lowerText.includes('hyperglycemia') || lowerText.includes('metformin') || lowerText.includes('insulin') || lowerText.includes('hba1c') || lowerText.includes('sugar')) {
+        activeConditions.push('diabetes');
+    }
+    if (lowerText.includes('copd') || lowerText.includes('asthma') || lowerText.includes('wheezing') || lowerText.includes('albuterol') || lowerText.includes('prednisone') || lowerText.includes('bronchospasm')) {
+        activeConditions.push('copd_asthma');
+    }
+
     let pathophysText = "";
     let guidelines = [];
     let differentials = [];
-    
-    // Check if cardiac / heart failure is mentioned
-    if (lowerText.includes('chf') || lowerText.includes('heart failure') || lowerText.includes('dyspnea') || lowerText.includes('edema') || lowerText.includes('cardiac') || lowerText.includes('lisinopril') || lowerText.includes('carvedilol') || profile.id === 'profileA') {
-        pathophysText = "Progressive left ventricular systolic impairment leads to elevated pulmonary venous pressures, driving pulmonary transudate (causing dyspnea) and systemic venous congestion (causing peripheral edema). GDMT mitigates neurohormonal activation.";
-        guidelines = [
-            "Initiate SGLT2 inhibitor (e.g., Empagliflozin) per 2022 AHA/ACC HFrEF Guidelines (Class 1a recommendation).",
-            "Monitor serum potassium and renal function (GFR) during ACEi/ARB titration.",
-            "Schedule follow-up echocardiogram in 3 months to assess for cardiac remodeling."
-        ];
-        differentials = [
-            "Acute Decompensated Heart Failure (HFrEF baseline)",
-            "Renal failure with systemic fluid overload",
-            "COPD exacerbation (pulmonary etiology)"
-        ];
-    } 
-    // Check if rheumatological / lupus is mentioned
-    else if (lowerText.includes('joint pain') || lowerText.includes('lupus') || lowerText.includes('ana') || lowerText.includes('rash') || lowerText.includes('malar') || lowerText.includes('rheumat') || profile.id === 'profileB') {
-        pathophysText = "Auto-antibody cascade results in immune-complex deposition at dermal-epidermal junctions (malar rash) and synovium membranes, causing localized symmetrical polyarthritis and transient stiffness.";
-        guidelines = [
+
+    const pathophysiologies = {
+        'hiv': "CD4+ T-lymphocyte depletion compromises cellular immunity, rendering the host highly susceptible to opportunistic pathogens (e.g., Pneumocystis, Mycobacterium tuberculosis, MAC).",
+        'chf': "Progressive left ventricular systolic impairment leads to elevated pulmonary venous pressures, driving pulmonary transudate (causing dyspnea) and systemic venous congestion (causing peripheral edema).",
+        'lupus': "Auto-antibody cascade results in immune-complex deposition at dermal-epidermal junctions (malar rash) and synovium membranes, causing localized symmetrical polyarthritis.",
+        'pulmonary_infection': "Inhalation of pathogens triggers alveolar macrophage phagocytosis, forming caseous granulomas or consolidated lung segments (infiltration). Cytokine cascades drive night sweats.",
+        'hypertension': "Chronic elevation of systemic vascular resistance increases left ventricular afterload, predisposing to arterial wall remodeling and microvascular damage.",
+        'diabetes': "Impaired insulin secretion or peripheral insulin resistance leads to chronic hyperglycemia, causing endothelial damage and cellular dysfunction.",
+        'copd_asthma': "Chronic inflammatory processes or bronchial hyperresponsiveness causes smooth muscle hypertrophy and expiratory airflow obstruction."
+    };
+
+    const guidelinesMap = {
+        'hiv': [
+            "Order CD4 count and quantitative HIV viral load immediately.",
+            "Assess antiretroviral therapy (ART) compliance and record drug regimens.",
+            "Initiate Pneumocystis jirovecii (PCP) prophylaxis (e.g., Bactrim) if CD4 count is < 200 cells/µL.",
+            "Screen for opportunistic co-infections (TB, cryptococcal antigen, MAC)."
+        ],
+        'chf': [
+            "Initiate SGLT2 inhibitor (e.g., Empagliflozin) per AHA/ACC HFrEF Guidelines.",
+            "Monitor serum potassium, renal function (GFR), and electrolytes during medication titration.",
+            "Instruct patient on daily volume status checks (daily weight log, peripheral edema monitoring).",
+            "Schedule follow-up echocardiogram in 3 months to re-evaluate LVEF."
+        ],
+        'lupus': [
             "Order dsDNA, anti-Smith, complement levels (C3/C4), and urinalysis to screen for lupus nephritis.",
             "Schedule baseline retinal photography prior to starting Hydroxychloroquine therapy.",
             "Advise complete photoprotection (broad-spectrum SPF, UV clothing) as solar exposure triggers disease activity."
-        ];
-        differentials = [
+        ],
+        'pulmonary_infection': [
+            "Enforce airborne infection isolation containment precautions immediately if TB is suspected.",
+            "Obtain triple morning sputum samples for Acid-Fast Bacilli (AFB) smear and GeneXpert PCR.",
+            "Obtain baseline hepatic panel prior to starting potential hepatotoxic regimens.",
+            "Order high-resolution chest CT scan."
+        ],
+        'hypertension': [
+            "Verify home blood pressure logs (goal < 130/80 mmHg).",
+            "Monitor BMP for renal function and electrolyte stability.",
+            "Counsel patient on low-sodium dietary restrictions (DASH diet)."
+        ],
+        'diabetes': [
+            "Order HbA1c level (goal < 7.0% for most adults).",
+            "Refer for annual dilated eye exam and comprehensive sensory foot exam.",
+            "Screen for diabetic nephropathy with a spot urine albumin-to-creatinine ratio."
+        ],
+        'copd_asthma': [
+            "Assess inhaler device technique and review medication adherence.",
+            "Order spirometry to evaluate FEV1/FVC ratio and post-bronchodilator reversibility.",
+            "Counsel patient on smoking cessation and avoidance of known environmental triggers."
+        ]
+    };
+
+    const differentialsMap = {
+        'hiv': [
+            "Opportunistic Infection (PCP suspect)",
+            "Immunodeficiency-related cytopenia",
+            "Pulmonary Kaposi Sarcoma"
+        ],
+        'chf': [
+            "Acute Decompensated Heart Failure (HFrEF baseline)",
+            "Renal failure with systemic fluid overload",
+            "COPD exacerbation (pulmonary etiology)"
+        ],
+        'lupus': [
             "Systemic Lupus Erythematosus (SLE suspect)",
             "Early Rheumatoid Arthritis",
             "Drug-induced Lupus Erythematosus"
-        ];
-    } 
-    // Check if pulmonary / tuberculosis is mentioned
-    else if (lowerText.includes('cough') || lowerText.includes('sweats') || lowerText.includes('infiltration') || lowerText.includes('tb') || lowerText.includes('tuberculosis') || profile.id === 'profileC') {
-        pathophysText = "Inhalation of mycobacterial droplets triggers alveolar macrophage phagocytosis, forming necrotizing caseous granulomas (infiltration). Cytokine cascade (TNF-α, IL-1) drives weight loss and hypothalamic night sweats.";
-        guidelines = [
-            "Enforce immediate airborne infection isolation containment precautions.",
-            "Obtain triple morning sputum samples for Acid-Fast Bacilli (AFB) smear and GeneXpert PCR.",
-            "Obtain baseline hepatic panel prior to starting potential hepatotoxic RIPE treatment."
-        ];
-        differentials = [
+        ],
+        'pulmonary_infection': [
             "Pulmonary Tuberculosis infection",
             "Atypical fungal pneumonia (Histoplasmosis, Coccidioidomycosis)",
             "Bronchogenic Carcinoma (mass effect/necrosis)"
-        ];
-    } 
-    // Otherwise, generate completely dynamic guidelines based on symptoms and medications found!
-    else {
+        ],
+        'hypertension': [
+            "Primary Essential Hypertension",
+            "Secondary Hypertension (renal artery stenosis, Conn syndrome)"
+        ],
+        'diabetes': [
+            "Type 2 Diabetes Mellitus",
+            "Latent Autoimmune Diabetes in Adults (LADA)",
+            "Hyperglycemic Hyperosmolar State (HHS)"
+        ],
+        'copd_asthma': [
+            "COPD exacerbation",
+            "Acute bronchial asthma",
+            "Cardiac asthma (CHF-induced lung congestion)"
+        ]
+    };
+
+    if (activeConditions.length > 0) {
+        pathophysText = activeConditions.map(cond => `[${cond.toUpperCase().replace('_', ' ')}] ${pathophysiologies[cond]}`).join("\n\n");
+        activeConditions.forEach(cond => {
+            guidelines = guidelines.concat(guidelinesMap[cond]);
+            differentials = differentials.concat(differentialsMap[cond]);
+        });
+        differentials = [...new Set(differentials)];
+    } else {
         // Find symptoms, meds, and risk factors from clinicalEntities in lowerText
         const matchedSymptoms = [];
         const matchedMeds = [];
         const matchedRisks = [];
         
-        if (typeof clinicalEntities !== 'undefined') {
-            clinicalEntities.forEach(ent => {
-                const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-                const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
-                if (regex.test(noteText)) {
-                    if (ent.type === 'symptom') matchedSymptoms.push(ent.term);
-                    else if (ent.type === 'medication') matchedMeds.push(ent.term);
-                    else if (ent.type === 'risk') matchedRisks.push(ent.term);
-                }
-            });
-        }
+        clinicalEntities.forEach(ent => {
+            const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+            if (regex.test(noteText)) {
+                if (ent.type === 'symptom') matchedSymptoms.push(ent.term);
+                else if (ent.type === 'medication') matchedMeds.push(ent.term);
+                else if (ent.type === 'risk') matchedRisks.push(ent.term);
+            }
+        });
         
         if (matchedSymptoms.length > 0 || matchedMeds.length > 0 || matchedRisks.length > 0) {
             pathophysText = `Dynamic Pathophysiology: Analyzing clinical interactions of symptoms (${matchedSymptoms.join(', ') || 'none'}) under risk profiles (${matchedRisks.join(', ') || 'none'}). Pathological processes are evaluated in real-time.`;
             
-            guidelines = [];
             if (matchedSymptoms.length > 0) {
                 guidelines.push(`Monitor progression of symptoms: ${matchedSymptoms.join(', ')}.`);
             }
@@ -331,7 +405,7 @@ function updateClinicalInsights(profile, soap = null) {
                 }
             }
         } else {
-            pathophysText = "Patient note structured dynamically. Please enter symptoms, medications, or history details to generate pathophysiology insights.";
+            pathophysText = "Patient note structured dynamically. Please enter symptoms, medications, or history details to generate clinical decision insights.";
             guidelines = [
                 "Enter patient symptoms or clinical history in the workspace note.",
                 "Review basic vitals (BP, Heart Rate, Respiratory Rate, Temperature).",
@@ -345,7 +419,7 @@ function updateClinicalInsights(profile, soap = null) {
         }
     }
     
-    pathophysEl.textContent = pathophysText;
+    pathophysEl.innerText = pathophysText;
     
     guidelinesEl.innerHTML = guidelines.map(g => `
         <li class="flex items-start gap-2">
@@ -361,7 +435,7 @@ function updateClinicalInsights(profile, soap = null) {
         </li>
     `).join('');
 }
-window.updateClinicalInsights = updateClinicalInsights;;
+window.updateClinicalInsights = updateClinicalInsights;
 
 // Developer Workspace (FHIR Bundle JSON Syntax Highlighter)
 function highlightJson(jsonObj) {
@@ -747,7 +821,7 @@ async function toggleDictation() {
             }
         }
     } 
-    // CASE 2: Using Local Whisper AI (For all real user browsers like Firefox, Brave, Chrome, Safari, Edge)
+    // CASE 2: Using Local Shinrin Voice AI (For all real user browsers like Firefox, Brave, Chrome, Safari, Edge)
     else {
         if (isDictating) {
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -765,7 +839,7 @@ async function toggleDictation() {
             whisperPipeline = null;
         }
         
-        // Load Whisper pipeline if not loaded
+        // Load Shinrin Voice AI pipeline if not loaded
         if (!whisperPipeline) {
             const loader = document.getElementById('modelLoader');
             const progress = document.getElementById('modelProgress');
@@ -773,7 +847,7 @@ async function toggleDictation() {
             
             if (loader) {
                 loader.classList.remove('hidden');
-                if (progressTxt) progressTxt.textContent = "Loading Speech AI (Local Whisper)...";
+                if (progressTxt) progressTxt.textContent = "Loading Shinrin Voice AI...";
                 if (progress) progress.style.width = "10%";
             }
             
@@ -783,17 +857,17 @@ async function toggleDictation() {
                         if (data.status === 'progress') {
                             const percent = Math.round(data.progress);
                             if (progress) progress.style.width = `${percent}%`;
-                            if (progressTxt) progressTxt.textContent = `Downloading Speech Model: ${percent}%`;
+                            if (progressTxt) progressTxt.textContent = `Downloading Shinrin Voice AI: ${percent}%`;
                         }
                     }
                 });
                 loadedWhisperModelName = selectedModel;
                 if (loader) loader.classList.add('hidden');
-                showToast("Whisper Speech Model Ready!", "success");
+                showToast("Shinrin Voice AI Model Ready!", "success");
             } catch (err) {
-                console.error("Failed to load Whisper model", err);
+                console.error("Failed to load Shinrin Voice AI model", err);
                 if (loader) loader.classList.add('hidden');
-                showToast("Failed to load Speech AI model. Check network.", "warning");
+                showToast("Failed to load Shinrin Voice AI model. Check network.", "warning");
                 return;
             }
         }
@@ -860,7 +934,7 @@ async function toggleDictation() {
             dictateIcon.textContent = "🔴";
             dictateText.textContent = "Recording... Click to Stop";
             dictateBtn.className = "border border-red-500 bg-red-50 dark:bg-red-950/20 text-[#FF453A] dark:text-red-400 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold flex items-center gap-1.5 animate-pulse shadow-sm";
-            showToast("Whisper recording started. Click again to process.", "success");
+            showToast("Shinrin Voice AI recording started. Click again to process.", "success");
         } catch (err) {
             console.error("Failed to start recording", err);
             showToast("Microphone access denied or not found.", "warning");
@@ -1186,36 +1260,78 @@ const clinicalEntities = [
     { term: "chf", type: "risk" },
     { term: "positive ANA titer", type: "risk" },
     { term: "upper lobe infiltration", type: "risk" },
-    { term: "infiltration", type: "risk" }
+    { term: "infiltration", type: "risk" },
+    { term: "anti-retro-viral therapy", type: "medication" },
+    { term: "antiretroviral", type: "medication" },
+    { term: "art", type: "medication" },
+    { term: "amlodipine", type: "medication" },
+    { term: "losartan", type: "medication" },
+    { term: "hydrochlorothiazide", type: "medication" },
+    { term: "hctz", type: "medication" },
+    { term: "metformin", type: "medication" },
+    { term: "insulin", type: "medication" },
+    { term: "glipizide", type: "medication" },
+    { term: "albuterol", type: "medication" },
+    { term: "prednisone", type: "medication" },
+    { term: "fluticasone", type: "medication" },
+    { term: "tiotropium", type: "medication" },
+    { term: "hiv", type: "risk" },
+    { term: "aids", type: "risk" },
+    { term: "hypertension", type: "risk" },
+    { term: "diabetes", type: "risk" },
+    { term: "copd", type: "risk" },
+    { term: "asthma", type: "risk" },
+    { term: "fever", type: "symptom" },
+    { term: "wheezing", type: "symptom" },
+    { term: "polyuria", type: "symptom" },
+    { term: "polydipsia", type: "symptom" },
+    { term: "chest pain", type: "symptom" },
+    { term: "infidration", type: "risk" },
+    { term: "infiltration in the right upper lobe", type: "risk" }
 ];
 
 function generateCustomRecommendations(noteText) {
     const recs = [];
     const lowerText = noteText.toLowerCase();
 
-    if (lowerText.includes('chf') || lowerText.includes('heart failure') || lowerText.includes('dyspnea')) {
+    // 1. HIV / Immunocompromised status
+    if (lowerText.includes('hiv') || lowerText.includes('aids') || lowerText.includes('immunodefic') || lowerText.includes('anti-retro-viral') || lowerText.includes('antiretroviral') || lowerText.includes('art')) {
+        recs.push({
+            title: "HIV Care Continuum & ART Adherence",
+            description: "Assess compliance with antiretroviral therapy (ART). Order CD4 lymphocyte count and quantitative HIV viral load testing."
+        });
+        recs.push({
+            title: "Opportunistic Infection (OI) Prevention",
+            description: "If CD4 count is < 200 cells/µL, initiate prophylactic Trimethoprim-Sulfamethoxazole (Bactrim) to protect against Pneumocystis jirovecii pneumonia (PCP)."
+        });
+    }
+
+    // 2. Heart Failure (CHF)
+    if (lowerText.includes('chf') || lowerText.includes('heart failure') || lowerText.includes('dyspnea') || lowerText.includes('edema') || lowerText.includes('cardiac')) {
         recs.push({
             title: "Initiate Guideline-Directed Medical Therapy (GDMT)",
             description: "Consider adding a sodium-glucose cotransporter-2 (SGLT2) inhibitor (e.g., empagliflozin) per AHA/ACC guidelines for heart failure."
         });
         recs.push({
-            title: "Volume Status Monitoring",
-            description: "Address peripheral edema and volume overload with short-term loop diuretic adjustments and daily weight logs."
+            title: "Volume Status & Diuretic Management",
+            description: "Review peripheral edema levels. Instruct the patient to keep daily weight logs and report any sudden increases of > 3 lbs in 24 hours."
         });
     }
 
-    if (lowerText.includes('joint pain') || lowerText.includes('lupus') || lowerText.includes('ana')) {
+    // 3. Lupus (SLE)
+    if (lowerText.includes('joint pain') || lowerText.includes('lupus') || lowerText.includes('ana') || lowerText.includes('rash') || lowerText.includes('malar')) {
         recs.push({
             title: "Evaluate for Autoimmune Connective Tissue Disease",
             description: "Evaluate for Systemic Lupus Erythematosus (SLE) or Rheumatoid Arthritis. Request dsDNA, anti-Smith, complement levels (C3/C4)."
         });
         recs.push({
-            title: "Hydroxychloroquine Baseline retinoscopy",
-            description: "Advise complete UV sunblock protection and schedule baseline retinal scans prior to starting antimalarials."
+            title: "Hydroxychloroquine Baseline Retinoscopy",
+            description: "Advise complete UV sunblock protection and schedule baseline retinal photography prior to starting hydroxychloroquine."
         });
     }
 
-    if (lowerText.includes('cough') || lowerText.includes('sweats') || lowerText.includes('infiltration') || lowerText.includes('tb')) {
+    // 4. Pulmonary Infection / TB
+    if (lowerText.includes('cough') || lowerText.includes('sweats') || lowerText.includes('infiltration') || lowerText.includes('tb') || lowerText.includes('tuberculosis') || lowerText.includes('infidration')) {
         recs.push({
             title: "Rule Out Granulomatous Lung Infection",
             description: "Isolate patient immediately under airborne precautions. Order sputum AFB smears and M. tuberculosis PCR."
@@ -1223,6 +1339,30 @@ function generateCustomRecommendations(noteText) {
         recs.push({
             title: "Diagnostic Bronchoscopy / Chest CT Scan",
             description: "Order high-resolution chest CT scan or refer for diagnostic bronchoscopy with BAL if sputum samples are negative."
+        });
+    }
+
+    // 5. Hypertension (HTN)
+    if (lowerText.includes('hypertension') || lowerText.includes('high blood pressure') || lowerText.includes('htn') || lowerText.includes('amlodipine') || lowerText.includes('losartan')) {
+        recs.push({
+            title: "Hypertension Control & DASH Diet",
+            description: "Goal blood pressure is < 130/80 mmHg. Monitor home BP logs and counsel on low-sodium DASH diet."
+        });
+    }
+
+    // 6. Diabetes Mellitus (DM)
+    if (lowerText.includes('diabetes') || lowerText.includes('hyperglycemia') || lowerText.includes('metformin') || lowerText.includes('insulin') || lowerText.includes('hba1c')) {
+        recs.push({
+            title: "Glycemic Monitoring & HbA1c Review",
+            description: "Verify HbA1c within 3 months (goal < 7% for most adults). Screen for diabetic nephropathy and schedule annual eye and foot exams."
+        });
+    }
+
+    // 7. COPD / Asthma
+    if (lowerText.includes('copd') || lowerText.includes('asthma') || lowerText.includes('wheezing') || lowerText.includes('albuterol') || lowerText.includes('prednisone')) {
+        recs.push({
+            title: "Spirometry & Airway Management",
+            description: "Assess compliance with inhaled corticosteroid (ICS) or bronchodilators. Order pulmonary function tests (spirometry)."
         });
     }
 
@@ -1535,27 +1675,28 @@ async function parseNote() {
     // Highlight clinical terms
     let markedText = noteText;
     
-    if (activeProfile.id.startsWith('profile_')) {
-        activeProfile.highlights = [];
-        clinicalEntities.forEach(ent => {
-            const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
-            if (regex.test(noteText)) {
-                activeProfile.highlights.push({ term: ent.term, type: ent.type });
-            }
-        });
-        activeProfile.recommendations = generateCustomRecommendations(noteText);
-        
-        // Dynamically add clinical findings to the patient timeline
-        if (activeProfile.timeline.length <= 1) {
-            activeProfile.highlights.forEach(h => {
+    activeProfile.highlights = [];
+    clinicalEntities.forEach(ent => {
+        const escaped = ent.term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp(`\\b${escaped}\\b`, 'gi');
+        if (regex.test(noteText)) {
+            activeProfile.highlights.push({ term: ent.term, type: ent.type });
+        }
+    });
+    activeProfile.recommendations = generateCustomRecommendations(noteText);
+    
+    // Dynamically add clinical findings to the patient timeline
+    if (activeProfile.timeline.length <= 4) {
+        activeProfile.highlights.forEach(h => {
+            const exists = activeProfile.timeline.some(t => t.event.includes(h.term));
+            if (!exists) {
                 activeProfile.timeline.push({
                     date: new Date().toLocaleDateString(),
                     event: `Clinical finding: ${h.term} (${h.type})`,
                     type: h.type
                 });
-            });
-        }
+            }
+        });
     }
     
     activeProfile.highlights.forEach(entity => {
