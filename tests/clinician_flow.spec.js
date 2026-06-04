@@ -241,9 +241,9 @@ test('Shinrin AI - Full Clinician Flow E2E Test', async ({ page }) => {
     await page.locator('#btn-calc-wells').click();
     await expect(page.locator('#calc-wells')).not.toHaveClass(/hidden/);
 
-    // Click inputs directly since actual checkbox is sr-only inside custom labels
-    await page.locator('#wells-dvt').click({ force: true });
-    await page.locator('#wells-pe').click({ force: true });
+    // Click labels to toggle inputs since actual checkbox is sr-only inside custom labels
+    await page.locator('label:has-text("Clinical signs/symptoms of DVT")').click();
+    await page.locator('label:has-text("PE is primary diagnosis or equally likely")').click();
 
     // Verify wells-score is computed (3.0 + 3.0 = 6.0 points)
     const scoreText = await page.locator('#wells-score').textContent();
