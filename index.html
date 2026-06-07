@@ -23,6 +23,7 @@
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 
 <body class="antialiased min-h-screen pb-20 relative text-[#1C1C1E] dark:text-[#E5E5EA] pt-16">
@@ -31,9 +32,13 @@
     <div class="fixed top-4 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none max-w-full">
         <nav class="bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border border-stone-200/60 dark:border-stone-800/40 px-4 py-2 rounded-full shadow-[0_12px_40px_rgba(28,25,23,0.06)] flex gap-2 items-center text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 overflow-x-auto max-w-full scrollbar-none whitespace-nowrap pointer-events-auto">
             <button id="primary-tab-workspace" onclick="switchPrimaryTab('workspace', this)" class="nav-pill-btn bg-stone-200/80 dark:bg-stone-850/80 text-stone-900 dark:text-white px-3 py-1.5 rounded-full transition duration-200">Clinical Workspace</button>
+            <button id="primary-tab-simulator" onclick="switchPrimaryTab('simulator', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Patient Simulator</button>
             <button id="primary-tab-calculators" onclick="switchPrimaryTab('calculators', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Risk Calculators</button>
             <button id="primary-tab-ehr" onclick="switchPrimaryTab('ehr', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">EHR Sync Gateway</button>
+            <button id="primary-tab-anatomy" onclick="switchPrimaryTab('anatomy', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Anatomical Atlas</button>
+            <button id="primary-tab-workbench" onclick="switchPrimaryTab('workbench', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">AI Workbench</button>
             <button id="primary-tab-diagnostics" onclick="switchPrimaryTab('diagnostics', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Self-Diagnostics</button>
+            <button id="primary-tab-docs" onclick="switchPrimaryTab('docs', this)" class="nav-pill-btn hover:text-stone-900 dark:hover:text-white hover:bg-stone-100/50 dark:hover:bg-stone-800/50 px-3 py-1.5 rounded-full transition duration-200">Shinrin Docs</button>
         </nav>
     </div>
 
@@ -149,6 +154,115 @@
         </div>
     </div>
 
+    <!-- Patient Handout QR Modal -->
+    <div id="patientHandoutModal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-[100] flex items-center justify-center hidden transition-opacity duration-350">
+        <div class="bg-white/95 dark:bg-stone-900/95 p-6 rounded-[28px] max-w-sm w-full mx-4 border border-white/20 dark:border-stone-800/40 shadow-2xl text-left space-y-4 animate-fadeIn">
+            <h3 class="text-base font-extrabold text-stone-900 dark:text-stone-100 flex items-center gap-2 font-serif">
+                <span>📱</span> Patient Handout Portal
+            </h3>
+            <p class="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                Scan this de-identified QR code to download the layman summary directly to your mobile device.
+            </p>
+            
+            <div class="flex flex-col items-center justify-center bg-white/50 dark:bg-stone-950/40 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                <!-- QR Code Target Element -->
+                <div id="handoutQRCode" class="bg-white p-2.5 rounded-xl shadow border border-stone-200 w-44 h-44 flex items-center justify-center"></div>
+                <span class="text-[9px] text-[#4A5D4E] dark:text-[#E0ECE2] uppercase tracking-widest font-extrabold mt-3">Local HIPAA-Shield Active</span>
+            </div>
+
+            <div class="flex pt-2">
+                <button onclick="closeHandoutModal()" class="flex-1 bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs py-2.5 rounded-xl transition duration-200 font-bold shadow-sm">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shohousen (Japanese Prescription Slip) Modal -->
+    <div id="shohousenModal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-[100] flex items-center justify-center hidden transition-opacity duration-350 print:p-0">
+        <div class="bg-[#FAF8F5] dark:bg-[#1E2521] p-6 rounded-[28px] max-w-lg w-full mx-4 border border-[#4A5D4E]/30 shadow-2xl space-y-4 animate-fadeIn text-stone-850 dark:text-stone-100 print:bg-white print:border-none print:shadow-none print:max-w-full print:m-0 print:p-0 print:absolute print:inset-0">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center border-b border-[#4A5D4E]/30 pb-3 print:hidden">
+                <h3 class="text-base font-extrabold text-[#4A5D4E] dark:text-[#E0ECE2] flex items-center gap-2 font-serif">
+                    <span>💊</span> Shohousen Prescription & Lab Requisition
+                </h3>
+                <button onclick="closePrescriptionModal()" class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 text-sm">✕</button>
+            </div>
+            
+            <!-- Printable prescription pad sheet -->
+            <div id="shohousenPrintArea" class="space-y-4 p-4 border border-dashed border-[#4A5D4E]/50 rounded-2xl bg-white dark:bg-[#1E2521] print:border-none print:bg-white print:p-0 print:text-black">
+                <!-- Header style matching traditional Japanese hospital slips -->
+                <div class="flex justify-between items-start border-b-2 border-stone-800 pb-2">
+                    <div>
+                        <h2 class="text-lg font-black tracking-widest text-stone-900 font-serif">処方箋 (SHOHOUSEN)</h2>
+                        <p class="text-[9px] text-stone-500 uppercase tracking-widest">Official Clinic Prescription & Lab Request</p>
+                    </div>
+                    <div class="text-right text-[10px] font-mono text-stone-600 space-y-0.5">
+                         <div>Date: <span id="rxDate">--/--/----</span></div>
+                         <div>Clinic ID: SHINRIN-TOKYO-01</div>
+                    </div>
+                </div>
+                
+                <!-- Patient Demographics Section -->
+                <div class="grid grid-cols-2 gap-4 border-b border-stone-250 pb-2.5 text-xs">
+                     <div>
+                         <span class="text-[9px] uppercase tracking-wider text-stone-450 block">Patient Name</span>
+                         <span id="rxPatientName" class="font-bold text-stone-900 dark:text-stone-100 print:text-black">--</span>
+                     </div>
+                     <div>
+                         <span class="text-[9px] uppercase tracking-wider text-stone-450 block">Demographics / ID</span>
+                         <span id="rxPatientDemo" class="font-medium text-stone-700 dark:text-stone-305 print:text-black">--</span>
+                     </div>
+                </div>
+                
+                <!-- Prescribed Medications -->
+                <div class="space-y-2">
+                     <span class="text-[9px] uppercase tracking-widest text-[#4A5D4E] dark:text-[#E0ECE2] print:text-[#4A5D4E] font-extrabold block border-b border-stone-150 pb-1">Medications Ordered (処方薬)</span>
+                     <div id="rxMedicationsList" class="space-y-1.5 text-xs text-stone-800 dark:text-stone-250 print:text-black">
+                         <!-- Dynamically listed -->
+                         <div class="italic text-stone-450">No medications parsed from note.</div>
+                     </div>
+                </div>
+                
+                <!-- Laboratory / Diagnostic Requisitions -->
+                <div class="space-y-2 pt-2">
+                     <span class="text-[9px] uppercase tracking-widest text-[#D1A153] font-extrabold block border-b border-stone-150 pb-1">Lab / Diagnostics Requisitions (検査依頼)</span>
+                     <div id="rxLabsList" class="space-y-1.5 text-xs text-stone-800 dark:text-stone-250 print:text-black">
+                         <!-- Dynamically listed -->
+                         <div class="italic text-stone-450">No labs or diagnostics recommended.</div>
+                     </div>
+                </div>
+                
+                <!-- Stamp / Signature Block -->
+                <div class="flex justify-between items-end pt-6">
+                     <div class="text-[8px] text-stone-400 italic">
+                         * Valid for 4 days from issuance. Digitally signed via EHR sandbox gateway.
+                     </div>
+                     <div class="flex items-center gap-3">
+                         <div class="text-right">
+                             <div class="text-[9px] uppercase text-stone-400">Doctor Signature</div>
+                             <div class="font-serif italic font-bold text-stone-950 dark:text-stone-100 print:text-black text-sm">Dr. Shinrin AI</div>
+                         </div>
+                         <div class="w-12 h-12 rounded-full border-2 border-red-500 flex items-center justify-center text-red-500 font-extrabold text-[8px] transform rotate-12 select-none pointer-events-none">
+                             済 (SEIN)
+                         </div>
+                     </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer Actions -->
+            <div class="flex gap-3 print:hidden">
+                 <button onclick="window.print()" class="flex-1 bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs py-2.5 rounded-xl transition duration-200 font-bold shadow-sm flex items-center justify-center gap-1.5">
+                     <span>🖨️</span> Print Slip
+                 </button>
+                 <button onclick="closePrescriptionModal()" class="flex-1 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs py-2.5 rounded-xl transition duration-200 font-bold">
+                     Cancel
+                 </button>
+            </div>
+        </div>
+    </div>
+
+
     <div class="max-w-6xl mx-auto px-4 md:px-6 pt-10">
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-8 border-b border-stone-200/50 dark:border-stone-850/50">
@@ -172,6 +286,8 @@
                         <option value="distilbert" class="bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300">DistilBERT SST-2 (WASM)</option>
                         <option value="summarizer" class="bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300">OpenMed Clinical Summarizer</option>
                         <option value="ner" class="bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300">OpenMed NER-Biomedical</option>
+                        <option value="webllm" class="bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300">OpenMed Browser LLM (Qwen-0.5B WebGPU)</option>
+                        <option value="custom" id="opt-custom-model" class="bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 hidden">Custom Fine-Tuned Model (LoRA)</option>
                     </select>
                 </div>
                 <!-- Theme Switcher -->
@@ -181,6 +297,30 @@
                 <div class="flex items-center space-x-3 bg-white/80 dark:bg-stone-900/80 border border-black/10 dark:border-white/10 px-4 py-1.5 rounded-full shadow-sm text-[10px] font-bold text-stone-600 dark:text-stone-400">
                     <span id="aiHeaderStatus" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                     <span id="aiHeaderLabel">Local AI: Offline</span>
+                </div>
+                <!-- Clinician Streak Widget -->
+                <div class="flex items-center space-x-2 bg-white/80 dark:bg-stone-900/80 border border-black/10 dark:border-white/10 px-3.5 py-1.5 rounded-full shadow-sm text-[10px] font-bold text-stone-600 dark:text-stone-400">
+                    <span class="text-[#D1A153]">🔥</span>
+                    <span id="streakDays">1 Day Streak</span>
+                    <span class="text-stone-300 dark:text-stone-700 font-normal">|</span>
+                    <span id="finalizedNotesCount" class="text-stone-500 font-semibold">0 Notes Today</span>
+                </div>
+                
+                <!-- Zen Breathing Pacer Widget -->
+                <div class="flex items-center space-x-2.5 bg-[#EDF3ED]/80 dark:bg-[#202722]/80 border border-[#8AA690]/35 px-4 py-1.5 rounded-full shadow-sm text-[10px] font-bold text-stone-600 dark:text-stone-400 select-none cursor-pointer hover:border-[#8AA690]/60 transition duration-200" onclick="toggleZenBreathingSpeed()" id="zen-breathing-widget">
+                    <div class="w-5 h-5 flex items-center justify-center relative">
+                        <svg viewBox="0 0 24 24" class="w-full h-full">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-dasharray="2,2" class="opacity-20" />
+                            <g id="breathing-flower" class="origin-center transition-transform ease-in-out duration-1000">
+                                <path d="M12 2 C13 7 11 7 12 12 C11 7 13 7 12 2" fill="#4A5D4E" class="opacity-70 petal" />
+                                <path d="M12 22 C13 17 11 17 12 12 C11 17 13 17 12 22" fill="#4A5D4E" class="opacity-70 petal" />
+                                <path d="M2 12 C7 13 7 11 12 12 C7 11 7 13 2 12" fill="#4A5D4E" class="opacity-70 petal" />
+                                <path d="M22 12 C17 13 17 11 12 12 C17 11 17 13 22 12" fill="#4A5D4E" class="opacity-70 petal" />
+                                <circle cx="12" cy="12" r="2" fill="#D1A153" id="breathing-core" />
+                            </g>
+                        </svg>
+                    </div>
+                    <span id="breathing-label" class="tracking-wider uppercase text-[10px]">Zen Breath: Inhale</span>
                 </div>
             </div>
         </header>
@@ -228,9 +368,9 @@
                 </div>
 
                 <!-- Pipeline Ingestion Stepper -->
-                <div class="glass-panel rounded-[24px] p-5 shadow-sm border border-white/20 dark:border-stone-850/40 mob-section-ingest tilt-card-3d">
-                    <div class="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-stone-450 dark:text-stone-500 mb-4 border-b border-stone-250/20 dark:border-stone-800/40 pb-2">
-                        <span>Pipeline Ingestion Stepper</span>
+                <div class="culling-rules-card mob-section-ingest tilt-card-3d">
+                    <div class="flex justify-between items-center text-[9px] font-extrabold uppercase tracking-widest text-[#D1A153] mb-4 border-b border-[#DFD4BF]/40 dark:border-[#3A352B]/40 pb-2">
+                        <span>Ingestion Pipeline Map</span>
                         <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-[#D1A153] mr-1.5 animate-ping"></span>Real-time Telemetry</span>
                     </div>
                     <div class="flex justify-between items-center max-w-lg mx-auto relative px-4 py-2">
@@ -298,8 +438,23 @@
                         </div>
                         <button onclick="resetNote()"
                             class="border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs px-5 py-2.5 rounded-xl transition duration-200 font-bold">
-                            Clear
+                            Reset Note
                         </button>
+                    </div>
+                    
+                    <!-- Live dictation voice waveform canvas visualizer -->
+                    <canvas id="waveformCanvas" class="w-full h-12 bg-stone-100/50 dark:bg-stone-950/50 rounded-xl border border-stone-200/50 dark:border-stone-850/50 mt-4 hidden transition-all duration-300"></canvas>
+
+                    <!-- Keyboard Shortcuts Widget -->
+                    <div class="mt-4 pt-3.5 border-t border-stone-200/40 dark:border-stone-800/40 flex flex-wrap gap-4 items-center justify-between text-[10px] text-stone-400 dark:text-stone-500 font-semibold">
+                        <div class="flex items-center gap-1.5">
+                            <span>⌨️ Shortcuts:</span>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <span class="flex items-center gap-1"><span class="shortcut-badge">Ctrl + Space</span> Dictate</span>
+                            <span class="flex items-center gap-1"><span class="shortcut-badge">Alt + Enter</span> Structure Note</span>
+                            <span class="flex items-center gap-1"><span class="shortcut-badge">Esc</span> Clear Note</span>
+                        </div>
                     </div>
                 </div>
 
@@ -312,6 +467,9 @@
                             </button>
                             <button onclick="switchAnalysisTab('soap')" id="tab-soap" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400">
                                 SOAP Note
+                            </button>
+                            <button onclick="switchAnalysisTab('flowchart')" id="tab-flowchart" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400">
+                                Clinical Pathway Flow
                             </button>
                             <button onclick="switchAnalysisTab('layman')" id="tab-layman" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">
                                 Patient Layman Summary
@@ -351,16 +509,35 @@
                             </div>
                         </div>
                         <div class="flex justify-end pt-2">
+                            <button onclick="openPrescriptionModal()" class="border border-[#D1A153]/45 bg-[#D1A153]/5 hover:bg-[#D1A153]/15 text-[#D1A153] dark:text-[#E0ECE2] text-xs px-4 py-2 rounded-xl transition duration-200 flex items-center space-x-1.5 font-bold shadow-sm">
+                                <span>💊</span> <span>Print Shohousen (Rx)</span>
+                            </button>
                             <button onclick="copySoapNote()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-sm px-4 py-2 rounded-xl transition duration-200 flex items-center space-x-1.5 font-medium shadow-sm">
                                 <span>📋</span> <span>Copy SOAP Note</span>
                             </button>
                         </div>
                     </div>
                     
+                    <!-- Content Panel: Clinical Flowchart -->
+                    <div id="panel-flowchart" class="hidden space-y-4">
+                        <div class="p-4 rounded-xl border border-stone-200 dark:border-stone-850/50 bg-[#FAF7F2] dark:bg-stone-950/40">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400" id="flowchartTitle">Clinical Pathway Guide</h4>
+                                <span class="text-[9px] font-mono bg-stone-200 dark:bg-stone-850 text-stone-600 dark:text-stone-400 px-1.5 py-0.5 rounded" id="flowchartActiveStatus">Inactive</span>
+                            </div>
+                            <div id="flowchartContainer" class="w-full min-h-[160px] flex items-center justify-center overflow-x-auto scrollbar-thin">
+                                <!-- Dynamically drawn SVG Decision Tree -->
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Content Panel: Patient Layman Summary -->
                     <div id="panel-layman" class="hidden space-y-4">
                         <div id="laymanText" class="p-4 rounded-xl border border-stone-100 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/40 text-sm leading-relaxed text-stone-700 dark:text-stone-200 whitespace-pre-wrap"></div>
-                        <div class="flex justify-end">
+                        <div class="flex justify-end gap-3">
+                            <button onclick="openHandoutModal()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition duration-200 flex items-center space-x-1.5 font-bold shadow-sm">
+                                <span>📱</span> <span>Generate QR Handout</span>
+                            </button>
                             <button onclick="copyLaymanSummary()" class="bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 text-xs px-4 py-2 rounded-xl transition duration-200 flex items-center space-x-1.5 font-medium border border-stone-200 dark:border-stone-750">
                                 <span>📋</span> <span>Copy Layman Summary</span>
                             </button>
@@ -379,6 +556,91 @@
                         <div class="text-center py-12 text-stone-400 dark:text-stone-555 text-sm">
                             <p>No structured narrative compiled yet.</p>
                             <p class="text-xs mt-1">Select a profile and click 'Structure Note' above.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Trends & Risk Projection Chart -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 mob-section-hub tilt-card-3d">
+                    <div class="flex justify-between items-center mb-4 border-b border-stone-200/50 dark:border-stone-850/50 pb-2">
+                        <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Clinical Telemetry Trend</h2>
+                        <span class="text-[9px] bg-[#4A5D4E]/10 dark:bg-[#E0ECE2]/10 text-[#4A5D4E] dark:text-[#E0ECE2] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Vitals & Risks</span>
+                    </div>
+                    <div id="chartContainer" class="w-full h-40 flex items-center justify-center relative">
+                        <!-- Responsive SVG Trend Line Graph -->
+                        <svg id="vitalsTrendChart" class="w-full h-full text-[#4A5D4E] dark:text-[#E0ECE2]" preserveAspectRatio="none" viewBox="0 0 300 120">
+                            <!-- SVG lines, grids, points and paths will draw here dynamically -->
+                        </svg>
+                        <div id="chartTooltip" class="absolute hidden bg-stone-900/90 dark:bg-white/95 text-white dark:text-stone-900 px-2 py-1 rounded text-[10px] pointer-events-none shadow z-10 font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- Anatomical Symptom Map -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 mob-section-hub tilt-card-3d">
+                    <div class="flex justify-between items-center mb-4 border-b border-stone-200/50 dark:border-stone-850/50 pb-2">
+                        <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Anatomical Symptom Map</h2>
+                        <span class="text-[9px] bg-[#4A5D4E]/10 dark:bg-[#E0ECE2]/10 text-[#4A5D4E] dark:text-[#E0ECE2] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Physical Map</span>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-4">
+                        <!-- Interactive SVG Silhouette -->
+                        <svg id="anatomicalBodyMap" class="w-36 h-60 text-stone-300 dark:text-stone-700 transition-all duration-300" viewBox="0 0 100 220">
+                            <!-- Head -->
+                            <path d="M 50 10 C 45 10, 42 15, 42 22 C 42 29, 45 34, 50 34 C 55 34, 58 29, 58 22 C 58 15, 55 10, 50 10 Z" fill="currentColor" id="body-head" class="cursor-pointer transition-all duration-300 hover:fill-amber-400/40" onclick="selectBodyRegion('head')" />
+                            <!-- Neck -->
+                            <rect x="47" y="34" width="6" height="6" fill="currentColor" id="body-neck" class="cursor-pointer transition-all duration-350" onclick="selectBodyRegion('neck')" />
+                            <!-- Chest/Torso -->
+                            <path d="M 38 40 L 62 40 C 64 55, 62 90, 60 110 L 40 110 C 38 90, 36 55, 38 40 Z" fill="currentColor" id="body-chest" class="cursor-pointer transition-all duration-300 hover:fill-amber-400/40" onclick="selectBodyRegion('chest')" />
+                            <!-- Abdomen -->
+                            <path d="M 40 110 L 60 110 L 58 135 L 42 135 Z" fill="currentColor" id="body-abdomen" class="cursor-pointer transition-all duration-300 hover:fill-amber-400/40" onclick="selectBodyRegion('abdomen')" />
+                            <!-- Left Arm -->
+                            <path d="M 38 40 C 32 50, 24 75, 22 95 C 21 100, 24 102, 26 98 C 28 85, 34 60, 37 45 Z" fill="currentColor" id="body-leftarm" class="cursor-pointer transition-all duration-300 hover:fill-amber-400/40" onclick="selectBodyRegion('limbs')" />
+                            <!-- Right Arm -->
+                            <path d="M 62 40 C 68 50, 76 75, 78 95 C 79 100, 76 102, 74 98 C 72 85, 66 60, 63 45 Z" fill="currentColor" id="body-rightarm" class="cursor-pointer transition-all duration-300 hover:fill-amber-400/40" onclick="selectBodyRegion('limbs')" />
+                            <!-- Left Leg -->
+                            <path d="M 42 135 L 48 135 L 44 185 L 41 210 C 39 214, 34 214, 35 210 L 39 185 Z" fill="currentColor" id="body-leftleg" class="cursor-pointer transition-all duration-300 hover:fill-amber-400/40" onclick="selectBodyRegion('limbs')" />
+                            <!-- Right Leg -->
+                            <path d="M 52 135 L 58 135 L 56 185 L 59 210 C 61 214, 66 214, 65 210 L 61 185 Z" fill="currentColor" id="body-rightleg" class="cursor-pointer transition-all duration-300 hover:fill-amber-400/40" onclick="selectBodyRegion('limbs')" />
+                            
+                            <!-- Interactive Hotspot Pulse Indicators -->
+                            <g class="hotspot-group" style="transform-origin: 50px 22px;">
+                                <circle cx="50" cy="22" r="2" class="hotspot-dot" />
+                                <circle cx="50" cy="22" r="5" class="hotspot-ring" />
+                            </g>
+                            <g class="hotspot-group" style="transform-origin: 50px 37px;">
+                                <circle cx="50" cy="37" r="1.5" class="hotspot-dot" />
+                                <circle cx="50" cy="37" r="4" class="hotspot-ring" />
+                            </g>
+                            <g class="hotspot-group" style="transform-origin: 50px 75px;">
+                                <circle cx="50" cy="75" r="2" class="hotspot-dot" />
+                                <circle cx="50" cy="75" r="5" class="hotspot-ring" />
+                            </g>
+                            <g class="hotspot-group" style="transform-origin: 50px 122px;">
+                                <circle cx="50" cy="122" r="2" class="hotspot-dot" />
+                                <circle cx="50" cy="122" r="5" class="hotspot-ring" />
+                            </g>
+                            <g class="hotspot-group" style="transform-origin: 30px 70px;">
+                                <circle cx="30" cy="70" r="2" class="hotspot-dot" />
+                                <circle cx="30" cy="70" r="5" class="hotspot-ring" />
+                            </g>
+                            <g class="hotspot-group" style="transform-origin: 70px 70px;">
+                                <circle cx="70" cy="70" r="2" class="hotspot-dot" />
+                                <circle cx="70" cy="70" r="5" class="hotspot-ring" />
+                            </g>
+                            <g class="hotspot-group" style="transform-origin: 43px 172px;">
+                                <circle cx="43" cy="172" r="2" class="hotspot-dot" />
+                                <circle cx="43" cy="172" r="5" class="hotspot-ring" />
+                            </g>
+                            <g class="hotspot-group" style="transform-origin: 57px 172px;">
+                                <circle cx="57" cy="172" r="2" class="hotspot-dot" />
+                                <circle cx="57" cy="172" r="5" class="hotspot-ring" />
+                            </g>
+                        </svg>
+                        <div id="bodyRegionDetails" class="flex-1 text-xs space-y-2 bg-stone-100/50 dark:bg-stone-950/40 p-4 rounded-xl border border-stone-200 dark:border-stone-850 min-w-[140px]">
+                            <div class="font-bold text-stone-850 dark:text-stone-200 border-b border-stone-200 dark:border-stone-800 pb-1 flex items-center gap-1.5 font-serif">
+                                <span id="regionIcon">👤</span> <span id="regionTitle">Whole Body</span>
+                            </div>
+                            <p id="regionText" class="text-stone-500 dark:text-stone-400 leading-relaxed italic">Click on a body region to examine or filter related symptoms.</p>
+                            <ul id="regionSymptomList" class="space-y-1.5 hidden text-stone-600 dark:text-stone-400"></ul>
                         </div>
                     </div>
                 </div>
@@ -860,8 +1122,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
     
     <!-- view-ehr container -->
     <div id="view-ehr" class="primary-view-container hidden space-y-8">
@@ -910,24 +1170,37 @@
                             </div>
                         </div>
                         
-                        <div class="flex items-center justify-between pt-1">
-                            <button id="fhir-fetch-btn" onclick="fetchFhirRecord()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2.5 rounded-xl transition duration-200 font-medium shadow-sm">
-                                Fetch FHIR Resource
-                            </button>
+                        <div class="flex items-center justify-between pt-1 gap-2">
+                            <div class="flex gap-2">
+                                <button id="fhir-fetch-btn" onclick="fetchFhirRecord()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2.5 rounded-xl transition duration-200 font-medium shadow-sm">
+                                    Fetch FHIR Resource
+                                </button>
+                                <button id="fhir-validate-btn" onclick="validateFhirBundle()" class="border border-[#D1A153] hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-850 dark:text-stone-200 text-xs px-4 py-2.5 rounded-xl transition duration-200 font-semibold shadow-sm">
+                                    Validate Conformance
+                                </button>
+                            </div>
                             <span id="fhir-status" class="text-[10px] text-stone-400 dark:text-stone-555 font-semibold">Status: Idle</span>
+                        </div>
+                        
+                        <!-- Conformance Report Container -->
+                        <div id="fhir-validation-report" class="hidden p-3.5 rounded-xl border-2 border-stone-200 dark:border-stone-850/80 bg-[#FAF7F2] dark:bg-stone-900/40 text-xs space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+                            <!-- Validation details render here dynamically -->
                         </div>
                         
                         <!-- Response JSON viewer -->
                         <div class="space-y-1.5">
-                            <label class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 flex justify-between">
-                                <span>Server Response Payload</span>
-                                <span class="text-green-600 dark:text-green-400 font-normal normal-case">HIPAA Shield Active</span>
+                            <label class="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 flex justify-between items-center">
+                                <span class="flex items-center gap-1.5">
+                                    <span>Server Response Payload</span>
+                                    <span class="text-green-600 dark:text-green-400 font-normal normal-case bg-green-150/10 dark:bg-green-950/20 px-1.5 py-0.5 rounded border border-green-200/20">HIPAA Shield Active</span>
+                                </span>
+                                <button onclick="copyFhirPayload()" class="hover:text-stone-700 dark:hover:text-stone-300 font-sans font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 bg-stone-100 dark:bg-stone-850 rounded border border-stone-250/20 dark:border-stone-800 transition duration-150 flex items-center gap-1">
+                                    📋 Copy Payload
+                                </button>
                             </label>
-                            <pre id="fhir-payload" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-400 text-[10px] font-mono leading-relaxed overflow-auto max-h-56 select-all">
-{
-  "status": "Inactive. Click 'Fetch FHIR Resource' to query."
-}
-                            </pre>
+                            <pre id="fhir-payload" class="p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-950 text-emerald-400 text-[10px] font-mono leading-relaxed overflow-auto max-h-56 select-all">{
+  <span class="token-key">"status"</span>: <span class="token-string">"Inactive. Click 'Fetch FHIR Resource' to query."</span>
+}</pre>
                         </div>
                     </div>
                     
@@ -1072,6 +1345,42 @@
                                 </div>
                             </label>
                         </div>
+
+                        <!-- Hugging Face Inference API Gateway -->
+                        <div class="mt-6 pt-6 border-t border-stone-150 dark:border-stone-800/70 space-y-3">
+                            <div>
+                                <h4 class="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider">Hugging Face Inference Gateway</h4>
+                                <p class="text-[10px] text-stone-450 dark:text-stone-500 mt-1 leading-relaxed">Keyless by default. To increase rate limits, you can optionally provide a free HF Access Token.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="password" id="hf-access-token" class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="Enter free hf_... token">
+                                <button onclick="saveHfToken()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition duration-200 font-medium shadow-sm">
+                                    Save Token
+                                </button>
+                            </div>
+                            <div id="hf-status-indicator" class="text-[9px] text-stone-400 dark:text-stone-550 flex items-center gap-1.5 font-medium">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <span>Connected: Keyless Public Tier (Generous Free Limits)</span>
+                            </div>
+                        </div>
+
+                        <!-- Generative AI Engine Mode -->
+                        <div class="mt-6 pt-6 border-t border-stone-150 dark:border-stone-800/70 space-y-3">
+                            <div>
+                                <h4 class="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider">Generative AI Engine Mode</h4>
+                                <p class="text-[10px] text-stone-450 dark:text-stone-500 mt-1 leading-relaxed">Select whether LLM completions are processed in the cloud or 100% inside your browser using WebGPU.</p>
+                            </div>
+                            <select id="llm-engine-mode" onchange="toggleLlmEngineMode()" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-750 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]">
+                                <option value="cloud">Cloud Serverless Proxy (Qwen-2.5 7B)</option>
+                                <option value="local">In-Browser WebLLM (Qwen-2.5 0.5B WebGPU)</option>
+                            </select>
+                            <div id="webllm-download-status" class="hidden text-[10px] text-[#4A5D4E] dark:text-[#E0ECE2] font-semibold mt-1">
+                                <span class="animate-pulse">Loading local model parameters...</span>
+                                <div class="w-full bg-stone-200 dark:bg-stone-850 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                                    <div id="webllm-progress-bar" class="bg-[#4A5D4E] h-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1194,6 +1503,646 @@
         </div>
     </div>
 
+    <!-- view-anatomy container -->
+    <div id="view-anatomy" class="primary-view-container hidden space-y-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50 gap-4">
+            <div>
+                <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest font-serif">Interactive Anatomical Atlas</h2>
+                <p class="text-[10px] text-stone-400 dark:text-stone-550 mt-1 font-semibold">Explore clinical systems, organs, and pathology correlations with active patient notes</p>
+            </div>
+            <!-- Layer Selector Pill Switcher -->
+            <div class="flex p-1 bg-stone-200/50 dark:bg-stone-950 rounded-xl space-x-1 border border-black/5 dark:border-white/5">
+                <button onclick="switchAnatomyLayer('organs')" id="layer-btn-organs" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5">Organs</button>
+                <button onclick="switchAnatomyLayer('skeletal')" id="layer-btn-skeletal" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400">Skeleton</button>
+                <button onclick="switchAnatomyLayer('cardio')" id="layer-btn-cardio" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">Cardio</button>
+                <button onclick="switchAnatomyLayer('nervous')" id="layer-btn-nervous" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 text-stone-400 dark:text-stone-555 hover:text-stone-600 dark:hover:text-stone-400">Nerve</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Left Column: SVG Anatomy Viewer (Span 2) -->
+            <div class="lg:col-span-2 glass-panel rounded-[24px] p-6 shadow-sm border border-white/20 dark:border-stone-850/40 flex items-center justify-center min-h-[380px] bg-white/10 dark:bg-stone-950/20">
+                <!-- Interactive SVG Anatomical Model with layers -->
+                <svg id="anatomyAtlasSvg" class="w-64 h-[400px] text-stone-300 dark:text-stone-800 transition-all duration-300 overflow-visible" viewBox="0 0 160 300">
+                    <!-- Body Silhouette Background -->
+                    <path d="M 80 15 C 72 15, 68 22, 68 32 C 68 42, 72 49, 80 49 C 88 49, 92 42, 92 32 C 92 22, 88 15, 80 15 Z
+                             M 75 49 L 85 49 L 85 58 L 75 58 Z
+                             M 58 58 L 102 58 C 105 78, 102 128, 98 158 L 62 158 C 58 128, 55 78, 58 58 Z
+                             M 62 158 L 98 158 L 95 195 L 65 195 Z
+                             M 58 58 C 48 72, 36 108, 33 138 C 31.5 145.5, 36 148.5, 39 142.5 C 42 123, 51 88, 56.5 65 Z
+                             M 102 58 C 112 72, 124 108, 127 138 C 128.5 145.5, 124 148.5, 121 142.5 C 118 123, 109 88, 103.5 65 Z
+                             M 65 195 L 75 195 L 70 268 L 65 305 C 62 311, 55 311, 56 305 L 61 268 Z
+                             M 95 195 L 85 195 L 90 268 L 95 305 C 98 311, 105 311, 104 305 L 99 268 Z" 
+                          fill="rgba(74, 93, 78, 0.04)" stroke="rgba(74, 93, 78, 0.15)" stroke-width="1" class="transition-all" />
+                    
+                    <!-- Skeletal Layer -->
+                    <g id="layer-skeletal-svg" class="hidden">
+                        <!-- Skull -->
+                        <path d="M 80 18 C 74 18, 72 23, 72 29 C 72 35, 74 38, 80 38 C 86 38, 88 35, 88 29 C 88 23, 86 18, 80 18 Z" fill="#F9F6F0" stroke="#8F7E62" stroke-width="1.2" id="bone-skull" class="cursor-pointer hover:fill-[#D1A153]/35 transition-all" onclick="selectAnatomyStructure('skull')" />
+                        <!-- Spine -->
+                        <rect x="78.5" y="38" width="3" height="115" rx="1.5" fill="#F9F6F0" stroke="#8F7E62" stroke-width="0.8" id="bone-spine" class="cursor-pointer hover:fill-[#D1A153]/35 transition-all" onclick="selectAnatomyStructure('spine')" />
+                        <!-- Ribcage -->
+                        <path d="M 68 62 C 72 65, 88 65, 92 62 M 66 70 C 70 74, 90 74, 94 70 M 65 80 C 70 85, 90 85, 95 80 M 66 90 C 70 95, 90 95, 94 90 M 68 100 C 72 105, 88 105, 92 100" fill="none" stroke="#8F7E62" stroke-width="1.8" id="bone-ribs" class="cursor-pointer hover:stroke-[#D1A153] transition-all" onclick="selectAnatomyStructure('ribs')" />
+                        <!-- Pelvis -->
+                        <path d="M 64 150 L 96 150 L 92 165 C 80 172, 80 172, 68 165 Z" fill="#F9F6F0" stroke="#8F7E62" stroke-width="1.2" id="bone-pelvis" class="cursor-pointer hover:fill-[#D1A153]/35 transition-all" onclick="selectAnatomyStructure('pelvis')" />
+                        <!-- Femur Left -->
+                        <line x1="70" y1="165" x2="68" y2="225" stroke="#8F7E62" stroke-width="2.5" stroke-linecap="round" id="bone-femur" class="cursor-pointer hover:stroke-[#D1A153] transition-all" onclick="selectAnatomyStructure('femur')" />
+                        <!-- Femur Right -->
+                        <line x1="90" y1="165" x2="92" y2="225" stroke="#8F7E62" stroke-width="2.5" stroke-linecap="round" class="cursor-pointer hover:stroke-[#D1A153] transition-all" onclick="selectAnatomyStructure('femur')" />
+                    </g>
+                    
+                    <!-- Cardiovascular Layer -->
+                    <g id="layer-cardio-svg" class="hidden">
+                        <!-- Heart -->
+                        <path d="M 80 72 C 76 68, 73 72, 80 80 C 87 72, 84 68, 80 72 Z" fill="#D27A72" stroke="#B84B42" stroke-width="1.2" id="cardio-heart" class="cursor-pointer hover:fill-[#D1A153] transition-all" onclick="selectAnatomyStructure('heart')" />
+                        <!-- Aorta -->
+                        <path d="M 80 75 L 80 148 M 80 75 Q 82 66, 85 70" fill="none" stroke="#D27A72" stroke-width="1.8" id="cardio-aorta" class="cursor-pointer hover:stroke-[#D1A153] transition-all" onclick="selectAnatomyStructure('aorta')" />
+                        <!-- Carotids -->
+                        <line x1="79" y1="72" x2="74" y2="35" stroke="#D27A72" stroke-width="1.2" />
+                        <line x1="81" y1="72" x2="86" y2="35" stroke="#D27A72" stroke-width="1.2" />
+                        <!-- Femoral Arteries -->
+                        <path d="M 80 148 L 70 165 L 68 235" fill="none" stroke="#D27A72" stroke-width="1.2" />
+                        <path d="M 80 148 L 90 165 L 92 235" fill="none" stroke="#D27A72" stroke-width="1.2" />
+                    </g>
+                    
+                    <!-- Nervous Layer -->
+                    <g id="layer-nervous-svg" class="hidden">
+                        <!-- Brain -->
+                        <path d="M 80 20 C 75 20, 74 24, 74 29 C 74 33, 76 35, 80 35 C 84 35, 86 33, 86 29 C 86 24, 85 20, 80 20 Z" fill="#DFB15B" stroke="#B88A2E" stroke-width="1.2" id="nerve-brain" class="cursor-pointer hover:fill-red-400/40 transition-all" onclick="selectAnatomyStructure('brain')" />
+                        <!-- Spinal Cord -->
+                        <line x1="80" y1="35" x2="80" y2="152" stroke="#DFB15B" stroke-width="1.8" id="nerve-cord" class="cursor-pointer hover:stroke-red-400 transition-all" onclick="selectAnatomyStructure('spine')" />
+                        <!-- Sciatic Nerve branches -->
+                        <path d="M 80 152 Q 74 175, 68 250" fill="none" stroke="#DFB15B" stroke-width="1" id="nerve-sciatic" class="cursor-pointer hover:stroke-red-400 transition-all" onclick="selectAnatomyStructure('sciatic')" />
+                        <path d="M 80 152 Q 86 175, 92 250" fill="none" stroke="#DFB15B" stroke-width="1" class="cursor-pointer hover:stroke-red-400 transition-all" onclick="selectAnatomyStructure('sciatic')" />
+                    </g>
+                    
+                    <!-- Organs Layer (Visible by default) -->
+                    <g id="layer-organs-svg">
+                        <!-- Brain -->
+                        <path d="M 80 20 C 75 20, 74 24, 74 29 C 74 33, 76 35, 80 35 C 84 35, 86 33, 86 29 C 86 24, 85 20, 80 20 Z" fill="#DFB15B" stroke="#B88A2E" stroke-width="0.8" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('brain')" />
+                        <!-- Lungs -->
+                        <path d="M 68 62 C 65 65, 68 85, 74 88 C 75 88, 77 82, 77 75 C 77 68, 72 62, 68 62 Z" fill="#E8C3B9" stroke="#C59B90" stroke-width="0.8" id="organ-lungs" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('lungs')" />
+                        <path d="M 92 62 C 95 65, 92 85, 86 88 C 85 88, 83 82, 83 75 C 83 68, 88 62, 92 62 Z" fill="#E8C3B9" stroke="#C59B90" stroke-width="0.8" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('lungs')" />
+                        <!-- Heart -->
+                        <path d="M 80 72 C 76 68, 73 72, 80 80 C 87 72, 84 68, 80 72 Z" fill="#D27A72" stroke="#B84B42" stroke-width="0.8" class="cursor-pointer hover:fill-[#D1A153] transition-all" onclick="selectAnatomyStructure('heart')" />
+                        <!-- Liver -->
+                        <path d="M 68 96 L 80 96 L 78 108 L 66 104 Z" fill="#8C5046" stroke="#68342C" stroke-width="0.8" id="organ-liver" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('liver')" />
+                        <!-- Stomach -->
+                        <path d="M 80 96 C 85 96, 92 98, 92 108 C 92 118, 82 118, 80 114 C 77 110, 77 98, 80 96 Z" fill="#DFAC9B" stroke="#B27A68" stroke-width="0.8" id="organ-stomach" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('stomach')" />
+                        <!-- Kidneys -->
+                        <path d="M 72 118 C 70 118, 70 124, 72 126 C 73.5 126, 73.5 118, 72 118 Z" fill="#6A3B33" stroke="#48231E" stroke-width="0.8" id="organ-kidneys" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('kidneys')" />
+                        <path d="M 88 118 C 90 118, 90 124, 88 126 C 86.5 126, 86.5 118, 88 118 Z" fill="#6A3B33" stroke="#48231E" stroke-width="0.8" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('kidneys')" />
+                        <!-- Intestines -->
+                        <path d="M 70 132 C 68 135, 92 135, 90 138 C 88 141, 72 141, 70 144 C 68 147, 92 147, 90 152 Z" fill="#D3C1AD" stroke="#A89481" stroke-width="0.8" id="organ-intestines" class="cursor-pointer hover:fill-[#D1A153]/45 transition-all" onclick="selectAnatomyStructure('intestines')" />
+                    </g>
+                </svg>
+            </div>
+            
+            <!-- Right Column: Anatomy Inspector & AI Consult (Span 3) -->
+            <div class="lg:col-span-3 space-y-6 flex flex-col justify-between">
+                <!-- Structure Inspector Card -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4 flex-1">
+                    <div class="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-2">
+                        <h3 class="text-base font-bold text-stone-850 dark:text-stone-100 font-serif flex items-center gap-1.5">
+                            <span id="inspectIcon">👤</span> <span id="inspectName">Whole Body Atlas</span>
+                        </h3>
+                        <span id="inspectSystem" class="text-[9px] bg-[#4A5D4E]/10 text-[#4A5D4E] dark:text-[#E0ECE2] px-2 py-0.5 rounded uppercase font-bold tracking-wider">General</span>
+                    </div>
+                    <div class="space-y-3 text-xs leading-relaxed text-stone-600 dark:text-stone-400">
+                        <p id="inspectDesc">Select any organ or bone structure on the anatomical body map to run active diagnostic correlations and look up clinical references.</p>
+                        
+                        <div id="inspectDetailsContainer" class="hidden space-y-3 pt-2">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-wider text-stone-400 block font-bold">Clinical Significance</span>
+                                <span id="inspectPathology" class="font-medium text-stone-800 dark:text-stone-200 block">--</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] uppercase tracking-wider text-stone-450 block font-bold">Primary Diagnostic Testing</span>
+                                <span id="inspectDiagnostics" class="font-mono text-[11px] text-[#D1A153] block">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Consult Desk Card (Common AI) -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-[#D1A153]/35 dark:border-stone-850/40 bg-white/50 dark:bg-stone-900/10 space-y-4">
+                    <div class="flex items-center justify-between border-b border-[#D1A153]/25 pb-2">
+                        <h3 class="text-xs font-bold text-[#D1A153] uppercase tracking-wider font-serif flex items-center gap-1.5">
+                            <span>🧠</span> OpenMed AI Consult Desk (Common AI)
+                        </h3>
+                        <span class="text-[8px] bg-stone-900/95 dark:bg-stone-950 text-stone-400 px-1.5 py-0.5 rounded font-mono">Local LLM Interface</span>
+                    </div>
+                    
+                    <!-- Quick Queries -->
+                    <div class="flex flex-wrap gap-2 text-[10px] font-semibold text-stone-500 dark:text-stone-400">
+                        <button onclick="askAnatomyAi('correlate')" class="bg-stone-200/50 hover:bg-stone-200 dark:bg-stone-900/60 dark:hover:bg-stone-850 px-2.5 py-1.5 rounded-lg border border-black/5 dark:border-white/5 transition duration-150 font-bold">Correlate with Active Note</button>
+                        <button onclick="askAnatomyAi('warnings')" class="bg-stone-200/50 hover:bg-stone-200 dark:bg-stone-900/60 dark:hover:bg-stone-850 px-2.5 py-1.5 rounded-lg border border-black/5 dark:border-white/5 transition duration-150 font-bold">Pathology Warnings</button>
+                        <button onclick="askAnatomyAi('pharmacy')" class="bg-stone-200/50 hover:bg-stone-200 dark:bg-stone-900/60 dark:hover:bg-stone-850 px-2.5 py-1.5 rounded-lg border border-black/5 dark:border-white/5 transition duration-150 font-bold">Medication Targets</button>
+                    </div>
+                    
+                    <!-- Chat/Console Output -->
+                    <div id="anatomyAiConsole" class="h-28 overflow-y-auto p-3.5 bg-stone-950 rounded-xl border border-stone-850 text-[11px] leading-relaxed text-stone-300 font-mono scrollbar-thin">
+                        No active anatomical AI consultation running. Select a structure above and choose a quick consult query or type a question below.
+                    </div>
+                    
+                    <!-- Query Input -->
+                    <div class="flex gap-2">
+                        <input type="text" id="anatomyAiInput" class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="Ask clinical AI about selected structure...">
+                        <button onclick="askAnatomyAi('custom')" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition duration-200 font-bold shadow-sm">Ask AI</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- view-simulator container -->
+    <div id="view-simulator" class="primary-view-container hidden space-y-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50 gap-4">
+            <div>
+                <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest font-serif">Simulated Patient Actor Clinic (SPAC)</h2>
+                <p class="text-[10px] text-stone-400 dark:text-stone-555 mt-1 font-semibold">Conduct patient interviews, test diagnostic flows, and compile clinical transcripts</p>
+            </div>
+            <!-- TTS Voice Selector -->
+            <div class="flex items-center gap-2 bg-stone-200/50 dark:bg-stone-950 px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/5">
+                <label class="flex items-center gap-1.5 cursor-pointer text-[9px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    <input type="checkbox" id="simulatorTtsToggle" class="rounded border-stone-300 text-[#4A5D4E] focus:ring-[#4A5D4E]" checked>
+                    <span>Enable Voice (TTS) Audio</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Left Column: Patient Actors & Triggers (Span 2) -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Patient Actors List -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                    <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif border-b border-stone-200 dark:border-stone-800 pb-2">Select Patient Case</h3>
+                    
+                    <div class="space-y-3">
+                        <!-- Kenji Sato Card -->
+                        <div onclick="switchSimulatorPatient('kenji')" id="sim-card-kenji" class="cursor-pointer p-3.5 rounded-2xl border transition-all duration-200 flex items-start gap-3 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 hover:border-[#4A5D4E] hover:shadow-sm">
+                            <span class="text-2xl">👴</span>
+                            <div class="flex-1 space-y-1">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="font-bold text-xs text-stone-880 dark:text-stone-200">Kenji Sato</h4>
+                                    <span class="text-[8px] bg-red-400/10 text-red-500 dark:text-red-400 px-1.5 py-0.5 rounded font-bold uppercase">Cardio</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed font-semibold">62yo M • Ret. Fisherman • Chronic shortness of breath & leg swelling</p>
+                            </div>
+                        </div>
+
+                        <!-- Ami Tanaka Card -->
+                        <div onclick="switchSimulatorPatient('ami')" id="sim-card-ami" class="cursor-pointer p-3.5 rounded-2xl border transition-all duration-200 flex items-start gap-3 bg-[#FAF8F5] dark:bg-stone-950 border-black/5 dark:border-white/5 opacity-60 hover:opacity-100">
+                            <span class="text-2xl">👩</span>
+                            <div class="flex-1 space-y-1">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="font-bold text-xs text-stone-800 dark:text-stone-200">Ami Tanaka</h4>
+                                    <span class="text-[8px] bg-purple-400/10 text-purple-500 dark:text-purple-400 px-1.5 py-0.5 rounded font-bold uppercase">Lupus Workup</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed font-semibold">34yo F • UI Designer • Joint stiffness, malar rash & fatigue</p>
+                            </div>
+                        </div>
+
+                        <!-- Hiroshi Watanabe Card -->
+                        <div onclick="switchSimulatorPatient('hiroshi')" id="sim-card-hiroshi" class="cursor-pointer p-3.5 rounded-2xl border transition-all duration-200 flex items-start gap-3 bg-[#FAF8F5] dark:bg-stone-950 border-black/5 dark:border-white/5 opacity-60 hover:opacity-100">
+                            <span class="text-2xl">👨</span>
+                            <div class="flex-1 space-y-1">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="font-bold text-xs text-stone-800 dark:text-stone-200">Hiroshi Watanabe</h4>
+                                    <span class="text-[8px] bg-amber-400/10 text-amber-500 dark:text-amber-400 px-1.5 py-0.5 rounded font-bold uppercase">Pulmonology</span>
+                                </div>
+                                <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed font-semibold">45yo M • Const. Supervisor • Cough for 4+ weeks & night sweats</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Telemetry / Vitals Card -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                    <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif border-b border-stone-200 dark:border-stone-800 pb-2">Simulated Vitals Monitor</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-xs font-bold">
+                        <div class="p-3 bg-stone-200/30 dark:bg-stone-950 rounded-xl space-y-1 border border-black/5 dark:border-white/5">
+                            <span class="text-[8px] uppercase tracking-wider text-stone-400 block font-bold">Blood Pressure</span>
+                            <span id="sim-bp" class="text-sm font-mono text-stone-800 dark:text-stone-200">138/88 mmHg</span>
+                        </div>
+                        <div class="p-3 bg-stone-200/30 dark:bg-stone-950 rounded-xl space-y-1 border border-black/5 dark:border-white/5">
+                            <span class="text-[8px] uppercase tracking-wider text-stone-400 block font-bold">Heart Rate</span>
+                            <span id="sim-hr" class="text-sm font-mono text-stone-800 dark:text-stone-200">82 bpm</span>
+                        </div>
+                        <div class="p-3 bg-stone-200/30 dark:bg-stone-950 rounded-xl space-y-1 border border-black/5 dark:border-white/5">
+                            <span class="text-[8px] uppercase tracking-wider text-stone-400 block font-bold">Oxygen Sat (SpO2)</span>
+                            <span id="sim-spo2" class="text-sm font-mono text-stone-800 dark:text-stone-200">95%</span>
+                        </div>
+                        <div class="p-3 bg-stone-200/30 dark:bg-stone-950 rounded-xl space-y-1 border border-black/5 dark:border-white/5">
+                            <span class="text-[8px] uppercase tracking-wider text-stone-400 block font-bold">Temperature</span>
+                            <span id="sim-temp" class="text-sm font-mono text-stone-800 dark:text-stone-200">36.7 °C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Diagnostic Scan Viewer -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                    <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif border-b border-stone-200 dark:border-stone-800 pb-2 flex justify-between items-center">
+                        <span>📷 Diagnostic Scan Suite</span>
+                        <span id="scan-label" class="text-[9px] bg-[#D1A153]/10 text-[#D1A153] px-1.5 py-0.5 rounded font-mono font-bold uppercase">Chest X-Ray</span>
+                    </h3>
+                    
+                    <div id="sim-scan-container" class="relative bg-stone-950 rounded-2xl border border-black/10 dark:border-white/10 flex items-center justify-center p-4 min-h-[160px] overflow-hidden">
+                        <!-- SVG Chest X-Ray or Joint Scan will be drawn here dynamically -->
+                    </div>
+                    
+                    <div id="scan-info-box" class="p-3 bg-stone-200/30 dark:bg-stone-950 rounded-xl border border-black/5 dark:border-white/5 text-[10px] text-stone-550 dark:text-stone-400 font-semibold leading-normal hidden">
+                        <div class="flex justify-between items-center mb-1 text-[9px] uppercase tracking-wider font-extrabold text-[#D1A153]" id="scan-info-title">
+                            Finding Detected
+                        </div>
+                        <p id="scan-info-text" class="text-stone-700 dark:text-stone-200 mb-2"></p>
+                        <button id="scan-info-btn" class="w-full bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-[9px] py-1.5 rounded-lg transition font-bold shadow-sm">Import Findings to Note</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Chat Console & Compile Note (Span 3) -->
+            <div class="lg:col-span-3 space-y-6 flex flex-col justify-between">
+                <!-- Chat Console Card -->
+                <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 flex-1 flex flex-col justify-between min-h-[350px]">
+                    <div class="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-2 mb-3">
+                        <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif flex items-center gap-1.5">
+                            💬 Consultation Chat Transcript
+                        </h3>
+                        <button onclick="clearSimulatorChat()" class="text-[8px] bg-stone-200 dark:bg-stone-900 px-2 py-0.5 rounded font-mono text-stone-500 hover:text-stone-750">Reset Logs</button>
+                    </div>
+
+                    <!-- Chat Logs View -->
+                    <div id="simulatorChatLogs" class="flex-1 overflow-y-auto space-y-3 p-3 bg-[#FAF7F2] dark:bg-stone-950/45 rounded-2xl border border-black/5 dark:border-white/5 max-h-64 scrollbar-thin text-xs mb-3">
+                        <!-- Chat nodes go here -->
+                    </div>
+
+                    <!-- Preset Questions Panel -->
+                    <div class="space-y-2 mb-3">
+                        <span class="text-[8px] uppercase tracking-wider text-stone-400 block font-bold">Clinician Interview Starters</span>
+                        <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+                            <button onclick="askPresetSimQuestion('symptoms')" class="bg-stone-200/60 hover:bg-stone-200 dark:bg-stone-900/60 dark:hover:bg-stone-850 px-2.5 py-1 rounded-lg border border-black/5 dark:border-white/5 transition">"Describe your symptoms"</button>
+                            <button onclick="askPresetSimQuestion('timeline')" class="bg-stone-200/60 hover:bg-stone-200 dark:bg-stone-900/60 dark:hover:bg-stone-850 px-2.5 py-1 rounded-lg border border-black/5 dark:border-white/5 transition">"How long has this been going on?"</button>
+                            <button onclick="askPresetSimQuestion('meds')" class="bg-stone-200/60 hover:bg-stone-200 dark:bg-stone-900/60 dark:hover:bg-stone-850 px-2.5 py-1 rounded-lg border border-black/5 dark:border-white/5 transition">"Are you taking any medications?"</button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Message Input -->
+                    <div class="flex gap-2">
+                        <input type="text" id="simulatorChatInput" onkeydown="if(event.key==='Enter') sendSimulatorQuestionInput()" class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="Type custom interview question here...">
+                        <button onclick="sendSimulatorQuestionInput()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition font-bold shadow-sm">Send</button>
+                    </div>
+                </div>
+
+                <!-- Sync to Workspace Action Card -->
+                <div class="glass-panel rounded-[24px] p-4 shadow-sm border border-[#4A5D4E]/20 bg-[#EDF3ED]/40 dark:bg-stone-900/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-left space-y-1">
+                        <h4 class="font-bold text-[11px] text-stone-800 dark:text-stone-200 uppercase tracking-wider font-serif">Compile & Structure Consultation Notes</h4>
+                        <p class="text-[9px] text-stone-500 dark:text-stone-400 font-semibold leading-relaxed">Converts active dialogue logs into a structured medical note and triggers in-browser NER/SOAP mapping.</p>
+                    </div>
+                    <button onclick="compileSimulatorTranscript()" class="w-full md:w-auto bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-5 py-3 rounded-xl transition duration-200 font-bold shadow-md border border-[#3E4E42] whitespace-nowrap">
+                        Sync Interview to Note
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- view-workbench container -->
+    <div id="view-workbench" class="primary-view-container hidden space-y-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50 gap-4">
+            <div>
+                <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest font-serif">Shinrin Custom AI Workbench</h2>
+                <p class="text-[10px] text-stone-400 dark:text-stone-555 mt-1 font-semibold">Clinician-in-the-loop LoRA fine-tuning & local model alignment studio</p>
+            </div>
+            <!-- Status Badge -->
+            <div class="flex items-center gap-2 bg-[#4A5D4E]/10 dark:bg-stone-950 px-3 py-1.5 rounded-full border border-[#4A5D4E]/20">
+                <span class="w-2 h-2 rounded-full bg-stone-400" id="workbenchStatusDot"></span>
+                <span class="text-[9px] uppercase tracking-wider text-stone-600 dark:text-stone-400 font-bold" id="workbenchStatusLabel">Studio Idle</span>
+            </div>
+        </div>
+
+        <!-- Sub-Tabs for AI Workbench -->
+        <div class="flex p-1 bg-stone-200/50 dark:bg-stone-950 rounded-xl space-x-1 mb-6 w-full md:w-auto overflow-x-auto max-w-max">
+            <button onclick="switchWorkbenchTab('lora-studio')" id="tab-wb-lora-studio" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap bg-white dark:bg-stone-850 text-stone-850 dark:text-stone-100 shadow-sm border border-black/5 dark:border-white/5">
+                LoRA Fine-Tuning Studio
+            </button>
+            <button onclick="switchWorkbenchTab('biostack-pipeline')" id="tab-wb-biostack-pipeline" class="flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap text-stone-400 dark:text-stone-550 hover:text-stone-600 dark:hover:text-stone-400">
+                BioStack Dataset Engine
+            </button>
+        </div>
+
+        <!-- Panel 1: LoRA Fine-Tuning Studio -->
+        <div id="panel-wb-lora-studio" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <!-- Left Column: Dataset Editor & Telemetry (Span 3) -->
+                <div class="lg:col-span-3 space-y-6">
+                    <!-- Dataset Editor Card -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                        <div class="flex justify-between items-center border-b border-stone-200 dark:border-stone-800 pb-2">
+                            <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif">1. LoRA Training Dataset (Clinical Anchors)</h3>
+                            <button onclick="addNewTrainingPair()" class="text-[9px] text-[#4A5D4E] dark:text-[#D1A153] hover:underline font-bold">+ Add Training Pair</button>
+                        </div>
+                        
+                        <div id="trainingDatasetContainer" class="space-y-3 max-h-56 overflow-y-auto pr-2 scrollbar-thin">
+                            <!-- Dynamic dataset rows go here -->
+                        </div>
+                    </div>
+
+                    <!-- Telemetry & Training Control Card -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-[#D1A153]/35 dark:border-stone-850/40 bg-white/50 dark:bg-stone-900/10 space-y-4">
+                        <h3 class="text-xs font-bold text-[#D1A153] uppercase tracking-wider font-serif">2. Hyperparameters & Training Engine</h3>
+                        
+                        <div class="grid grid-cols-3 gap-4 text-[10px] text-stone-500 font-semibold">
+                            <div>
+                                <label class="block mb-1">Epochs</label>
+                                <select id="trainEpochs" class="w-full p-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 focus:outline-none">
+                                    <option value="3">3 Epochs</option>
+                                    <option value="5">5 Epochs</option>
+                                    <option value="10">10 Epochs</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-1">Learning Rate</label>
+                                <select id="trainLr" class="w-full p-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 focus:outline-none">
+                                    <option value="2e-4">2e-4 (Fast)</option>
+                                    <option value="5e-5">5e-5 (Moderate)</option>
+                                    <option value="1e-5">1e-5 (Fine)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-1">LoRA Rank (r)</label>
+                                <select id="trainLoraRank" class="w-full p-1.5 rounded-lg border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 focus:outline-none">
+                                    <option value="8">Rank 8</option>
+                                    <option value="16">Rank 16</option>
+                                    <option value="32">Rank 32</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button onclick="startLocalFineTuning()" id="startTrainBtn" class="w-full bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs py-2.5 rounded-xl transition duration-200 font-bold shadow-md border border-[#3E4E42] hover:shadow-[0_0_15px_rgba(74,93,78,0.3)]">
+                                Start LoRA Fine-Tuning Simulation
+                            </button>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div id="trainProgressContainer" class="hidden space-y-1">
+                            <div class="flex justify-between text-[9px] font-bold text-stone-400">
+                                <span id="trainProgressLabel">Optimizing Adapters...</span>
+                                <span id="trainProgressPercent">0%</span>
+                            </div>
+                            <div class="w-full bg-stone-200 dark:bg-stone-900 h-1.5 rounded-full overflow-hidden">
+                                <div id="trainProgressBar" class="bg-[#D1A153] h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Logs Console Box -->
+                        <div id="trainConsoleLogs" class="h-24 overflow-y-auto p-3.5 bg-stone-950 rounded-xl border border-stone-850 text-[10px] leading-relaxed text-stone-300 font-mono scrollbar-thin mt-3">Ready to begin fine-tuning engine.</div>
+
+                        <!-- Loss Chart Canvas -->
+                        <div class="space-y-1">
+                            <span class="text-[9px] uppercase tracking-wider text-stone-400 block font-bold">Training Loss Curve Telemetry</span>
+                            <canvas id="trainingLossCanvas" class="w-full h-28 bg-[#161C18] rounded-xl border border-stone-850/50 shadow-inner"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Model Hub & Integration Script (Span 2) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Deployment Hub Card -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                        <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif border-b border-stone-200 dark:border-stone-800 pb-2">3. Adapter Compilation Hub</h3>
+                        
+                        <div class="space-y-3 text-xs leading-relaxed text-stone-600 dark:text-stone-400">
+                            <p>Locally optimized weights run on top of open-source models inside the browser via client-side PEFT adapters.</p>
+                            
+                            <div class="p-3 bg-stone-200/40 dark:bg-stone-950 rounded-xl space-y-2 border border-black/5 dark:border-white/5">
+                                <div class="flex justify-between text-[10px] font-bold">
+                                    <span>Export format:</span>
+                                    <span class="font-mono text-[#D1A153]">PyTorch LoRA bin</span>
+                                </div>
+                                <div class="flex justify-between text-[10px] font-bold">
+                                    <span>Estimated file size:</span>
+                                    <span class="font-mono text-[#D1A153]">12.4 MB</span>
+                                </div>
+                                <div class="flex justify-between text-[10px] font-bold">
+                                    <span>Base compatibility:</span>
+                                    <span class="font-mono text-[#D1A153]">Llama-3.2-3B / Qwen-2.5</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 flex gap-2">
+                                <button onclick="exportCustomWeights()" id="exportWeightsBtn" disabled class="flex-1 bg-stone-200/50 text-stone-400 dark:bg-stone-900/60 dark:text-stone-550 border border-black/5 dark:border-white/5 text-[11px] py-2 rounded-xl font-bold cursor-not-allowed transition duration-150">
+                                    Download Adapter Weights (.bin)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unsloth Integration Script Card -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                        <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif border-b border-stone-200 dark:border-stone-800 pb-2">Unsloth Training Pipeline</h3>
+                        <p class="text-[10px] text-stone-500 mt-1 leading-relaxed">This simulation mirrors the official Unsloth fine-tuning execution pipeline. Run the script below on your GPU cluster to train models in production:</p>
+                        
+                        <div class="relative">
+                            <pre class="p-3 bg-stone-950 text-stone-300 font-mono text-[9px] rounded-xl overflow-x-auto max-h-56 scrollbar-thin border border-stone-900"><code>from unsloth import FastLanguageModel
+import torch
+max_seq_length = 2048
+
+# 1. Load optimized medical model
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "unsloth/Llama-3.2-3B-Instruct",
+    max_seq_length = max_seq_length,
+    load_in_4bit = True,
+)
+
+# 2. Setup LoRA adapter configurations
+model = FastLanguageModel.get_peft_model(
+    model,
+    r = 16, # Match selected rank
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
+                      "gate_proj", "up_proj", "down_proj"],
+    lora_alpha = 16,
+    lora_dropout = 0,
+    bias = "none",
+)
+
+# 3. Train on clinical SOAP dataset
+from trl import SFTTrainer
+from transformers import TrainingArguments
+
+trainer = SFTTrainer(
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = dataset,
+    dataset_text_field = "text",
+    max_seq_length = max_seq_length,
+    args = TrainingArguments(
+        per_device_train_batch_size = 2,
+        gradient_accumulation_steps = 4,
+        warmup_steps = 5,
+        max_steps = 60,
+        learning_rate = 2e-4, # Match selected LR
+        fp16 = not torch.cuda.is_bf16_supported(),
+        logging_steps = 1,
+        output_dir = "outputs",
+    ),
+)
+trainer.train()</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 2: BioStack Dataset Engine -->
+        <div id="panel-wb-biostack-pipeline" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <!-- Left: Ingestion & Queue (Span 3) -->
+                <div class="lg:col-span-3 space-y-6">
+                    <!-- HIPAA de-identification card -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                        <div class="flex justify-between items-center border-b border-stone-200 dark:border-stone-800 pb-2">
+                            <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif">1. HIPAA De-identification Scrubber</h3>
+                            <span class="text-[9px] bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full font-bold">Local Execution</span>
+                        </div>
+                        <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">Input patient clinical notes to strip Protected Health Information (PHI) before compiling training datasets.</p>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 mb-1">Raw Clinical Note (PII-Heavy)</label>
+                                <textarea id="biostackRawInput" rows="4" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-xs text-stone-850 dark:text-stone-250 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="Paste note here... (e.g. John Doe, born 10/12/1982, phone 555-0199 presented to Clinic...)"></textarea>
+                            </div>
+                            
+                            <!-- Checkboxes for filtering -->
+                            <div class="grid grid-cols-2 gap-3 text-[10px] text-stone-500 font-semibold">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="scrubNames" checked class="rounded border-stone-300 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                    <span>Redact Names (e.g. John, Kenji)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="scrubDates" checked class="rounded border-stone-300 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                    <span>Redact Dates (e.g. 10/12/1982)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="scrubContact" checked class="rounded border-stone-300 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                    <span>Redact SSN & Phones (e.g. 555-0199)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="scrubLocation" checked class="rounded border-stone-300 text-[#4A5D4E] focus:ring-[#4A5D4E]">
+                                    <span>Redact Locations & Addresses</span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <button onclick="runHipaaScrubber()" class="w-full bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs py-2 rounded-xl transition duration-150 font-bold shadow-sm">
+                                    Sanitize & Run HIPAA Scrubber
+                                </button>
+                            </div>
+                            
+                            <div class="pt-2">
+                                <label class="block text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-555 mb-1">De-identified Output (ML-Ready)</label>
+                                <textarea id="biostackScrubbedOutput" readonly rows="4" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2]/40 dark:bg-stone-950/40 text-xs text-stone-850 dark:text-stone-250 font-mono focus:outline-none" placeholder="Scrubbed output..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dataset export queue card -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                        <div class="flex justify-between items-center border-b border-stone-200 dark:border-stone-800 pb-2">
+                            <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif">2. ML Training Dataset Queue</h3>
+                            <button onclick="addSessionToMlQueue()" class="text-[9px] text-[#4A5D4E] dark:text-[#D1A153] hover:underline font-bold">+ Queue Current Patient Session</button>
+                        </div>
+                        <p class="text-[10px] text-stone-550 dark:text-stone-450 leading-relaxed">Queue processed prompt-completion samples from active clinical sessions. These are combined for fine-tuning dataset builds.</p>
+                        
+                        <div id="biostackQueueContainer" class="space-y-3 max-h-48 overflow-y-auto pr-2 scrollbar-thin">
+                            <!-- Dynamic queue rows -->
+                        </div>
+                        
+                        <div class="pt-2 flex flex-col md:flex-row gap-3">
+                            <button onclick="exportMlDataset('jsonl')" class="flex-1 bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs py-2.5 rounded-xl transition duration-150 font-bold flex items-center justify-center gap-1.5 shadow-sm">
+                                <span>📥</span> Download JSONL Dataset
+                            </button>
+                            <button onclick="exportMlDataset('csv')" class="flex-1 border border-stone-250 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-600 dark:text-stone-300 text-xs py-2.5 rounded-xl transition duration-150 font-bold flex items-center justify-center gap-1.5">
+                                <span>📊</span> Download CSV Tabular Features
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right: Telemetry & Integration (Span 2) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Refinery Health Check Telemetry -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-[#D1A153]/35 dark:border-stone-850/40 space-y-4">
+                        <h3 class="text-xs font-bold text-[#D1A153] uppercase tracking-wider font-serif border-b border-stone-250/20 dark:border-stone-800/40 pb-2">Data Refinery Telemetry</h3>
+                        
+                        <!-- Visual Circle Gauge for health -->
+                        <div class="flex items-center justify-center py-2">
+                            <div class="relative w-28 h-28 flex items-center justify-center">
+                                <svg class="w-full h-full transform -rotate-90">
+                                    <circle cx="56" cy="56" r="46" stroke-width="5" stroke="currentColor" class="text-stone-250 dark:text-stone-850" fill="transparent" />
+                                    <circle id="biostackHealthGaugeValue" cx="56" cy="56" r="46" stroke-width="5" stroke="#D1A153" fill="transparent"
+                                        stroke-dasharray="289" stroke-dashoffset="289" class="transition-all duration-500 ease-out" stroke-linecap="round" />
+                                </svg>
+                                <div class="absolute flex flex-col items-center justify-center text-center">
+                                    <span class="text-[8px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-550">Quality Index</span>
+                                    <span id="biostackHealthPercent" class="text-lg font-black text-stone-850 dark:text-stone-150">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2.5 text-[10px] text-stone-500 dark:text-stone-400 font-semibold font-sans">
+                            <div class="flex justify-between border-b border-stone-100 dark:border-stone-850 pb-1.5">
+                                <span>Vocabulary Richness</span>
+                                <span id="biostackVocabRichness" class="font-mono text-stone-850 dark:text-stone-100">Low (0 words)</span>
+                            </div>
+                            <div class="flex justify-between border-b border-stone-100 dark:border-stone-850 pb-1.5">
+                                <span>Prompt Completion Pairs</span>
+                                <span id="biostackQueueCount" class="font-mono text-stone-850 dark:text-stone-100">0 pairs</span>
+                            </div>
+                            <div class="flex justify-between border-b border-stone-100 dark:border-stone-850 pb-1.5">
+                                <span>Estimated Token Load</span>
+                                <span id="biostackTokenLoad" class="font-mono text-stone-850 dark:text-stone-100">0 tokens</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Privacy Leakage Guard</span>
+                                <span id="biostackLeakGuard" class="px-2 py-0.5 rounded text-[8px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/25">PASS</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- BioStack Integration Guide -->
+                    <div class="glass-panel rounded-[24px] p-6 shadow-sm border border-stone-200/50 dark:border-stone-850/40 space-y-4">
+                        <h3 class="text-xs font-bold text-stone-850 dark:text-stone-100 uppercase tracking-wider font-serif border-b border-stone-200 dark:border-stone-800 pb-2">BioStack Integration Guide</h3>
+                        <p class="text-[10px] text-stone-500 dark:text-stone-450 leading-relaxed">This pipeline exports structured prompts matching training standards. Plug the downloaded `.jsonl` directly into your pipelines:</p>
+                        
+                        <pre class="p-3 bg-stone-950 text-stone-300 font-mono text-[9px] rounded-xl overflow-x-auto max-h-40 scrollbar-thin border border-stone-900"><code># Initialize BioStack Ingestion Pipeline
+from biostack import IngestionPipeline, DatasetRefinement
+
+pipeline = IngestionPipeline(
+    project_id = "shinrin-clinical-refinery",
+    hipaa_enforced = True,
+    anonymization_strategy = "local-scrub"
+)
+
+# Load the local exported dataset
+dataset = pipeline.load_local_dataset(
+    path = "exported_dataset.jsonl",
+    format = "jsonl"
+)
+
+# Verify ML readiness and push to training
+refined = DatasetRefinement.compile(dataset)
+refined.push_to_huggingface("safevoice009/clinical-soap-lora")
+print("ML-Ready Dataset compiled successfully!")</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- view-diagnostics container -->
     <div id="view-diagnostics" class="primary-view-container hidden space-y-8">
             <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50">
@@ -1211,6 +2160,84 @@
                     Click 'Run Self-Test Suite' to execute local code assertions and benchmark the local AI model.
                 </div>
             </div>
+    </div>
+    
+    <!-- Footer / Privacy & Credits -->
+    <footer class="mt-16 border-t border-stone-200/40 dark:border-stone-850/40 bg-white/5 dark:bg-stone-900/5 py-12 relative z-10 font-sans">
+        <div class="max-w-5xl mx-auto px-6 space-y-10">
+            <!-- 3-Column Info Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Developer Card -->
+                <div class="glass-panel rounded-[24px] p-6 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                    <div>
+                        <span class="inline-flex items-center gap-1 text-[8px] font-mono font-bold tracking-wider uppercase text-stone-500 dark:text-stone-450 bg-stone-100/80 dark:bg-stone-800/85 px-2.5 py-0.5 rounded-full border border-stone-200/40 dark:border-stone-800/40 mb-3.5">Developer Profile</span>
+                        <h4 class="font-serif text-lg font-bold text-stone-900 dark:text-white leading-tight">Dr. Baddam Sucharith Reddy</h4>
+                        <p class="text-[11px] font-sans text-stone-500 dark:text-stone-400 mt-2 font-medium leading-relaxed">Healthcare Systems Architect specializing in clinical NLP pipelines and autonomous agent auditing networks.</p>
+                    </div>
+                    <div class="mt-4">
+                        <a href="https://www.linkedin.com/in/sucharith007" target="_blank" rel="noopener noreferrer" class="w-full py-2 px-3 bg-[#4A5D4E] hover:bg-[#3D4F41] text-white rounded-xl font-mono text-[9px] font-bold tracking-wider uppercase transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                            LinkedIn Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Code Repository Card -->
+                <div class="glass-panel rounded-[24px] p-6 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                    <div>
+                        <span class="inline-flex items-center gap-1 text-[8px] font-mono font-bold tracking-wider uppercase text-stone-500 dark:text-stone-455 bg-stone-100/80 dark:bg-stone-800/85 px-2.5 py-0.5 rounded-full border border-stone-200/40 dark:border-stone-800/40 mb-3.5">Code Repositories</span>
+                        <h4 class="font-serif text-lg font-bold text-stone-900 dark:text-white leading-tight">Project Source</h4>
+                        <p class="text-[11px] font-sans text-stone-500 dark:text-stone-400 mt-2 font-medium leading-relaxed">Read the production-ready code, local AI scripts, and automation pipelines deployed for this sandbox.</p>
+                    </div>
+                    <div class="mt-4 flex flex-col gap-2">
+                        <a href="https://github.com/safevoice009/shinrin-ai" target="_blank" rel="noopener noreferrer" class="w-full py-2 px-3 bg-stone-900 dark:bg-stone-800 hover:bg-stone-800 dark:hover:bg-stone-700 text-white rounded-xl font-mono text-[9px] font-bold tracking-wider uppercase transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            GitHub: shinrin-ai
+                        </a>
+                        <a href="https://github.com/safevoice009/clinical-middleware-dashboard" target="_blank" rel="noopener noreferrer" class="w-full py-2 px-3 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-850 text-stone-750 dark:text-stone-200 rounded-xl font-mono text-[9px] font-bold tracking-wider uppercase transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer">
+                            GitHub: clinical-middleware
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Ecosystem References Card -->
+                <div class="glass-panel rounded-[24px] p-6 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                    <div>
+                        <span class="inline-flex items-center gap-1 text-[8px] font-mono font-bold tracking-wider uppercase text-stone-500 dark:text-stone-450 bg-stone-100/80 dark:bg-stone-800/85 px-2.5 py-0.5 rounded-full border border-stone-200/40 dark:border-stone-800/40 mb-3.5">Ecosystem References</span>
+                        <h4 class="font-serif text-lg font-bold text-stone-900 dark:text-white leading-tight">Research Frameworks</h4>
+                        <div class="mt-3.5 space-y-2 font-mono text-[10px] text-stone-600 dark:text-stone-400">
+                            <a href="https://github.com/W革新者/AgentClinic" target="_blank" class="flex items-center justify-between hover:text-[#4A5D4E] dark:hover:text-white transition-colors duration-150">
+                                <span>➜ AgentClinic (Dialogue)</span>
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                            <a href="https://github.com/vinesmsuic/MedAgentBench" target="_blank" class="flex items-center justify-between hover:text-[#4A5D4E] dark:hover:text-white transition-colors duration-150">
+                                <span>➜ MedAgentBench (EHR)</span>
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                            <a href="https://github.com/textviewer/EHRAgent" target="_blank" class="flex items-center justify-between hover:text-[#4A5D4E] dark:hover:text-white transition-colors duration-150">
+                                <span>➜ EHRAgent (Reasoning)</span>
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-[8px] font-mono text-stone-400 dark:text-stone-500 pt-2.5 border-t border-stone-200/50 dark:border-stone-800/50 uppercase tracking-widest text-center mt-3.5">
+                        Open-Source Ingestions
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright and Disclaimer -->
+            <div class="space-y-4 border-t border-stone-200/40 dark:border-stone-800/40 pt-8 text-center">
+                <p class="text-[10px] font-mono text-stone-500 dark:text-stone-400 leading-relaxed">
+                    Developed by <strong class="text-stone-800 dark:text-stone-200">Dr. Baddam Sucharith Reddy</strong> (AI-Assisted) // Copyright © 2026. All rights reserved.
+                </p>
+                <p class="max-w-4xl mx-auto text-[9px] text-stone-500 dark:text-stone-450 leading-relaxed px-6">
+                    <strong>Legal Disclaimer &amp; Privacy Policy:</strong> This application is a clinical software architecture proof-of-concept. All clinical notes, diagnostics confidence ratios, ICD-10 CM coding recommendations, payer rule assertions, simulated patient dialogues (SPAC), and database logs are strictly simulated datasets designed for portfolio presentation. 
+                    <span class="block mt-1 text-[#4A5D4E] dark:text-[#E0ECE2] font-semibold">🔐 Privacy Safeguard: No Protected Health Information (PHI) is ever collected, stored, or transmitted outside the client's browser. All Named Entity Recognition (NER), local text summarization, and audio transcription (Whisper AI) occur fully client-side.</span>
+                </p>
+            </div>
+        </div>
+    </footer>
     </div>
 
     <!-- Doctor & Developer Dual Workspace Console Drawer -->
@@ -1241,8 +2268,14 @@
             <button onclick="switchConsoleTab('clinical')" id="tab-console-clinical" class="text-[#D1A153] border-b-2 border-[#D1A153] pb-0.5 px-1 hover:text-white transition duration-200">
                 Clinical (MD) Insights
             </button>
+            <button onclick="switchConsoleTab('consensus')" id="tab-console-consensus" class="text-stone-400 pb-0.5 px-1 hover:text-white transition duration-200">
+                Virtual DDx Consultation
+            </button>
             <button onclick="switchConsoleTab('telemetry')" id="tab-console-telemetry" class="text-stone-400 pb-0.5 px-1 hover:text-white transition duration-200">
                 System (Dev) Telemetry
+            </button>
+            <button onclick="switchConsoleTab('copilot')" id="tab-console-copilot" class="text-stone-400 pb-0.5 px-1 hover:text-white transition duration-200">
+                Clinical AI Copilot
             </button>
         </div>
 
@@ -1250,21 +2283,38 @@
         <div class="flex-1 overflow-hidden relative">
             <!-- Clinical Insights View -->
             <div id="console-view-clinical" class="h-full p-4 overflow-y-auto grid grid-cols-3 gap-6 text-xs text-stone-300 leading-relaxed bg-stone-950">
-                <div class="space-y-2">
-                    <h4 class="text-[9px] font-bold text-stone-500 uppercase tracking-widest border-b border-stone-850 pb-1 flex items-center gap-1.5">🧠 Pathophysiology Summary</h4>
+                <div class="culling-rules-card space-y-2">
+                    <span class="culling-rules-header">RULE № 1 • Pathophysiology</span>
                     <p id="clinical-pathophysiology" class="text-stone-400 italic">Select a patient profile to view clinical pathophysiology summaries.</p>
                 </div>
-                <div class="space-y-2">
-                    <h4 class="text-[9px] font-bold text-stone-500 uppercase tracking-widest border-b border-stone-850 pb-1 flex items-center gap-1.5">📋 Clinical Warning Reasoning & Guidelines</h4>
+                <div class="culling-rules-card space-y-2">
+                    <span class="culling-rules-header">RULE № 2 • Directives & Warnings</span>
                     <ul id="clinical-guidelines-checklist" class="space-y-1.5 text-stone-400">
                         <li class="flex items-start gap-1.5">Waiting for profile parsing...</li>
                     </ul>
                 </div>
-                <div class="space-y-2">
-                    <h4 class="text-[9px] font-bold text-stone-500 uppercase tracking-widest border-b border-stone-850 pb-1 flex items-center gap-1.5">🔍 Differential Diagnosis Paths</h4>
+                <div class="culling-rules-card space-y-2">
+                    <span class="culling-rules-header">RULE № 3 • Differential Pathways</span>
                     <ul id="clinical-differentials" class="space-y-1.5 text-stone-400 font-medium">
                         <li class="flex items-start gap-1.5">Select and analyze a profile note.</li>
                     </ul>
+                </div>
+            </div>
+
+            <!-- Consensus Consultation View -->
+            <div id="console-view-consensus" class="hidden h-full p-4 overflow-y-auto bg-stone-950 text-xs text-stone-300 leading-relaxed font-sans scrollbar-thin">
+                <div class="max-w-4xl mx-auto space-y-4">
+                    <div class="flex items-center justify-between border-b border-stone-850 pb-2 mb-4">
+                        <h4 class="text-[9px] font-bold text-stone-500 uppercase tracking-widest">🩺 Multi-Agent Case Consensus Board</h4>
+                        <span class="text-[8px] bg-stone-800 text-[#D1A153] px-2 py-0.5 rounded uppercase font-bold tracking-wider">Interactive consultation</span>
+                    </div>
+                    
+                    <div id="consensusMessages" class="space-y-4 pr-1">
+                        <!-- Dynamic agent messages load here -->
+                        <div class="text-center py-8 text-stone-500 italic">
+                            No active case consensus running. Complete note parsing to start agent discussion.
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1291,6 +2341,20 @@
   "entry": []
 }
                     </pre>
+                </div>
+            </div>
+
+            <!-- Clinical AI Copilot View -->
+            <div id="console-view-copilot" class="hidden h-full p-4 overflow-y-auto bg-stone-950 text-xs text-stone-300 leading-relaxed font-sans scrollbar-thin flex flex-col justify-between">
+                <div class="flex-1 overflow-y-auto space-y-4 mb-4 pr-1 max-h-40" id="copilotChatHistory">
+                    <div class="p-3 rounded-xl border border-stone-850 bg-stone-900/60 text-stone-400">
+                        <span class="font-bold text-stone-300">🌲 Shinrin AI Copilot</span>: Welcome to the Clinical Copilot. Ask clinical diagnostic questions or request medication guidelines relative to the active patient profile note.
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 p-1.5 bg-stone-900 border border-stone-850 rounded-xl flex-none">
+                    <input type="text" id="copilotChatInput" onkeydown="if(event.key==='Enter') askClinicalCopilot()" class="flex-1 p-2 rounded-lg border border-stone-800 bg-[#FAF7F2] dark:bg-stone-950 text-stone-700 dark:text-stone-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]" placeholder="Ask clinical copilot...">
+                    <button onclick="askClinicalCopilot()" class="bg-[#4A5D4E] hover:bg-[#3D4F41] text-white text-xs px-4 py-2 rounded-xl transition font-bold shadow-sm">Ask Copilot</button>
                 </div>
             </div>
         </div>
@@ -1360,6 +2424,7 @@
             document.body.appendChild(warningDiv);
         }
     </script>
+    <canvas id="zenParticleCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
 </body>
 
 </html>

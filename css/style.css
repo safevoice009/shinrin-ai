@@ -1,37 +1,92 @@
 /* Shinrin AI Design System - iOS & Sino-Japanese Clinical Tech Aesthetic */
 
 :root {
-    --ios-bg-light: #FAF7F2;
-    --ios-bg-dark: #000000;
-    --washi-gold: #D1A153;
+    --ios-bg-light: #FAF8F5;         /* Warm Washi Paper Off-White */
+    --panel-bg-light: #EDF3ED;       /* Calming Matcha Green Pastel */
+    --panel-border-light: #8AA690;   /* Clear Matcha Sage Borders */
+    --border-subtle-light: #C2D1C5;  /* Soft Moss Green Separators */
+    --text-color-light: #2C362F;     /* Deep Forest Sumi-Charcoal */
+    
+    --ios-bg-dark: #171B18;          /* Sumi Ink Charcoal Green */
+    --panel-bg-dark: #202722;        /* Dark forest Matcha Card Background */
+    --panel-border-dark: #425447;    /* Sage Forest Borders */
+    --border-subtle-dark: #2D3930;   /* Moss separators in dark mode */
+    --text-color-dark: #E0ECE2;      /* Soothing Matcha Cream Text */
+    
+    --washi-gold: #D8B257;           /* Premium Washi Gold */
+    --washi-gold-dark: #B89542;
 }
 
 body {
     background-color: var(--ios-bg-light);
-    color: #2C2C2A;
+    color: var(--text-color-light);
     transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .dark body {
     background-color: var(--ios-bg-dark);
-    color: #FAF7F2;
+    color: var(--text-color-dark);
+}
+
+/* Global utility class overrides to enforce warm sand-gold color system */
+.bg-white, .bg-white\/80, .bg-white\/90, .bg-white\/95 {
+    background-color: var(--panel-bg-light) !important;
+}
+.dark .bg-white, .dark .bg-white\/80, .dark .bg-white\/90, .dark .bg-white\/95 {
+    background-color: var(--panel-bg-dark) !important;
+}
+
+.bg-stone-50, .bg-\[\#FAF7F2\], .bg-\[\#FAF7F2\]\/40 {
+    background-color: var(--ios-bg-light) !important;
+}
+.dark .bg-stone-50, .dark .bg-\[\#FAF7F2\], .dark .bg-\[\#FAF7F2\]\/40, .dark .bg-stone-950\/20, .dark .bg-stone-950\/40 {
+    background-color: var(--ios-bg-dark) !important;
+}
+
+/* Inputs, textareas, and select elements styled as Sakura Peach-Cream for beautiful play */
+input, textarea, select {
+    background-color: #FAF5F0 !important; /* Sakura Cream White */
+    border-color: var(--panel-border-light) !important;
+    color: var(--text-color-light) !important;
+    border-width: 1.5px !important;
+}
+.dark input, .dark textarea, .dark select {
+    background-color: #191E1A !important; /* Soft Dark Matcha */
+    border-color: var(--panel-border-dark) !important;
+    color: var(--text-color-dark) !important;
+    border-width: 1.5px !important;
+}
+
+/* Borders */
+.border-stone-200, .border-stone-150, .border-white\/20, .border-black\/10, .border-stone-200\/60 {
+    border-color: var(--panel-border-light) !important;
+}
+.border-stone-100, .border-stone-200\/40, .border-stone-200\/50, .border-stone-250\/40, .border-stone-250\/20 {
+    border-color: var(--border-subtle-light) !important;
+}
+
+.dark .border-stone-200, .dark .border-stone-850, .dark .border-stone-850\/50, .dark .border-stone-850\/40, .dark .border-stone-800\/40 {
+    border-color: var(--panel-border-dark) !important;
+}
+.dark .border-stone-800, .dark .border-stone-800\/50, .dark .border-stone-750 {
+    border-color: var(--border-subtle-dark) !important;
 }
 
 /* Glassmorphism Panel Container */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--panel-bg-light);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--panel-border-light);
+    box-shadow: 0 8px 32px 0 rgba(47, 44, 36, 0.05);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .glass-panel {
-    background: rgba(28, 28, 30, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    background: var(--panel-bg-dark);
+    border: 1px solid var(--panel-border-dark);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
 }
 
 /* Micro-animations */
@@ -231,4 +286,467 @@ button:active {
     transform-origin: center;
     animation: nodePulseGold 2s infinite ease-in-out;
 }
+
+/* Jujutsu Kaisen Culling Game Style Elements */
+.culling-rules-card {
+    border: 3px double var(--washi-gold) !important;
+    background-color: var(--panel-bg-light) !important;
+    padding: 1.25rem;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.dark .culling-rules-card {
+    border: 3px double var(--washi-gold-dark) !important;
+    background-color: var(--panel-bg-dark) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+.culling-rules-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(209, 161, 83, 0.15) !important;
+}
+
+.culling-rules-header {
+    background-color: var(--text-color-light) !important;
+    color: var(--ios-bg-light) !important;
+    padding: 4px 12px;
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    display: inline-block;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    border: 1px solid var(--washi-gold);
+}
+.dark .culling-rules-header {
+    background-color: var(--text-color-dark) !important;
+    color: var(--ios-bg-dark) !important;
+}
+
+.culling-schematic-line {
+    background: repeating-linear-gradient(
+        90deg,
+        var(--washi-gold),
+        var(--washi-gold) 10px,
+        transparent 10px,
+        transparent 20px
+    );
+    height: 3px;
+    position: relative;
+}
+
+/* Productivity & Keyboard Widget Style */
+.shortcut-badge {
+    background: rgba(209, 161, 83, 0.15);
+    color: var(--washi-gold);
+    font-family: monospace;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(209, 161, 83, 0.3);
+}
+
+/* --- COMPREHENSIVE TYPOGRAPHY UPGRADES & LEGIBILITY SCALES --- */
+
+/* Scale up tiny arbitrary text sizes to comfortable readability */
+.text-\[8px\], [class*="text-[8px]"] {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+}
+.text-\[9px\], [class*="text-[9px]"] {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+}
+.text-\[10px\], [class*="text-[10px]"] {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+}
+.text-\[11px\], [class*="text-[11px]"] {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+.text-xs {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+.text-sm {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+.text-base {
+    font-size: 18px !important;
+    line-height: 1.65 !important;
+}
+.text-lg {
+    font-size: 21px !important;
+    line-height: 1.7 !important;
+}
+.text-xl {
+    font-size: 24px !important;
+    line-height: 1.7 !important;
+}
+.text-2xl {
+    font-size: 28px !important;
+    line-height: 1.75 !important;
+}
+.text-3xl {
+    font-size: 34px !important;
+    line-height: 1.8 !important;
+}
+
+/* Custom Rule Cards & Decision Headers upgrade */
+.culling-rules-header {
+    font-size: 13px !important;
+    padding: 6px 14px !important;
+}
+
+.shortcut-badge {
+    font-size: 11px !important;
+}
+
+/* Enforce Playfair Display Serif for premium Sino-Japanese clinical aesthetic */
+h1, h2, h3, h4, h5, h6,
+.font-serif,
+.culling-rules-header,
+.panel-title,
+[class*="font-serif"] {
+    font-family: 'Playfair Display', Georgia, Cambria, "Times New Roman", Times, serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+}
+
+/* Make body font slightly larger and extremely crisp */
+body {
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Adjust paddings for larger text compatibility */
+.glass-panel {
+    padding: 1.75rem !important;
+}
+input, textarea, select {
+    font-size: 14px !important;
+}
+
+/* --- HIGH-CONTRAST VISIBILITY & ACCESSIBILITY Realignment --- */
+
+/* 1. Floating Navigation Bar (Pill Bar) theme alignment */
+nav.bg-white\/95,
+nav[class*="bg-white/95"] {
+    background-color: rgba(237, 243, 237, 0.96) !important; /* Matches --panel-bg-light */
+    border: 1.5px solid var(--panel-border-light) !important;
+    box-shadow: 0 10px 30px rgba(44, 54, 47, 0.1) !important;
+}
+.dark nav.dark\:bg-stone-900\/95,
+.dark nav[class*="dark:bg-stone-900/95"] {
+    background-color: rgba(32, 39, 34, 0.96) !important; /* Matches --panel-bg-dark */
+    border: 1.5px solid var(--panel-border-dark) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Nav Pill Buttons */
+.nav-pill-btn {
+    border: 1px solid transparent !important;
+    color: #4E5F52 !important; /* Higher contrast active label */
+}
+.dark .nav-pill-btn {
+    color: #889E8F !important;
+}
+.nav-pill-btn:hover {
+    background-color: rgba(74, 93, 78, 0.1) !important;
+    color: var(--text-color-light) !important;
+}
+.dark .nav-pill-btn:hover {
+    background-color: rgba(224, 236, 226, 0.15) !important;
+    color: var(--text-color-dark) !important;
+}
+
+/* Active Nav Pill states (dynamic JS overrides) */
+.nav-pill-btn[class*="bg-stone-200"],
+.nav-pill-btn.bg-stone-200\/80,
+.nav-pill-btn.bg-stone-200 {
+    background-color: #4A5D4E !important; /* Primary forest green active */
+    color: #FAF8F5 !important;
+    border: 1px solid #3E4E42 !important;
+    box-shadow: 0 2px 8px rgba(74, 93, 78, 0.25) !important;
+}
+.dark .nav-pill-btn[class*="bg-stone-850"],
+.dark .nav-pill-btn.bg-stone-850\/80,
+.dark .nav-pill-btn.bg-stone-850 {
+    background-color: var(--washi-gold) !important; /* Gold active tab */
+    color: #171B18 !important;
+    border: 1px solid var(--washi-gold-dark) !important;
+    box-shadow: 0 2px 8px rgba(216, 178, 87, 0.35) !important;
+}
+
+/* 2. Sub-tab container tracks (Calculators, SOAP analysis, EHR sync) */
+.bg-stone-200\/50,
+[class*="bg-stone-200/50"] {
+    background-color: #D2DFD4 !important; /* Darker sand track background */
+    border: 1.5px solid var(--panel-border-light) !important;
+}
+.dark .dark\:bg-stone-950,
+.dark [class*="dark:bg-stone-950"] {
+    background-color: #161C18 !important; /* Deeper dark track background */
+    border: 1.5px solid var(--panel-border-dark) !important;
+}
+
+/* Sub-tab active button */
+[class*="bg-stone-200/50"] button.bg-white,
+[class*="bg-stone-200/50"] button[class*="bg-white"],
+[class*="dark:bg-stone-950"] button.bg-white,
+[class*="dark:bg-stone-950"] button[class*="bg-white"],
+.bg-stone-200\/50 button.bg-white,
+.bg-stone-200\/50 button[class*="bg-white"] {
+    background-color: var(--text-color-light) !important; /* Earthy charcoal active button */
+    color: var(--ios-bg-light) !important;
+    border: 1.5px solid var(--text-color-light) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15) !important;
+}
+.dark [class*="bg-stone-200/50"] button.dark\:bg-stone-850,
+.dark [class*="bg-stone-200/50"] button[class*="dark:bg-stone-850"],
+.dark [class*="dark:bg-stone-950"] button.dark\:bg-stone-850,
+.dark [class*="dark:bg-stone-950"] button[class*="dark:bg-stone-850"],
+.dark .bg-stone-200\/50 button.dark\:bg-stone-850,
+.dark .bg-stone-200\/50 button[class*="dark:bg-stone-850"] {
+    background-color: var(--washi-gold) !important; /* Gold active tab in dark mode */
+    color: #171B18 !important;
+    border: 1px solid var(--washi-gold-dark) !important;
+    box-shadow: 0 2px 5px rgba(216, 178, 87, 0.3) !important;
+}
+
+/* Sub-tab inactive button */
+[class*="bg-stone-200/50"] button:not(.bg-white):not([class*="bg-white"]),
+.bg-stone-200\/50 button:not(.bg-white):not([class*="bg-white"]) {
+    color: #4E5F52 !important; /* Distinct inactive text */
+}
+.dark [class*="bg-stone-200/50"] button:not([class*="dark:bg-stone-850"]),
+.dark .bg-stone-200\/50 button:not([class*="dark:bg-stone-850"]),
+.dark [class*="dark:bg-stone-950"] button:not([class*="dark:bg-stone-850"]) {
+    color: #889E8F !important;
+}
+[class*="bg-stone-200/50"] button:not(.bg-white):not([class*="bg-white"]):hover,
+.bg-stone-200\/50 button:not(.bg-white):not([class*="bg-white"]):hover {
+    color: var(--text-color-light) !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+.dark [class*="bg-stone-200/50"] button:not([class*="dark:bg-stone-850"]):hover,
+.dark .bg-stone-200\/50 button:not([class*="dark:bg-stone-850"]):hover,
+.dark [class*="dark:bg-stone-950"] button:not([class*="dark:bg-stone-850"]):hover {
+    color: var(--text-color-dark) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 3. Primary and Secondary Buttons contrast */
+button.bg-white,
+button[class*="bg-white"],
+button.border,
+button[class*="border"] {
+    background-color: var(--ios-bg-light) !important; /* Distinct lighter color background */
+    border: 1.5px solid var(--panel-border-light) !important;
+    color: var(--text-color-light) !important;
+}
+.dark button.bg-white,
+.dark button[class*="bg-white"],
+.dark button.border,
+.dark button[class*="border"] {
+    background-color: var(--ios-bg-dark) !important;
+    border: 1.5px solid var(--panel-border-dark) !important;
+    color: var(--text-color-dark) !important;
+}
+button.bg-white:hover,
+button[class*="bg-white"]:hover,
+button.border:hover,
+button[class*="border"]:hover {
+    background-color: var(--panel-bg-light) !important;
+    border-color: var(--text-color-light) !important;
+}
+.dark button.bg-white:hover,
+.dark button[class*="bg-white"]:hover,
+.dark button.border:hover,
+.dark button[class*="border"]:hover {
+    background-color: var(--panel-bg-dark) !important;
+    border-color: var(--washi-gold) !important;
+}
+
+/* 4. Switch Toggles (Form controls) track & knob */
+.peer-checked\:bg-\[\#34C759\]:checked ~ div,
+.peer-checked\:bg-\[\#34C759\]:checked ~ .w-9.h-5 {
+    background-color: #34C759 !important; /* Force green background when checked */
+}
+
+/* Unchecked state track overrides */
+.bg-stone-200\/80,
+.w-9.h-5.bg-stone-200\/80 {
+    background-color: #B1C4B5 !important; /* Clearly visible unchecked track */
+    border: 1px solid var(--panel-border-light) !important;
+}
+.dark .dark\:bg-stone-800,
+.dark .w-9.h-5.dark\:bg-stone-800 {
+    background-color: #2D382F !important; /* Dark mode unchecked track */
+    border: 1px solid var(--panel-border-dark) !important;
+}
+
+/* Toggle circle knob */
+.w-9.h-5::after {
+    background-color: #FFFFFF !important; /* High contrast white circle knob */
+    box-shadow: 0 1.5px 3px rgba(44, 54, 47, 0.4) !important;
+}
+.dark .w-9.h-5::after {
+    background-color: #E0ECE2 !important; /* Soft sand circle knob in dark mode */
+    box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* --- Phase 11 & 12 Telemetry, Map, and Print overrides --- */
+
+#waveformCanvas {
+    box-shadow: inset 0 2px 8px rgba(44, 54, 47, 0.06);
+}
+
+/* Anatomical Body Map hover & glow rules */
+#anatomicalBodyMap path, #anatomicalBodyMap rect {
+    transition: fill 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.symptom-glow-active {
+    fill: #D1A153 !important;
+    filter: drop-shadow(0 0 6px rgba(209, 161, 83, 0.85));
+    animation: pulseSymptomGlow 1.8s infinite alternate ease-in-out;
+}
+
+@keyframes pulseSymptomGlow {
+    0% {
+        fill: #D1A153;
+        filter: drop-shadow(0 0 4px rgba(209, 161, 83, 0.65));
+    }
+    100% {
+        fill: #4A5D4E;
+        filter: drop-shadow(0 0 12px rgba(74, 93, 78, 0.95));
+    }
+}
+
+.dark .symptom-glow-active {
+    fill: #D1A153 !important;
+    filter: drop-shadow(0 0 8px rgba(209, 161, 83, 0.9));
+    animation: pulseSymptomGlowDark 1.8s infinite alternate ease-in-out;
+}
+
+@keyframes pulseSymptomGlowDark {
+    0% {
+        fill: #D1A153;
+        filter: drop-shadow(0 0 5px rgba(209, 161, 83, 0.7));
+    }
+    100% {
+        fill: #E0ECE2;
+        filter: drop-shadow(0 0 14px rgba(224, 236, 226, 0.95));
+    }
+}
+
+/* Flowchart Nodes dynamic active styling */
+.flowchart-node {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.flowchart-node.active-path {
+    stroke: #4A5D4E !important;
+    fill: #EDF3ED !important;
+    filter: drop-shadow(0 4px 8px rgba(74, 93, 78, 0.25));
+}
+.dark .flowchart-node.active-path {
+    stroke: #D1A153 !important;
+    fill: #202722 !important;
+    filter: drop-shadow(0 4px 8px rgba(209, 161, 83, 0.3));
+}
+
+/* Print-Specific overrides for Japanese Shohousen Receipt Slip */
+@media print {
+    body > :not(#shohousenModal),
+    #view-workspace,
+    header,
+    nav,
+    section,
+    footer,
+    #consoleContainer,
+    #newCaseModal,
+    #patientHandoutModal,
+    .print\:hidden {
+        display: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        visibility: hidden !important;
+    }
+    
+    body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    
+    #shohousenModal {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+        z-index: 99999 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        visibility: visible !important;
+    }
+    
+    #shohousenModal * {
+        visibility: visible !important;
+        color: #000000 !important;
+        background: transparent !important;
+    }
+    
+    #shohousenPrintArea {
+        border: 2px solid #2C362F !important;
+        padding: 24px !important;
+        background: #FFFFFF !important;
+        border-radius: 0 !important;
+    }
+}
+
+/* Premium Interactive Hotspots */
+.hotspot-dot {
+    fill: var(--washi-gold) !important;
+    pointer-events: none;
+    opacity: 0.95;
+}
+.hotspot-ring {
+    fill: none !important;
+    stroke: var(--washi-gold) !important;
+    stroke-width: 1.5px !important;
+    pointer-events: none;
+    transform-origin: center;
+    animation: hotspotRingPulse 2.2s infinite ease-out;
+}
+@keyframes hotspotRingPulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(2.4);
+        opacity: 0;
+    }
+}
+#anatomicalBodyMap path:hover, #anatomicalBodyMap rect:hover {
+    fill: var(--washi-gold) !important;
+    opacity: 0.65;
+    filter: drop-shadow(0 0 8px rgba(209, 161, 83, 0.65));
+    cursor: pointer;
+}
+
+
 

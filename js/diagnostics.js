@@ -59,46 +59,84 @@ export async function runDiagnostics(classifier, activeProfile, noteInput, selec
         {
             name: "MELD Liver Failure Risk Score Test",
             fn: async () => {
-                const mockBilirubin = document.createElement('input');
-                mockBilirubin.id = 'meld-bilirubin';
-                mockBilirubin.value = '1.2';
-                const mockInr = document.createElement('input');
-                mockInr.id = 'meld-inr';
-                mockInr.value = '1.1';
-                const mockCreatinine = document.createElement('input');
-                mockCreatinine.id = 'meld-creatinine';
-                mockCreatinine.value = '1.5';
-                const mockDialysis = document.createElement('input');
-                mockDialysis.type = 'checkbox';
-                mockDialysis.id = 'meld-dialysis';
-                mockDialysis.checked = false;
+                const bilirubinEl = document.getElementById('meld-bilirubin');
+                const inrEl = document.getElementById('meld-inr');
+                const creatinineEl = document.getElementById('meld-creatinine');
+                const dialysisEl = document.getElementById('meld-dialysis');
+                const scoreEl = document.getElementById('meld-score');
+                const riskEl = document.getElementById('meld-mortality-risk');
                 
-                const scoreSpan = document.createElement('span');
-                scoreSpan.id = 'meld-score';
-                const riskDiv = document.createElement('div');
-                riskDiv.id = 'meld-mortality-risk';
-                
-                document.body.appendChild(mockBilirubin);
-                document.body.appendChild(mockInr);
-                document.body.appendChild(mockCreatinine);
-                document.body.appendChild(mockDialysis);
-                document.body.appendChild(scoreSpan);
-                document.body.appendChild(riskDiv);
-                
-                try {
-                    const { runMeld } = await import('./calculators.js');
-                    runMeld();
-                    const score = parseInt(scoreSpan.textContent, 10);
-                    if (isNaN(score) || score <= 0) {
-                        throw new Error(`Calculated invalid MELD score: ${score}`);
+                if (bilirubinEl && inrEl && creatinineEl && dialysisEl && scoreEl && riskEl) {
+                    const origBilirubin = bilirubinEl.value;
+                    const origInr = inrEl.value;
+                    const origCreatinine = creatinineEl.value;
+                    const origDialysis = dialysisEl.checked;
+                    const origScore = scoreEl.textContent;
+                    const origRisk = riskEl.textContent;
+                    
+                    try {
+                        bilirubinEl.value = '1.2';
+                        inrEl.value = '1.1';
+                        creatinineEl.value = '1.5';
+                        dialysisEl.checked = false;
+                        
+                        const { runMeld } = await import('./calculators.js');
+                        runMeld();
+                        
+                        const score = parseInt(scoreEl.textContent, 10);
+                        if (isNaN(score) || score <= 0) {
+                            throw new Error(`Calculated invalid MELD score: ${score}`);
+                        }
+                    } finally {
+                        bilirubinEl.value = origBilirubin;
+                        inrEl.value = origInr;
+                        creatinineEl.value = origCreatinine;
+                        dialysisEl.checked = origDialysis;
+                        scoreEl.textContent = origScore;
+                        riskEl.textContent = origRisk;
                     }
-                } finally {
-                    mockBilirubin.remove();
-                    mockInr.remove();
-                    mockCreatinine.remove();
-                    mockDialysis.remove();
-                    scoreSpan.remove();
-                    riskDiv.remove();
+                } else {
+                    const mockBilirubin = document.createElement('input');
+                    mockBilirubin.id = 'meld-bilirubin';
+                    mockBilirubin.value = '1.2';
+                    const mockInr = document.createElement('input');
+                    mockInr.id = 'meld-inr';
+                    mockInr.value = '1.1';
+                    const mockCreatinine = document.createElement('input');
+                    mockCreatinine.id = 'meld-creatinine';
+                    mockCreatinine.value = '1.5';
+                    const mockDialysis = document.createElement('input');
+                    mockDialysis.type = 'checkbox';
+                    mockDialysis.id = 'meld-dialysis';
+                    mockDialysis.checked = false;
+                    
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.id = 'meld-score';
+                    const riskDiv = document.createElement('div');
+                    riskDiv.id = 'meld-mortality-risk';
+                    
+                    document.body.appendChild(mockBilirubin);
+                    document.body.appendChild(mockInr);
+                    document.body.appendChild(mockCreatinine);
+                    document.body.appendChild(mockDialysis);
+                    document.body.appendChild(scoreSpan);
+                    document.body.appendChild(riskDiv);
+                    
+                    try {
+                        const { runMeld } = await import('./calculators.js');
+                        runMeld();
+                        const score = parseInt(scoreSpan.textContent, 10);
+                        if (isNaN(score) || score <= 0) {
+                            throw new Error(`Calculated invalid MELD score: ${score}`);
+                        }
+                    } finally {
+                        mockBilirubin.remove();
+                        mockInr.remove();
+                        mockCreatinine.remove();
+                        mockDialysis.remove();
+                        scoreSpan.remove();
+                        riskDiv.remove();
+                    }
                 }
             }
         },

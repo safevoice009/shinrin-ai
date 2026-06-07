@@ -1,6 +1,14 @@
-# Shinrin AI
+# Shinrin AI (森林)
 
 > **A Japanese Wabi-Sabi Styled Clinical Decision Support Dashboard.**
+
+<div align="center">
+  <p align="center">
+    <strong>Watch the clinical workflow execution, LoRA fine-tuning, anatomical atlas, and patient simulator:</strong>
+  </p>
+
+  <video src="shinrin-product/shinrin_ai_product_demo.mp4" width="100%" controls autoplay loop muted style="border-radius: 12px; border: 1px solid #8AA690; box-shadow: 0 10px 30px rgba(0,0,0,0.05);"></video>
+</div>
 
 Shinrin AI is a premium, open-source clinical dashboard designed to streamline clinical workflows, visualize patient histories, and highlight medical narratives. It is built as a lightweight, single-page web application with a focus on minimalist aesthetics, balanced white space, and clear typography.
 
@@ -47,3 +55,15 @@ No installation or compilation is required. The application runs client-side, bu
 
 ## 📄 License
 This project is open-source and available under the [MIT License](LICENSE).
+
+---
+
+## 🎓 Developer & Legal Disclaimer
+
+**Developed by Dr. Baddam Sucharith Reddy (AI-Assisted)**  
+*Contact & Portfolios*: [LinkedIn Profile](https://www.linkedin.com/in/sucharith007) | [GitHub Profile](https://github.com/safevoice009) | [Project Source](https://github.com/safevoice009/shinrin-ai)
+
+> [!WARNING]
+> **Legal Notice**: This software is a proof-of-concept prototype. All patient profiles, clinical narratives, medical codes, policy checks, simulated patient dialogues (SPAC), and database logs are strictly simulated and for demonstration/portfolio purposes. It should not be used as medical advice or in real production healthcare environments.
+
+**🔐 Privacy Safeguard**: No Protected Health Information (PHI) is ever collected, stored, or transmitted outside the client's browser. All Named Entity Recognition (NER), local text summarization, and audio transcription (Whisper AI) occur fully client-side inside this device's memory.

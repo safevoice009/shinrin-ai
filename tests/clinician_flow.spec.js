@@ -48,6 +48,11 @@ test.afterAll(async () => {
 });
 
 test('Shinrin AI - Full Clinician Flow E2E Test', async ({ page }) => {
+    test.setTimeout(90000);
+    // Console error logging
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('pageerror', err => console.error('PAGE ERROR:', err.message));
+
     // Dismiss the browser alert dialog automatically when inserting score
     page.on('dialog', async dialog => {
         await dialog.accept();
@@ -287,4 +292,129 @@ test('Shinrin AI - Full Clinician Flow E2E Test', async ({ page }) => {
     await page.locator('#primary-tab-workspace').click();
     const noteContent = await page.locator('#noteInput').inputValue();
     expect(noteContent).toContain('Wells');
+
+    // 9. Test Phase 11 & Phase 12 premium clinical integrations
+    // A. Assert waveform canvas & trend chart elements exist
+    await expect(page.locator('#waveformCanvas')).toBeAttached();
+    await expect(page.locator('#vitalsTrendChart')).toBeVisible();
+
+    // B. Test Patient Handout QR modal triggers
+    await page.locator('#tab-layman').click();
+    await page.locator('button:has-text("Generate QR Handout")').click();
+    await expect(page.locator('#patientHandoutModal')).toBeVisible();
+    await page.locator('#patientHandoutModal button:has-text("Done")').click();
+    await expect(page.locator('#patientHandoutModal')).toBeHidden();
+
+    // C. Test Multi-Agent Consensus Board conversation tab
+    await page.locator('#tab-console-consensus').click();
+    await page.waitForSelector('#consensusMessages div', { timeout: 6000 });
+    const consensusHtml = await page.locator('#consensusMessages').innerHTML();
+    expect(consensusHtml).toContain('Dr.');
+
+    // D. Test Anatomical Symptom Map interactivity
+    await page.locator('#body-chest').click();
+    await expect(page.locator('#regionTitle')).toHaveText('Chest & Cardio-Pulmonary');
+
+    // E. Test Shohousen Japanese Prescription Modal
+    await page.locator('#tab-soap').click();
+    await page.locator('button:has-text("Print Shohousen (Rx)")').click();
+    await expect(page.locator('#shohousenModal')).toBeVisible();
+    await page.locator('#shohousenModal button:has-text("Cancel")').click();
+    await expect(page.locator('#shohousenModal')).toBeHidden();
+
+    // F. Test Anatomical Atlas Tab View (Phase 13)
+    await page.locator('#primary-tab-anatomy').click();
+    await expect(page.locator('#view-anatomy')).not.toHaveClass(/hidden/);
+    
+    // Switch to skeletal layer
+    await page.locator('#layer-btn-skeletal').click();
+    await expect(page.locator('#layer-skeletal-svg')).not.toHaveClass(/hidden/);
+    
+    // Click on skull bone
+    await page.locator('#bone-skull').click();
+    await expect(page.locator('#inspectName')).toHaveText('Skull');
+    
+    // Click Correlate with Active Note button
+    await page.locator('button:has-text("Correlate with Active Note")').click();
+    
+    // Wait for the local simulated thinking delay and verify output contains the structure name
+    await page.waitForTimeout(600);
+    const consoleText = await page.locator('#anatomyAiConsole').innerHTML();
+    expect(consoleText).toContain('Skull');
+
+    // G. Test AI Workbench & Fine-Tuning Studio (Phase 14)
+    await page.locator('#primary-tab-workbench').click();
+    await expect(page.locator('#view-workbench')).not.toHaveClass(/hidden/);
+
+    // Click "Start LoRA Fine-Tuning Simulation"
+    await page.locator('button:has-text("Start LoRA Fine-Tuning Simulation")').click();
+
+    // Wait for training animation to complete (12 steps * 180ms + padding = ~2.5s)
+    await page.waitForTimeout(3000);
+
+    // Verify model deployed status badge
+    await expect(page.locator('#workbenchStatusLabel')).toHaveText('MODEL DEPLOYED (ACTIVE)');
+
+    // Switch back to Workspace
+    await page.locator('#primary-tab-workspace').click();
+    await expect(page.locator('#view-workspace')).not.toHaveClass(/hidden/);
+
+    // Verify selector changed to custom
+    const modelSelectorVal = await page.locator('#openmed-model-selector').inputValue();
+    expect(modelSelectorVal).toBe('custom');
+
+    // Enter note text matching training pair 1
+    const noteInputCustom = page.locator('#noteInput');
+    await noteInputCustom.focus();
+    await noteInputCustom.fill('Patient reports chest congestion and progressive dyspnea. History of reduced ejection fraction (35%).');
+
+    // Structure note using fine-tuned model
+    await page.locator('button:has-text("Structure Note")').click();
+    await expect(page.locator('#pipelineLoader')).toHaveClass(/hidden/, { timeout: 10000 });
+
+    // Assert that the SOAP Note Subjective field contains LoRA-Adapted training target terms
+    const soapSubjective = await page.locator('#soap-s').inputValue();
+    expect(soapSubjective).toContain('Decompensated cardiac failure');
+
+    // H. Test Phase 15 Simulated Patient Actor Clinic (SPAC) & Hackathon Submission Kit
+    // Click on primary simulator tab
+    await page.locator('#primary-tab-simulator').click();
+    await expect(page.locator('#view-simulator')).not.toHaveClass(/hidden/);
+
+    // Switch to Ami Tanaka
+    await page.locator('#sim-card-ami').click();
+    
+    // Assert vitals updated
+    const bpText = await page.locator('#sim-bp').textContent();
+    expect(bpText).toContain('116/'); // Ami's baseline systolic is 116
+
+    // Click on joint hotspot in scan viewer
+    await page.locator('#sim-scan-container svg g').first().click({ force: true });
+    
+    // Assert scan finding box is visible and contains description
+    await expect(page.locator('#scan-info-box')).toBeVisible();
+    await expect(page.locator('#scan-info-text')).toContainText('hypertrophy');
+
+    // Click "Import Findings to Note"
+    await page.locator('#scan-info-btn').click();
+    await expect(page.locator('#scan-info-box')).toBeHidden();
+
+    // Ask preset symptom question
+    await page.locator('button:has-text("Describe your symptoms")').click();
+    
+    // Wait for patient response to appear in chat logs
+    await page.waitForTimeout(600);
+    const chatHtml = await page.locator('#simulatorChatLogs').innerHTML();
+    expect(chatHtml).toContain('stiff');
+
+    // Click "Sync Interview to Note"
+    await page.locator('button:has-text("Sync Interview to Note")').click();
+
+    // Assert that we are routed back to the workspace and note contains synced transcript
+    await expect(page.locator('#view-workspace')).not.toHaveClass(/hidden/);
+    const notesValue = await page.locator('#noteInput').inputValue();
+    expect(notesValue).toContain('Ami Tanaka');
+    expect(notesValue).toContain('stiff');
+    expect(notesValue).toContain('hypertrophy');
 });
+

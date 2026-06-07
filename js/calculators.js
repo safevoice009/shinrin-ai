@@ -1,3 +1,9 @@
+function sanitizeCalculatorInput(value, defaultValue = 1.0) {
+    const val = parseFloat(value);
+    if (isNaN(val) || !isFinite(val)) return defaultValue;
+    return val;
+}
+
 export function runChads() {
     let score = 0;
     if (document.getElementById('chads-c').checked) score += 1;
@@ -187,22 +193,25 @@ export function runMews() {
 }
 
 export function runMeld() {
-    let bilirubin = parseFloat(document.getElementById('meld-bilirubin').value) || 1.0;
-    let inr = parseFloat(document.getElementById('meld-inr').value) || 1.0;
-    let creatinine = parseFloat(document.getElementById('meld-creatinine').value) || 1.0;
+    let bilirubin = sanitizeCalculatorInput(document.getElementById('meld-bilirubin').value, 1.0);
+    let inr = sanitizeCalculatorInput(document.getElementById('meld-inr').value, 1.0);
+    let creatinine = sanitizeCalculatorInput(document.getElementById('meld-creatinine').value, 1.0);
     let dialysis = document.getElementById('meld-dialysis').checked;
 
     if (dialysis || creatinine > 4.0) {
         creatinine = 4.0;
     }
 
-    // Lower bound cap at 1.0
+    // Lower bound cap at 1.0 for logarithmic inputs
     bilirubin = Math.max(1.0, bilirubin);
     inr = Math.max(1.0, inr);
     creatinine = Math.max(1.0, creatinine);
 
     let meldVal = (3.78 * Math.log(bilirubin)) + (11.2 * Math.log(inr)) + (9.57 * Math.log(creatinine)) + 6.43;
     let score = Math.round(meldVal);
+    
+    // Clinical cap for MELD score is 6 to 40
+    score = Math.max(6, Math.min(40, score));
 
     let mortality = "1.9% 3-month mortality";
     if (score >= 40) mortality = "71.3% 3-month mortality (Immediate ICU/Transplant Priority)";
