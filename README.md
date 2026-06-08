@@ -2,6 +2,9 @@
 
 > **A Japanese Wabi-Sabi Styled Clinical Decision Support Dashboard.**
 
+[![Vercel Deployment](https://img.shields.io/badge/Live-Demo-green?style=for-the-badge&logo=vercel)](https://shinrin-ai.vercel.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/safevoice009/shinrin-ai)
+
 <div align="center">
   <p align="center">
     <strong>Watch the clinical workflow execution, LoRA fine-tuning, anatomical atlas, and patient simulator:</strong>
@@ -18,21 +21,27 @@ Shinrin AI is a premium, open-source clinical dashboard designed to streamline c
 Inspired by traditional Japanese zen and **wabi-sabi** (finding beauty in simplicity and natural forms) principles:
 * **Background**: Warm washi paper (`#FAF7F2`)
 * **Text**: Sumi-ink charcoal (`#2C2C2A`)
-  * **Accents**: Organic Cedar/Moss green (`#4A5D4E`)
-  * **Highlights**: Ochre earth (`#D1A153`) for tests, blossom clay (`#E0A9A5`) for warnings
-  * **Elements**: Rounded corners (`rounded-2xl` / `rounded-3xl`) resembling smooth river stones with delicate borders and minimal shadows.
-  
-  ---
-  
-  ## 🌟 Key Features
-  1. **Longitudinal Patient Timeline**: An interactive, chronological history mapping clinical events (visits, diagnostic tests, hospitalizations) with dynamic color-coding.
-  2. **Clinical Narrative Entity Highlights**: Built-in mock NLP parses unstructured notes to highlight core entities (green for medications, gold for symptoms, red for warnings).
-  3. **Structured EHR Mapping**: Automatically maps extracted narrative components into structured tabular cards.
-  4. **Clinical Decision Recommendations**: Suggests evidence-based clinical pathways and diagnostic next-steps, accompanied by direct literature links (e.g. PubMed, CDC).
-  5. **Zen Breathing Pacer (Mindfulness Widget)**: SVG-based expanding/contracting breathing flower that helps clinicians ground themselves during charting, featuring interactive speeds (Calm, Energized, Deep Sleep) matching phase transitions.
-  6. **Interactive Anatomical Atlas Hotspots**: Glowing gold pulse indicators identifying active patient symptom zones on the clinical silhouette.
-  7. **EHR Sync Code Highlighting**: Interactive FHIR JSON explorer with syntax colorization (tokenized keys, booleans, strings) and an instant copy payload tool.
-  8. **Self-Diagnostics Suite**: Built-in testing suite verifying clinical formulas (including sanitized and clinically capped MELD liver risk calculation tests).
+* **Accents**: Organic Cedar/Moss green (`#4A5D4E`)
+* **Highlights**: Ochre earth (`#D1A153`) for tests, blossom clay (`#E0A9A5`) for warnings
+* **Elements**: Rounded corners (`rounded-2xl` / `rounded-3xl`) resembling smooth river stones with delicate borders and minimal shadows.
+
+---
+
+## 🌟 Key Features
+
+1. **Longitudinal Patient Timeline**: An interactive, chronological history mapping clinical events (visits, diagnostic tests, hospitalizations) with dynamic color-coding.
+2. **Clinical Narrative Entity Highlights**: Built-in mock NLP parses unstructured notes to highlight core entities (green for medications, gold for symptoms, red for warnings).
+3. **Structured EHR Mapping**: Automatically maps extracted narrative components into structured tabular cards.
+4. **Clinical Decision Recommendations**: Suggests evidence-based clinical pathways and diagnostic next-steps, accompanied by direct literature links (e.g. PubMed, CDC).
+5. **Zen Breathing Pacer (Mindfulness Widget)**: SVG-based expanding/contracting breathing flower that helps clinicians ground themselves during charting, featuring interactive speeds (Calm, Energized, Deep Sleep) matching phase transitions.
+6. **Interactive Anatomical Atlas Hotspots**: Glowing gold pulse indicators identifying active patient symptom zones on the clinical silhouette.
+7. **EHR Sync Code Highlighting**: Interactive FHIR JSON explorer with syntax colorization (tokenized keys, booleans, strings) and an instant copy payload tool.
+8. **Self-Diagnostics Suite**: Built-in testing suite verifying clinical formulas (including sanitized and clinically capped MELD liver risk calculation tests).
+9. **Speech Dictation Support**: Real-time voice-to-text integration for clinical dictations.
+10. **Doctor Console Drawer**: Dynamic guidelines checklist, differential diagnosis engine, and pathophysiology panel adjusting reactively to patient state.
+11. **AI Workbench & Fine-Tuning Studio**: Interactive LoRA fine-tuning training simulation and custom model selector.
+12. **Simulated Patient Actor Clinic (SPAC)**: Interactive patient simulator featuring vital monitoring, scan viewer joint hotspot inspection, mock dialog, and interview sync tools.
+13. **Layman QR Handout Generator**: Instantly formats clinical notes into simple lay summaries with printable QR codes.
 
 ---
 
