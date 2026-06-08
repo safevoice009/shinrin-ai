@@ -18,17 +18,21 @@ Shinrin AI is a premium, open-source clinical dashboard designed to streamline c
 Inspired by traditional Japanese zen and **wabi-sabi** (finding beauty in simplicity and natural forms) principles:
 * **Background**: Warm washi paper (`#FAF7F2`)
 * **Text**: Sumi-ink charcoal (`#2C2C2A`)
-* **Accents**: Organic Cedar/Moss green (`#4A5D4E`)
-* **Highlights**: Ochre earth (`#D1A153`) for tests, blossom clay (`#E0A9A5`) for warnings
-* **Elements**: Rounded corners (`rounded-2xl` / `rounded-3xl`) resembling smooth river stones with delicate borders and minimal shadows.
-
----
-
-## 🌟 Key Features
-1. **Longitudinal Patient Timeline**: An interactive, chronological history mapping clinical events (visits, diagnostic tests, hospitalizations) with dynamic color-coding.
-2. **Clinical Narrative Entity Highlights**: Built-in mock NLP parses unstructured notes to highlight core entities (green for medications, gold for symptoms, red for warnings).
-3. **Structured EHR Mapping**: Automatically maps extracted narrative components into structured tabular cards.
-4. **Clinical Decision Recommendations**: Suggests evidence-based clinical pathways and diagnostic next-steps, accompanied by direct literature links (e.g. PubMed, CDC).
+  * **Accents**: Organic Cedar/Moss green (`#4A5D4E`)
+  * **Highlights**: Ochre earth (`#D1A153`) for tests, blossom clay (`#E0A9A5`) for warnings
+  * **Elements**: Rounded corners (`rounded-2xl` / `rounded-3xl`) resembling smooth river stones with delicate borders and minimal shadows.
+  
+  ---
+  
+  ## 🌟 Key Features
+  1. **Longitudinal Patient Timeline**: An interactive, chronological history mapping clinical events (visits, diagnostic tests, hospitalizations) with dynamic color-coding.
+  2. **Clinical Narrative Entity Highlights**: Built-in mock NLP parses unstructured notes to highlight core entities (green for medications, gold for symptoms, red for warnings).
+  3. **Structured EHR Mapping**: Automatically maps extracted narrative components into structured tabular cards.
+  4. **Clinical Decision Recommendations**: Suggests evidence-based clinical pathways and diagnostic next-steps, accompanied by direct literature links (e.g. PubMed, CDC).
+  5. **Zen Breathing Pacer (Mindfulness Widget)**: SVG-based expanding/contracting breathing flower that helps clinicians ground themselves during charting, featuring interactive speeds (Calm, Energized, Deep Sleep) matching phase transitions.
+  6. **Interactive Anatomical Atlas Hotspots**: Glowing gold pulse indicators identifying active patient symptom zones on the clinical silhouette.
+  7. **EHR Sync Code Highlighting**: Interactive FHIR JSON explorer with syntax colorization (tokenized keys, booleans, strings) and an instant copy payload tool.
+  8. **Self-Diagnostics Suite**: Built-in testing suite verifying clinical formulas (including sanitized and clinically capped MELD liver risk calculation tests).
 
 ---
 
