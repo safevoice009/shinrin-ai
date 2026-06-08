@@ -2161,6 +2161,167 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
                 </div>
             </div>
     </div>
+
+    <!-- view-docs container -->
+    <div id="view-docs" class="primary-view-container hidden space-y-8">
+        <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50">
+            <div>
+                <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Shinrin Interactive Docs</h2>
+                <p class="text-xs text-stone-400 dark:text-stone-550">Professional system manual, highlights, and interactive user guides</p>
+            </div>
+            <!-- Interactive Search Input -->
+            <div class="relative w-64">
+                <input type="text" id="docsSearch" onkeyup="filterDocs()" placeholder="Search documentation..." class="w-full bg-stone-50 dark:bg-stone-900/50 border border-stone-250/20 dark:border-stone-800 text-xs px-3.5 py-1.5 rounded-xl text-stone-850 dark:text-stone-200 focus:outline-none focus:ring-1 focus:ring-[#4A5D4E]/50">
+                <span class="absolute right-3.5 top-2 text-stone-400 text-xs select-none">🔍</span>
+            </div>
+        </div>
+        
+        <!-- Document Hub Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Left Sidebar Navigation -->
+            <div class="md:col-span-1 space-y-2.5">
+                <div class="sticky top-20 glass-panel rounded-[24px] p-4.5 space-y-1 border border-stone-200/40 dark:border-stone-800/40">
+                    <h3 class="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-550 px-2.5 mb-2">Sections</h3>
+                    <button onclick="scrollToDocsSection('doc-workspace')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>🏥</span> Workspace & NLP
+                    </button>
+                    <button onclick="scrollToDocsSection('doc-simulator')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>👥</span> Patient Simulator
+                    </button>
+                    <button onclick="scrollToDocsSection('doc-calculators')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>🧮</span> Risk Calculators
+                    </button>
+                    <button onclick="scrollToDocsSection('doc-anatomy')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>💀</span> Anatomical Atlas
+                    </button>
+                    <button onclick="scrollToDocsSection('doc-workbench')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>⚙️</span> AI Workbench
+                    </button>
+                    <button onclick="scrollToDocsSection('doc-ehr')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>🔌</span> EHR Sync Gateway
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Right Document Content Area -->
+            <div id="docsContentArea" class="md:col-span-3 space-y-6 max-h-[70vh] overflow-y-auto pr-2 scrollbar-thin">
+                <!-- Workspace Document Card -->
+                <div id="doc-workspace" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">🏥</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Workspace & Clinical NLP highlights</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
+                        The **Clinical Workspace** is where narrative diagnostic logs are input and processed. It uses client-side WebAssembly models to parse text and extract structured medical metadata.
+                    </p>
+                    <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                            <li><strong>Patient Switcher:</strong> Clicking patient profiles loads customized case studies. Stored recommendations and SOAP notes update dynamically.</li>
+                            <li><strong>Narrative Input:</strong> Use the editor's autocomplete panel (triggered by typing keywords) or click the dictation button to capture speech via the Web Speech API.</li>
+                            <li><strong>Structuring Pipeline:</strong> Pressing <em>Structure Note</em> extracts signs/symptoms (gold highlight), active drugs (green highlight), and key diagnostics (red outline).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Simulator Document Card -->
+                <div id="doc-simulator" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">👥</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Patient Actor Clinic (SPAC)</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
+                        The **Simulated Patient Actor Clinic** mimics clinical interviews. It features vital sign monitors, radiographic scan hotspot checks, and speech chat boxes.
+                    </p>
+                    <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                            <li><strong>Vital Streams:</strong> Displays dynamic vital trends and graphical waveform feeds.</li>
+                            <li><strong>Radiological Hotspots:</strong> Clicking blinking indicators on scans updates pathological logs (e.g. locating tissue hypertrophy).</li>
+                            <li><strong>Interview Logs:</strong> Asking questions generates dialog responses, which can be synced directly to active clinical notes via <em>Sync Interview to Note</em>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Risk Calculators Document Card -->
+                <div id="doc-calculators" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">🧮</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Risk Calculators & MELD Protection</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
+                        Shinrin includes calculators for medical formulas: **MELD**, **Wells' PE**, **CURB-65**, **MEWS**, **HAS-BLED**, and **CHA₂DS₂-VASc**.
+                    </p>
+                    <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block font-bold">🔒 Logarithmic & Boundary Safety System:</span>
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                            <li><strong>Input Sanitization:</strong> Values are automatically sanitized to prevent `NaN` or `Infinity` score errors.</li>
+                            <li><strong>Math Log Protection:</strong> Input values are capped at a minimum of `1.0` before entering logarithm formulas.</li>
+                            <li><strong>Score Capping:</strong> MELD calculations are capped strictly between **6 and 40** to match official clinical standards.</li>
+                            <li><strong>SOAP Integration:</strong> Calculates risk levels and allows clinicians to insert results directly into notes.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Anatomical Atlas Document Card -->
+                <div id="doc-anatomy" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">💀</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Anatomical Atlas & Pulsing Hotspots</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
+                        The **Anatomical Atlas** presents layered skeletal and muscular models. It features interactive pulsing gold hotspots representing localized symptoms.
+                    </p>
+                    <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                            <li><strong>Layer Toggle:</strong> Switch between skeletal and muscular views instantly.</li>
+                            <li><strong>Hotspot Discovery:</strong> Glowing gold dots and expanding rings highlight symptomatic zones (e.g. Brain, Chest).</li>
+                            <li><strong>Anatomy Correlation:</strong> Click <em>Correlate with Active Note</em> to cross-reference selected organs against patient history logs.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- AI Workbench Document Card -->
+                <div id="doc-workbench" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">⚙️</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">AI Workbench & LoRA Fine-Tuning</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
+                        The **AI Workbench** simulates model fine-tuning (LoRA adapters). It demonstrates client-side training iterations and adapter weight adjustments.
+                    </p>
+                    <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                            <li><strong>LoRA Simulation:</strong> Click <em>Start LoRA Fine-Tuning</em> to run training steps and view descending loss metrics.</li>
+                            <li><strong>Adapter Deployment:</strong> Once training completes, the model status changes to <em>MODEL DEPLOYED (ACTIVE)</em>.</li>
+                            <li><strong>Custom Parser:</strong> The workspace dropdown switches to the custom model, updating structuring logic to include newly learned diagnostic rules (e.g. mapping ejection fraction directly to Decompensated Heart Failure).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- EHR Sync Document Card -->
+                <div id="doc-ehr" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">🔌</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">EHR Sync Gateway & Code Highlighting</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
+                        The **EHR Sync Gateway** integrates structured SOAP outputs with remote servers (like OpenMRS, HAPI FHIR, or openFDA).
+                    </p>
+                    <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                            <li><strong>FHIR Client Query:</strong> Fetch patient resource payloads with color-coded syntax highlighting (Washi Gold for keys, green for strings, blue for numbers).</li>
+                            <li><strong>HIPAA Shield:</strong> Displays security status verification logs.</li>
+                            <li><strong>Clipboard Copy:</strong> Copy raw JSON payload formats instantly using the <em>Copy Payload</em> button (includes haptic sounds and toast alerts).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Footer / Privacy & Credits -->
     <footer class="mt-16 border-t border-stone-200/40 dark:border-stone-850/40 bg-white/5 dark:bg-stone-900/5 py-12 relative z-10 font-sans">

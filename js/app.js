@@ -6468,4 +6468,31 @@ function toggleLlmEngineMode() {
 window.toggleLlmEngineMode = toggleLlmEngineMode;
 window.loadLlmEngineMode = loadLlmEngineMode;
 
+// Interactive Docs navigation and search functions
+function scrollToDocsSection(id) {
+    if (window.playPremiumHapticSound) window.playPremiumHapticSound();
+    const el = document.getElementById(id);
+    const container = document.getElementById('docsContentArea');
+    if (el && container) {
+        container.scrollTo({
+            top: el.offsetTop - container.offsetTop - 12,
+            behavior: 'smooth'
+        });
+    }
+}
+window.scrollToDocsSection = scrollToDocsSection;
+
+function filterDocs() {
+    const query = document.getElementById('docsSearch').value.toLowerCase();
+    const sections = document.querySelectorAll('.doc-section');
+    sections.forEach(sec => {
+        const text = sec.textContent.toLowerCase();
+        if (text.includes(query)) {
+            sec.style.display = 'block';
+        } else {
+            sec.style.display = 'none';
+        }
+    });
+}
+window.filterDocs = filterDocs;
 
