@@ -2166,8 +2166,8 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
     <div id="view-docs" class="primary-view-container hidden space-y-8">
         <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-200/50 dark:border-stone-800/50">
             <div>
-                <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Shinrin Interactive Docs</h2>
-                <p class="text-xs text-stone-400 dark:text-stone-550">Professional system manual, highlights, and interactive user guides</p>
+                <h2 class="text-sm font-bold text-stone-450 dark:text-stone-500 uppercase tracking-widest">Shinrin Interactive Manual</h2>
+                <p class="text-xs text-stone-400 dark:text-stone-550">System architecture, comparative analysis, compliance, and user workflows</p>
             </div>
             <!-- Interactive Search Input -->
             <div class="relative w-64">
@@ -2182,6 +2182,12 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
             <div class="md:col-span-1 space-y-2.5">
                 <div class="sticky top-20 glass-panel rounded-[24px] p-4.5 space-y-1 border border-stone-200/40 dark:border-stone-800/40">
                     <h3 class="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-550 px-2.5 mb-2">Sections</h3>
+                    <button onclick="scrollToDocsSection('doc-introduction')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>⛩️</span> Introduction
+                    </button>
+                    <button onclick="scrollToDocsSection('doc-comparison')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>📊</span> Comparison
+                    </button>
                     <button onclick="scrollToDocsSection('doc-workspace')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
                         <span>🏥</span> Workspace & NLP
                     </button>
@@ -2200,23 +2206,111 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
                     <button onclick="scrollToDocsSection('doc-ehr')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
                         <span>🔌</span> EHR Sync Gateway
                     </button>
+                    <button onclick="scrollToDocsSection('doc-security')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>🛡️</span> HIPAA & Security
+                    </button>
+                    <button onclick="scrollToDocsSection('doc-legal')" class="w-full text-left text-xs font-semibold px-3 py-1.5 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100/80 dark:hover:bg-stone-850/80 transition duration-150 flex items-center gap-1.5">
+                        <span>⚖️</span> Legal Disclaimers
+                    </button>
                 </div>
             </div>
             
             <!-- Right Document Content Area -->
             <div id="docsContentArea" class="md:col-span-3 space-y-6 max-h-[70vh] overflow-y-auto pr-2 scrollbar-thin">
+                <!-- Introduction Card -->
+                <div id="doc-introduction" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">⛩️</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Design & Sino-Japanese Aesthetics</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed font-sans">
+                        Shinrin AI (森林) is built around the Zen philosophy of **Wabi-Sabi** (finding harmony in organic simplicity, balance, and clean space). Medical electronic health records are notoriously cluttered, which increases clinician cognitive load and burnout. Shinrin AI solves this with:
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-[10px] font-mono font-semibold">
+                        <div class="p-2.5 rounded-xl bg-[#FAF7F2] border border-stone-250/30 text-stone-850 shadow-sm">
+                            <div class="w-3.5 h-3.5 rounded-full bg-[#FAF7F2] border border-stone-300 mx-auto mb-1"></div>
+                            Washi Paper Background
+                            <span class="block text-[8px] text-stone-450">#FAF7F2</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-[#EDF3ED] border border-[#8AA690]/30 text-stone-850 shadow-sm">
+                            <div class="w-3.5 h-3.5 rounded-full bg-[#4A5D4E] mx-auto mb-1"></div>
+                            Cedar Sage Accent
+                            <span class="block text-[8px] text-stone-500">#4A5D4E</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-850 dark:text-stone-200 shadow-sm">
+                            <div class="w-3.5 h-3.5 rounded-full bg-[#D1A153] mx-auto mb-1"></div>
+                            Ochre Washi Gold
+                            <span class="block text-[8px] text-stone-450">#D1A153</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-850 dark:text-stone-200 shadow-sm">
+                            <div class="w-3.5 h-3.5 rounded-full bg-[#2C2C2A] mx-auto mb-1"></div>
+                            Sumi Ink Charcoal
+                            <span class="block text-[8px] text-stone-450">#2C2C2A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Card -->
+                <div id="doc-comparison" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">📊</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Comparative Architecture (Shinrin vs Standard EHR)</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed font-sans">
+                        Rather than presenting clinical details in a static text grid (like traditional databases or basic markdown sheets), Shinrin AI uses live interactive rendering:
+                    </p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px] border-collapse">
+                            <thead>
+                                <tr class="border-b border-stone-250/30 text-stone-450 dark:text-stone-500 uppercase tracking-widest text-[9px]">
+                                    <th class="py-2.5 pr-2.5 font-bold">Feature Domain</th>
+                                    <th class="py-2.5 px-2.5 font-bold">Standard EHR (Epic/Cerner)</th>
+                                    <th class="py-2.5 px-2.5 font-bold text-[#4A5D4E] dark:text-[#E0ECE2]">Shinrin AI Portal</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-200/40 dark:divide-stone-800/40 text-stone-600 dark:text-stone-400">
+                                <tr>
+                                    <td class="py-2.5 pr-2.5 font-bold text-stone-850 dark:text-stone-250">Visual Design</td>
+                                    <td class="py-2.5 px-2.5">Dense grey grids & spreadsheet-style layouts (high strain)</td>
+                                    <td class="py-2.5 px-2.5 text-[#4A5D4E] dark:text-[#E0ECE2] font-semibold">Wabi-Sabi minimal aesthetic, clean margins, cards</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 pr-2.5 font-bold text-stone-850 dark:text-stone-250">Calculators Security</td>
+                                    <td class="py-2.5 px-2.5">Prone to NaN or division errors with out-of-range inputs</td>
+                                    <td class="py-2.5 px-2.5 text-[#4A5D4E] dark:text-[#E0ECE2] font-semibold">Strict boundary sanitization and capped scores (6-40 MELD)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 pr-2.5 font-bold text-stone-850 dark:text-stone-250">Mindfulness Widgets</td>
+                                    <td class="py-2.5 px-2.5">None (leads to cognitive burnout)</td>
+                                    <td class="py-2.5 px-2.5 text-[#4A5D4E] dark:text-[#E0ECE2] font-semibold">Animated SVG Zen Breathing Flower synced to pacing speeds</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 pr-2.5 font-bold text-stone-850 dark:text-stone-250">Patient Simulation</td>
+                                    <td class="py-2.5 px-2.5">Static PDF records and inactive case histories</td>
+                                    <td class="py-2.5 px-2.5 text-[#4A5D4E] dark:text-[#E0ECE2] font-semibold">SPAC vital sign streams, chat logs, and sync note tools</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 pr-2.5 font-bold text-stone-850 dark:text-stone-250">EHR Synch Explorer</td>
+                                    <td class="py-2.5 px-2.5">Proprietary raw XML or standard raw text lines</td>
+                                    <td class="py-2.5 px-2.5 text-[#4A5D4E] dark:text-[#E0ECE2] font-semibold">JSON syntax tokenizer with copy-to-clipboard logs</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Workspace Document Card -->
                 <div id="doc-workspace" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
                     <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
                         <span class="text-lg">🏥</span>
-                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Workspace & Clinical NLP highlights</h3>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Workspace & Clinical NLP Highlights</h3>
                     </div>
                     <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
                         The **Clinical Workspace** is where narrative diagnostic logs are input and processed. It uses client-side WebAssembly models to parse text and extract structured medical metadata.
                     </p>
                     <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
-                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-455 space-y-1.5">
                             <li><strong>Patient Switcher:</strong> Clicking patient profiles loads customized case studies. Stored recommendations and SOAP notes update dynamically.</li>
                             <li><strong>Narrative Input:</strong> Use the editor's autocomplete panel (triggered by typing keywords) or click the dictation button to capture speech via the Web Speech API.</li>
                             <li><strong>Structuring Pipeline:</strong> Pressing <em>Structure Note</em> extracts signs/symptoms (gold highlight), active drugs (green highlight), and key diagnostics (red outline).</li>
@@ -2235,7 +2329,7 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
                     </p>
                     <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
-                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-455 space-y-1.5">
                             <li><strong>Vital Streams:</strong> Displays dynamic vital trends and graphical waveform feeds.</li>
                             <li><strong>Radiological Hotspots:</strong> Clicking blinking indicators on scans updates pathological logs (e.g. locating tissue hypertrophy).</li>
                             <li><strong>Interview Logs:</strong> Asking questions generates dialog responses, which can be synced directly to active clinical notes via <em>Sync Interview to Note</em>.</li>
@@ -2254,7 +2348,7 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
                     </p>
                     <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block font-bold">🔒 Logarithmic & Boundary Safety System:</span>
-                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-455 space-y-1.5">
                             <li><strong>Input Sanitization:</strong> Values are automatically sanitized to prevent `NaN` or `Infinity` score errors.</li>
                             <li><strong>Math Log Protection:</strong> Input values are capped at a minimum of `1.0` before entering logarithm formulas.</li>
                             <li><strong>Score Capping:</strong> MELD calculations are capped strictly between **6 and 40** to match official clinical standards.</li>
@@ -2274,7 +2368,7 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
                     </p>
                     <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
-                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-455 space-y-1.5">
                             <li><strong>Layer Toggle:</strong> Switch between skeletal and muscular views instantly.</li>
                             <li><strong>Hotspot Discovery:</strong> Glowing gold dots and expanding rings highlight symptomatic zones (e.g. Brain, Chest).</li>
                             <li><strong>Anatomy Correlation:</strong> Click <em>Correlate with Active Note</em> to cross-reference selected organs against patient history logs.</li>
@@ -2293,7 +2387,7 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
                     </p>
                     <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
-                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-455 space-y-1.5">
                             <li><strong>LoRA Simulation:</strong> Click <em>Start LoRA Fine-Tuning</em> to run training steps and view descending loss metrics.</li>
                             <li><strong>Adapter Deployment:</strong> Once training completes, the model status changes to <em>MODEL DEPLOYED (ACTIVE)</em>.</li>
                             <li><strong>Custom Parser:</strong> The workspace dropdown switches to the custom model, updating structuring logic to include newly learned diagnostic rules (e.g. mapping ejection fraction directly to Decompensated Heart Failure).</li>
@@ -2312,11 +2406,50 @@ print("ML-Ready Dataset compiled successfully!")</code></pre>
                     </p>
                     <div class="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200/50 dark:border-stone-800/50 space-y-2">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-[#4A5D4E] dark:text-[#E0ECE2] block">Interactive Workflows:</span>
-                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-450 space-y-1.5">
+                        <ul class="list-disc list-inside text-[11px] text-stone-500 dark:text-stone-455 space-y-1.5">
                             <li><strong>FHIR Client Query:</strong> Fetch patient resource payloads with color-coded syntax highlighting (Washi Gold for keys, green for strings, blue for numbers).</li>
                             <li><strong>HIPAA Shield:</strong> Displays security status verification logs.</li>
                             <li><strong>Clipboard Copy:</strong> Copy raw JSON payload formats instantly using the <em>Copy Payload</em> button (includes haptic sounds and toast alerts).</li>
                         </ul>
+                    </div>
+                </div>
+
+                <!-- HIPAA Security Card -->
+                <div id="doc-security" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">🛡️</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">HIPAA Privacy Compliance & Security Shield</h3>
+                    </div>
+                    <p class="text-xs text-stone-550 dark:text-stone-400 leading-relaxed">
+                        Shinrin AI operates on a **zero-PHI backend architecture**. Traditional health portals route sensitive patient details to central servers, increasing data leak liabilities. Shinrin AI shields clinician operations:
+                    </p>
+                    <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200/50 dark:border-emerald-900/50 space-y-2 text-xs text-emerald-850 dark:text-emerald-350">
+                        <span class="text-[9px] font-mono font-bold uppercase tracking-widest block text-emerald-700 dark:text-emerald-400">Security Safeguard Protocols:</span>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>Client-Side Processing:</strong> All Named Entity Recognition (NER), local note structuring, and audio Whisper dictation happen fully inside local browser memory.</li>
+                            <li><strong>Auto De-Identification:</strong> FHIR registry payloads filter out identifiers (HIPAA Safe Harbor standard) before being synced to the dev log workspace.</li>
+                            <li><strong>Local Storage Encryption:</strong> Cached workspace SOAP profiles remain isolated within browser local-storage.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Legal Disclaimers Card -->
+                <div id="doc-legal" class="doc-section glass-panel rounded-[24px] p-6 space-y-4 border border-stone-200/40 dark:border-stone-800/40">
+                    <div class="flex items-center gap-2 pb-2.5 border-b border-stone-200/20 dark:border-stone-800/20">
+                        <span class="text-lg">⚖️</span>
+                        <h3 class="font-serif text-sm font-black text-stone-850 dark:text-white">Clinical & Legal Disclaimers</h3>
+                    </div>
+                    <div class="p-3.5 bg-amber-50 dark:bg-amber-950/25 rounded-2xl border border-amber-250/50 dark:border-amber-900/50 space-y-2 text-xs text-amber-850 dark:text-amber-300 leading-relaxed">
+                        <span class="text-[9px] font-bold uppercase tracking-wide block text-amber-700 dark:text-amber-400">⚠️ IMPORTANT LEGAL WARNING:</span>
+                        <p>
+                            This dashboard is a **proof-of-concept prototype** created to demonstrate advanced AI clinical middleware architectures. All patient datasets, case files, vitals waveforms, and clinical guidelines checking outputs are strictly simulated. 
+                        </p>
+                        <p class="font-semibold mt-1">
+                            This software should NOT be used as medical advice or in actual healthcare facilities.
+                        </p>
+                    </div>
+                    <div class="text-[10px] text-stone-500 dark:text-stone-450 font-mono pt-2 border-t border-stone-200/10 dark:border-stone-800/10">
+                        <span>Licensing: Open-source MIT License // Developed by Dr. Baddam Sucharith Reddy (AI-Assisted)</span>
                     </div>
                 </div>
             </div>
